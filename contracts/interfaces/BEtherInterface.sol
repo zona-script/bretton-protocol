@@ -4,13 +4,9 @@ import "./BTokenInterface.sol";
 
 /**
  * @title BEtherInterface
- * @dev BToken token interface
+ * @dev BEther token interface
  */
 contract BEtherInterface {
-    /**
-    * @notice Underlying asset for this BToken
-    */
-    address public underlying;
 
     /*** User Interface ***/
     function mint(uint mintAmount) external payable;

@@ -1,6 +1,12 @@
+pragma solidity 0.5.16;
+
 import "./InterestRateModelInterface.sol";
 import "./ControllerInterface.sol";
 
+/**
+ * @title BTokenInterface
+ * @dev BToken token interface
+ */
 contract BTokenInterface {
     /**
      * @dev Guard variable for re-entrancy checks

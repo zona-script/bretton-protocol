@@ -1,10 +1,10 @@
 pragma solidity 0.5.16;
 
 /**
- * @title ERC20
- * @dev ERC20 token interface
+ * @title Erc20
+ * @dev Erc20 token interface
  */
-contract ERC20Interface {
+contract Erc20Interface {
     /**
      * @notice EIP-20 token name for this token
      */

@@ -3,12 +3,12 @@ pragma solidity 0.5.16;
 import "./BTokenInterface.sol";
 
 /**
- * @title BTokenInterface
- * @dev BToken token interface
+ * @title BErc20Interface
+ * @dev BErc20 token interface
  */
-contract BERC20Interface {
+contract BErc20Interface {
     /**
-    * @notice Underlying asset for this BToken
+    * @notice Underlying asset for this BErc20 Token
     */
     address public underlying;
 
