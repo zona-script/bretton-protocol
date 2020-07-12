@@ -1,22 +1,20 @@
-"use strict"
+const { accounts, contract } = require('@openzeppelin/test-environment')
+const { expect } = require('chai')
 
-import { expect } from 'chai'
-const EVMRevert = require("./helpers/EVMRevert.js")
+// Use the different accounts, which are unlocked and funded with Ether
+const [ admin, deployer, user ] = accounts
 
 require('chai')
   .use(require('chai-as-promised'))
   .should()
 
-const ERC20 = artifacts.require("ERC20Interface.sol")
-
-contract("BToken", accounts => {
+describe("BToken", () => {
 
     beforeEach(async () => {
 
     })
 
     it('Init', async () => {
-      assert.equal(1, 1)
-
+      expect(1).to.equal(1)
     })
 })
