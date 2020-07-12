@@ -1,20 +1,17 @@
-const { accounts, contract } = require('@openzeppelin/test-environment')
+const { accounts, contract, web3 } = require('@openzeppelin/test-environment')
 const { expect } = require('chai')
 
-// Use the different accounts, which are unlocked and funded with Ether
-const [ admin, deployer, user ] = accounts
+// Load compiled artifacts
+const BToken = contract.fromArtifact('BToken')
 
-require('chai')
-  .use(require('chai-as-promised'))
-  .should()
+describe('BToken', function () {
 
-describe("BToken", () => {
+  beforeEach(async function () {
+    // Deploy a new BToken contract for each test
+    this.contract = await BToken.new()
+  })
 
-    beforeEach(async () => {
-
-    })
-
-    it('Init', async () => {
-      expect(1).to.equal(1)
-    })
+  it('Init', async function () {
+    expect(1).to.equal(1)
+  })
 })
