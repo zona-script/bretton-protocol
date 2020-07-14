@@ -5,6 +5,7 @@ pragma solidity 0.5.16;
   * @author Bretton
   */
 contract InterestRateModelInterface {
+  
     /**
      * @notice Indicator that this is an InterestRateModel contract (for inspection)
      */
