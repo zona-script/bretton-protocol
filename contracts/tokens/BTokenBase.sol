@@ -2,15 +2,13 @@ pragma solidity 0.5.16;
 
 import "../interfaces/BTokenInterface.sol";
 import "../interfaces/Erc20Interface.sol";
-import "../utils/ErrorReporter.sol";
-import "../math/Exponential.sol";
 
 /**
  * @title Bretton's BToken Contract
  * @notice Abstract base for BTokens
  * @author Bretton
  */
-contract BTokenBase is BTokenInterface, Erc20Interface, TokenErrorReporter, Exponential {
+contract BTokenBase is BTokenInterface, Erc20Interface {
 
     /*** ERC20 USER FUNCTIONS ***/
 
