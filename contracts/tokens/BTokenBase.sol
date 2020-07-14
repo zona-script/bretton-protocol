@@ -12,48 +12,6 @@ import "../math/Exponential.sol";
  */
 contract BTokenBase is BTokenInterface, Erc20Interface, TokenErrorReporter, Exponential {
 
-    /**
-     * @notice Initialize the money market
-     * @param controller_ The address of the Controller
-     * @param interestRateModel_ The address of the interest rate model
-     * @param initialExchangeRateMantissa_ The initial exchange rate, scaled by 1e18
-     * @param name_ EIP-20 name of this token
-     * @param symbol_ EIP-20 symbol of this token
-     * @param decimals_ EIP-20 decimal precision of this token
-     */
-    function initialize(ControllerInterface controller_,
-                        InterestRateModelInterface interestRateModel_,
-                        uint initialExchangeRateMantissa_,
-                        string memory name_,
-                        string memory symbol_,
-                        uint8 decimals_) public {
-        require(msg.sender == admin, "only admin may initialize the market");
-        require(accrualBlockNumber == 0 && borrowIndex == 0, "market may only be initialized once");
-
-        // Set initial exchange rate
-        initialExchangeRateMantissa = initialExchangeRateMantissa_;
-        require(initialExchangeRateMantissa > 0, "initial exchange rate must be greater than zero.");
-
-        // Set the controller
-        uint err = _setController(controller_);
-        require(err == uint(Error.NO_ERROR), "setting controller failed");
-
-        // Initialize block number and borrow index (block number mocks depend on controller being set)
-        accrualBlockNumber = getBlockNumber();
-        borrowIndex = mantissaOne;
-
-        // Set the interest rate model (depends on block number / borrow index)
-        err = _setInterestRateModelFresh(interestRateModel_);
-        require(err == uint(Error.NO_ERROR), "setting interest rate model failed");
-
-        name = name_;
-        symbol = symbol_;
-        decimals = decimals_;
-
-        // The counter starts true to prevent changing it from zero to non-zero (i.e. smaller cost/refund)
-        _notEntered = true;
-    }
-
     /*** ERC20 USER FUNCTIONS ***/
 
     function balanceOf(address tokenOwner) external view returns (uint balance) {
@@ -179,50 +137,6 @@ contract BTokenBase is BTokenInterface, Erc20Interface, TokenErrorReporter, Expo
 
 
     /*** INTERNAL FUNCTIONS ***/
-
-    /**
-     * @dev Function to simply retrieve block number
-     *  This exists mainly for inheriting test contracts to stub this result.
-     */
-    function getBlockNumber() internal view returns (uint) {
-        return block.number;
-    }
-
-    /**
-     * @notice updates the interest rate model (*requires fresh interest accrual)
-     * @dev Admin function to update the interest rate model
-     * @param newInterestRateModel the new interest rate model to use
-     * @return uint 0=success, otherwise a failure (see ErrorReporter.sol for details)
-     */
-    function _setInterestRateModelFresh(InterestRateModelInterface newInterestRateModel) internal returns (uint) {
-
-        // Used to store old model for use in the event that is emitted on success
-        InterestRateModelInterface oldInterestRateModel;
-
-        // Check caller is admin
-        if (msg.sender != admin) {
-            return fail(Error.UNAUTHORIZED, FailureInfo.SET_INTEREST_RATE_MODEL_OWNER_CHECK);
-        }
-
-        // We fail gracefully unless market's block number equals current block number
-        if (accrualBlockNumber != getBlockNumber()) {
-            return fail(Error.MARKET_NOT_FRESH, FailureInfo.SET_INTEREST_RATE_MODEL_FRESH_CHECK);
-        }
-
-        // Track the market's current interest rate model
-        oldInterestRateModel = interestRateModel;
-
-        // Ensure invoke newInterestRateModel.isInterestRateModel() returns true
-        require(newInterestRateModel.isInterestRateModel(), "marker method returned false");
-
-        // Set the interest rate model to newInterestRateModel
-        interestRateModel = newInterestRateModel;
-
-        // Emit NewMarketInterestRateModel(oldInterestRateModel, newInterestRateModel)
-        emit NewMarketInterestRateModel(oldInterestRateModel, newInterestRateModel);
-
-        return uint(Error.NO_ERROR);
-    }
 
     /*** MODIFIERS ***/
 
