@@ -8,6 +8,7 @@ import "./ControllerInterface.sol";
  * @dev BToken token interface
  */
 contract BTokenInterface {
+
     /**
      * @dev Guard variable for re-entrancy checks
      */
@@ -189,7 +190,8 @@ contract BTokenInterface {
      */
     event Failure(uint error, uint info, uint detail);
 
-    /*** User Interface ***/
+    /*** User Functions ***/
+
     function balanceOfUnderlying(address owner) external returns (uint);
     function getAccountSnapshot(address account) external view returns (uint, uint, uint, uint);
     function borrowRatePerBlock() external view returns (uint);
@@ -204,6 +206,7 @@ contract BTokenInterface {
     function seize(address liquidator, address borrower, uint seizeTokens) external returns (uint);
 
     /*** Admin Functions ***/
+
     function _setPendingAdmin(address payable newPendingAdmin) external returns (uint);
     function _acceptAdmin() external returns (uint);
     function _setController(ControllerInterface newController) public returns (uint);

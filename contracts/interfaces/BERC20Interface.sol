@@ -7,12 +7,14 @@ import "./BTokenInterface.sol";
  * @dev BErc20 token interface
  */
 contract BErc20Interface {
+
     /**
     * @notice Underlying asset for this BErc20 Token
     */
     address public underlying;
 
-    /*** User Interface ***/
+    /*** User Functions ***/
+
     function mint(uint mintAmount) external returns (uint);
     function redeem(uint redeemTokens) external returns (uint);
     function redeemUnderlying(uint redeemAmount) external returns (uint);
@@ -22,5 +24,6 @@ contract BErc20Interface {
     function liquidateBorrow(address borrower, uint repayAmount, BTokenInterface bTokenCollateral) external returns (uint);
 
     /*** Admin Functions ***/
+
     function _addReserves(uint addAmount) external returns (uint);
 }

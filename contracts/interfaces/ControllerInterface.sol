@@ -7,10 +7,12 @@ contract ControllerInterface {
     bool public constant isController = true;
 
     /*** Assets You Are In ***/
+
     function enterMarkets(address[] calldata bTokens) external returns (uint[] memory);
     function exitMarket(address bToken) external returns (uint);
 
     /*** Policy Hooks ***/
+
     function mintAllowed(address bToken, address minter, uint mintAmount) external returns (uint);
     function mintVerify(address bToken, address minter, uint mintAmount, uint mintTokens) external;
 
@@ -67,6 +69,7 @@ contract ControllerInterface {
     function transferVerify(address bToken, address src, address dst, uint transferTokens) external;
 
     /*** Liquidity/Liquidation Calculations ***/
+    
     function liquidateCalculateSeizeTokens(
         address bTokenBorrowed,
         address bTokenCollateral,

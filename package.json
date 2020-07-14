@@ -3,9 +3,10 @@
   "version": "1.0.0",
   "description": "The Bretton Protocol",
   "scripts": {
-    "clear-build": "rm -rf build",
-    "build": "npm run clear-build && oz compile",
-    "test": "npm run build && mocha --exit --recursive test"
+    "clean": "rm -rf build",
+    "build": "oz compile",
+    "clean-build": "npm run clean && npm run build",
+    "test": "npm run clean-build && mocha --exit --recursive test"
   },
   "author": "Bretton Protocol",
   "license": "MIT",

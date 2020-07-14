@@ -8,7 +8,8 @@ import "./BTokenInterface.sol";
  */
 contract BEtherInterface {
 
-    /*** User Interface ***/
+    /*** User Functions ***/
+
     function mint(uint mintAmount) external payable;
     function redeem(uint redeemTokens) external returns (uint);
     function redeemUnderlying(uint redeemAmount) external returns (uint);
@@ -19,5 +20,6 @@ contract BEtherInterface {
     function () external payable;
 
     /*** Admin Functions ***/
+    
     function _addReserves(uint addAmount) external returns (uint);
 }
