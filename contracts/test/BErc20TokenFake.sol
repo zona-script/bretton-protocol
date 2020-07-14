@@ -1,13 +1,13 @@
 pragma solidity 0.5.16;
 
 import "../interfaces/BErc20Interface.sol";
-import "../bases/BToken.sol";
+import "../tokens/BTokenBase.sol";
 
 /**
  * @title BErc20TokenFake
  * @dev Fake BErc20 token implementation for testing
  */
-contract BErc20TokenFake is BToken, BErc20Interface {
+contract BErc20TokenFake is BTokenBase, BErc20Interface {
     constructor() public {}
 
     /*** BERC20 USER FUNCTIONS ***/

@@ -10,7 +10,7 @@ import "../math/Exponential.sol";
  * @notice Abstract base for BTokens
  * @author Bretton
  */
-contract BToken is BTokenInterface, Erc20Interface, TokenErrorReporter, Exponential {
+contract BTokenBase is BTokenInterface, Erc20Interface, TokenErrorReporter, Exponential {
 
     /**
      * @notice Initialize the money market

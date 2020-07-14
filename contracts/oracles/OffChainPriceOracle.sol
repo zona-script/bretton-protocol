@@ -1,7 +1,7 @@
 pragma solidity 0.5.16;
 
 import "../interfaces/PriceOracleInterface.sol";
-import "../bases/BToken.sol";
+import "../tokens/BTokenBase.sol";
 import "../interfaces/BErc20Interface.sol";
 import "../utils/Ownable.sol";
 
@@ -25,7 +25,7 @@ contract OffChainPriceOracle is PriceOracleInterface, Ownable {
       * @return The underlying asset price mantissa (scaled by 1e18).
       *         Zero means the price is unavailable.
       */
-    function getUnderlyingPrice(BToken bToken) public view returns (uint) {
+    function getUnderlyingPrice(BTokenBase bToken) public view returns (uint) {
         if (compareStrings(bToken.symbol(), "bETH")) {
             return 1e18;
         } else {

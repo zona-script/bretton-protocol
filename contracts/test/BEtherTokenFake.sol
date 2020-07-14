@@ -1,13 +1,13 @@
 pragma solidity 0.5.16;
 
 import "../interfaces/BEtherInterface.sol";
-import "../bases/BToken.sol";
+import "../tokens/BTokenBase.sol";
 
 /**
  * @title BEtherTokenFake
  * @dev Fake BEther token implementation for testing
  */
-contract BEtherTokenFake is BToken, BEtherInterface {
+contract BEtherTokenFake is BTokenBase, BEtherInterface {
     constructor() public {}
 
     /*** BEther USER FUNCTIONS ***/

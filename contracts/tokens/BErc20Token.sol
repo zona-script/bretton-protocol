@@ -1,13 +1,13 @@
 pragma solidity 0.5.16;
 
-import "./bases/BErc20.sol";
+import "./BErc20Base.sol";
 
 /**
  * @title Bretton's BErc20Immutable Contract
  * @notice BErc20 token implementation that is immutable
  * @author Bretton
  */
-contract BErc20Immutable is BErc20 {
+contract BErc20Token is BErc20Base {
 
     /**
      * @notice Construct a new money market
