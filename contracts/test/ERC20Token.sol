@@ -18,12 +18,12 @@ contract StandardToken is Erc20Interface {
     mapping (address => mapping (address => uint256)) public allowance;
     mapping(address => uint256) public balanceOf;
 
-    constructor(uint256 _initialAmount, string memory _tokenName, uint8 _decimalUnits, string memory _tokenSymbol) public {
-        totalSupply = _initialAmount;
-        balanceOf[msg.sender] = _initialAmount;
-        name = _tokenName;
-        symbol = _tokenSymbol;
-        decimals = _decimalUnits;
+    constructor(uint256 initialAmount_, string memory tokenName_, uint8 decimalUnits_, string memory tokenSymbol_) public {
+        totalSupply = initialAmount_;
+        balanceOf[msg.sender] = initialAmount_;
+        name = tokenName_;
+        symbol = tokenSymbol_;
+        decimals = decimalUnits_;
     }
 
     function transfer(address dst, uint256 amount) external returns (bool) {
@@ -41,9 +41,9 @@ contract StandardToken is Erc20Interface {
         return true;
     }
 
-    function approve(address _spender, uint256 amount) external returns (bool) {
-        allowance[msg.sender][_spender] = amount;
-        emit Approval(msg.sender, _spender, amount);
+    function approve(address spender_, uint256 amount) external returns (bool) {
+        allowance[msg.sender][spender_] = amount;
+        emit Approval(msg.sender, spender_, amount);
         return true;
     }
 }

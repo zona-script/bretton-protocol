@@ -33,8 +33,8 @@ contract InterestRateModel is InterestRateModelInterface {
      * @param baseRatePerYear The approximate target base APR, as a mantissa (scaled by 1e18)
      * @param multiplierPerYear The rate of increase in interest rate wrt utilization (scaled by 1e18)
      */
-    constructor(uint baseRatePerYear, uint multiplierPerYear, uint _blocksPerYear) public {
-        blocksPerYear = _blocksPerYear;
+    constructor(uint baseRatePerYear, uint multiplierPerYear, uint blocksPerYear_) public {
+        blocksPerYear = blocksPerYear_;
         baseRatePerBlock = baseRatePerYear.mul(1e18).div(blocksPerYear);
         require(baseRatePerBlock > 0, 'baseRatePerBlock must be greater than 0');
         multiplierPerBlock = multiplierPerYear.mul(1e18).div(blocksPerYear);

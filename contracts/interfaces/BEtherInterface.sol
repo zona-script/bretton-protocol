@@ -20,6 +20,6 @@ contract BEtherInterface {
     function () external payable;
 
     /*** Admin Functions ***/
-    
+
     function _addReserves(uint addAmount) external returns (uint);
 }
