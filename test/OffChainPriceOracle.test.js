@@ -57,8 +57,10 @@ describe('OffChainPriceOracle', function () {
   })
 
   it('should always return 1e18 for BEther token', async () => {
+    const underlying = '0x0000000000000000000000000000000000000000'
     const bEtherToken = await BEtherTokenFake.new()
     await bEtherToken.setSymbol('bETH')
+    await bEtherToken.setUnderlying(underlying)
     expect(await offChainPriceOracle.getUnderlyingPrice(bEtherToken.address)).to.be.bignumber.equal(new BN('1000000000000000000'))
   })
 

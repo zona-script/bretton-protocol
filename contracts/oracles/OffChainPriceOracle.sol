@@ -2,7 +2,6 @@ pragma solidity 0.5.16;
 
 import "../interfaces/PriceOracleInterface.sol";
 import "../tokens/BTokenBase.sol";
-import "../interfaces/BErc20Interface.sol";
 import "../utils/Ownable.sol";
 
 contract OffChainPriceOracle is PriceOracleInterface, Ownable {
@@ -26,10 +25,10 @@ contract OffChainPriceOracle is PriceOracleInterface, Ownable {
       *         Zero means the price is unavailable.
       */
     function getUnderlyingPrice(BTokenBase bToken) public view returns (uint) {
-        if (compareStrings(bToken.symbol(), "bETH")) {
+        if (compareStrings(bToken.symbol(), "bETH") && bToken.underlying() == address(0)) {
             return 1e18;
         } else {
-            return prices[address(BErc20Interface(address(bToken)).underlying())];
+            return prices[bToken.underlying()];
         }
     }
 

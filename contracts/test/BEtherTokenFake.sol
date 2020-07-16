@@ -31,4 +31,8 @@ contract BEtherTokenFake is BEtherBase {
     function setSymbol(string memory symbol_) public {
         symbol = symbol_;
     }
+
+    function setUnderlying(address underlying_) public {
+        underlying = underlying_;
+    }
 }

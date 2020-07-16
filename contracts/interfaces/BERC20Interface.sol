@@ -8,11 +8,6 @@ import "./BTokenInterface.sol";
  */
 contract BErc20Interface {
 
-    /**
-    * @notice Underlying asset for this BErc20 Token
-    */
-    address public underlying;
-
     /*** User Functions ***/
 
     function mint(uint mintAmount) external returns (uint);

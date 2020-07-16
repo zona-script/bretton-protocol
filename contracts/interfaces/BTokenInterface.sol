@@ -15,6 +15,11 @@ contract BTokenInterface {
     bool internal _notEntered;
 
     /**
+    * @notice Underlying asset for this BErc20 Token
+    */
+    address public underlying;
+
+    /**
      * @notice Maximum borrow rate that can ever be applied (.0005% / block)
      */
     uint internal constant borrowRateMaxMantissa = 0.0005e16;
