@@ -133,7 +133,6 @@ contract BTokenBase is BTokenInterface, Erc20Interface {
         return 0;
     }
 
-
     /*** INTERNAL FUNCTIONS ***/
 
     /*** MODIFIERS ***/

@@ -85,5 +85,4 @@ contract InterestRateModel is InterestRateModelInterface {
         uint rateToPool = borrowRate.mul(oneMinusReserveFactor).div(1e18);
         return utilizationRate(cash, borrows, reserves).mul(rateToPool).div(1e18);
     }
-
 }
