@@ -13,20 +13,25 @@ contract InterestRateModel is InterestRateModelInterface {
 
     event NewInterestParams(uint baseRatePerBlock, uint multiplierPerBlock, uint blocksPerYear);
 
-   /**
+    /**
+     * @notice Indicator that this is an InterestRateModel contract (for inspection)
+     */
+    bool public constant isInterestRateModel = true;
+
+    /**
     * @notice The approximate number of blocks per year that is assumed by the interest rate model
     */
-   uint public blocksPerYear;
+    uint public blocksPerYear;
 
-   /**
+    /**
     * @notice The multiplier of utilization rate that gives the slope of the interest rate
     */
-   uint public multiplierPerBlock;
+    uint public multiplierPerBlock;
 
-   /**
+    /**
     * @notice The base interest rate which is the y-intercept when utilization rate is 0
     */
-   uint public baseRatePerBlock;
+    uint public baseRatePerBlock;
 
     /**
      * @notice Construct an interest rate model

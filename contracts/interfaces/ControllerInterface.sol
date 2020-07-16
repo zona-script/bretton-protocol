@@ -1,10 +1,6 @@
 pragma solidity 0.5.16;
 
 contract ControllerInterface {
-    /**
-     * @notice Indicator that this is a Controller contract (for inspection)
-     */
-    bool public constant isController = true;
 
     /*** Assets You Are In ***/
 
@@ -69,7 +65,7 @@ contract ControllerInterface {
     function transferVerify(address bToken, address src, address dst, uint transferTokens) external;
 
     /*** Liquidity/Liquidation Calculations ***/
-    
+
     function liquidateCalculateSeizeTokens(
         address bTokenBorrowed,
         address bTokenCollateral,

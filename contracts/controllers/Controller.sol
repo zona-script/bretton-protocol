@@ -1,13 +1,14 @@
 pragma solidity 0.5.16;
 
 import "../interfaces/ControllerInterface.sol";
+import "../storages/ControllerStorage.sol";
 
 /**
   * @title Bretton's Controller Implementation
   * @notice Risk model contract that control and permit BToken user actions
   * @author Controller
   */
-contract Controller is ControllerInterface {
+contract Controller is ControllerInterface, ControllerStorageV1 {
 
     /**
      * @notice Construct an interest rate model
@@ -30,7 +31,7 @@ contract Controller is ControllerInterface {
     function redeemVerify(address bToken, address redeemer, uint redeemAmount, uint redeemTokens) external {}
 
     function borrowAllowed(address bToken, address borrower, uint borrowAmount) external returns (uint) {
-        
+
     }
     function borrowVerify(address bToken, address borrower, uint borrowAmount) external {}
 

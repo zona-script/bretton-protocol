@@ -4,8 +4,10 @@ import "../tokens/BTokenBase.sol";
 
 contract PriceOracleInterface {
 
-    /// @notice Indicator that this is a PriceOracle contract (for inspection)
-    bool public constant isPriceOracle = true;
+    /**
+      * @notice Indicator that this is a PriceOracle contract (for inspection)
+      */
+    function isPriceOracle() external view returns (bool);
 
     /**
       * @notice Get the underlying price of a bToken asset

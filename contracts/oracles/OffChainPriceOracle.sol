@@ -5,6 +5,9 @@ import "../tokens/BTokenBase.sol";
 import "../utils/Ownable.sol";
 
 contract OffChainPriceOracle is PriceOracleInterface, Ownable {
+
+    bool public constant isPriceOracle = true;
+
     mapping(address => uint) public prices;
 
     /*** EVENTS ***/
