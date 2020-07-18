@@ -27,11 +27,11 @@ contract OffChainPriceOracle is PriceOracleInterface, Ownable {
       * @return The underlying asset price mantissa (scaled by 1e18).
       *         Zero means the price is unavailable.
       */
-    function getUnderlyingPrice(BTokenBase bToken) public view returns (uint) {
-        if (compareStrings(bToken.symbol(), "bETH") && bToken.underlying() == address(0)) {
+    function getUnderlyingPrice(address bToken) public view returns (uint) {
+        if (compareStrings(BTokenBase(bToken).symbol(), "bETH") && BTokenBase(bToken).underlying() == address(0)) {
             return 1e18;
         } else {
-            return prices[bToken.underlying()];
+            return prices[BTokenBase(bToken).underlying()];
         }
     }
 

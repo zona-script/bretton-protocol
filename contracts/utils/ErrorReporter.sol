@@ -10,7 +10,6 @@ contract ControllerErrorReporter {
         INVALID_CLOSE_FACTOR,
         INVALID_COLLATERAL_FACTOR,
         INVALID_LIQUIDATION_INCENTIVE,
-        MARKET_NOT_ENTERED, // no longer possible
         MARKET_NOT_LISTED,
         MARKET_ALREADY_LISTED,
         MATH_ERROR,

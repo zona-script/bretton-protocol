@@ -1,7 +1,5 @@
 pragma solidity 0.5.16;
 
-import "../tokens/BTokenBase.sol";
-
 contract PriceOracleInterface {
 
     /**
@@ -15,5 +13,5 @@ contract PriceOracleInterface {
       * @return The underlying asset price mantissa (scaled by 1e18).
       *         Zero means the price is unavailable.
       */
-    function getUnderlyingPrice(BTokenBase bToken) external view returns (uint);
+    function getUnderlyingPrice(address bToken) external view returns (uint);
 }

@@ -10,7 +10,7 @@ import "./BTokenBase.sol";
  */
 contract BEtherBase is BTokenBase, BEtherInterface {
     // NO STORAGE VARIABLES ALLOWED. ALL STORAGE VARIABLE SHOULD GO INTO BTOKEN
-    
+
     /*** BEther USER FUNCTIONS ***/
 
     function mint(uint mintAmount) external payable {}
@@ -25,7 +25,7 @@ contract BEtherBase is BTokenBase, BEtherInterface {
 
     function repayBorrowBehalf(address borrower, uint repayAmount) external payable {}
 
-    function liquidateBorrow(address borrower, uint repayAmount, BTokenInterface bTokenCollateral) external payable {}
+    function liquidateBorrow(address borrower, uint repayAmount, address bTokenCollateral) external payable {}
 
     function () external payable {}
 

@@ -25,7 +25,7 @@ contract BErc20Base is BTokenBase, BErc20Interface {
 
     function repayBorrowBehalf(address borrower, uint repayAmount) external returns (uint) {}
 
-    function liquidateBorrow(address borrower, uint repayAmount, BTokenInterface bTokenCollateral) external returns (uint) {}
+    function liquidateBorrow(address borrower, uint repayAmount, address bTokenCollateral) external returns (uint) {}
 
     /*** BErc20 ADMIN FUNCTIONS ***/
 

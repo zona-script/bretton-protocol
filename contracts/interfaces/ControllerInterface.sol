@@ -2,15 +2,20 @@ pragma solidity 0.5.16;
 
 contract ControllerInterface {
 
+    /**
+     * @notice Indicator that this is an Controller contract (for inspection)
+     */
+    function isController() external returns (bool);
+
     /*** Assets You Are In ***/
 
-    function enterMarkets(address[] calldata bTokens) external returns (uint[] memory);
+    function enterMarket(address bToken) external returns (uint);
     function exitMarket(address bToken) external returns (uint);
 
     /*** Policy Hooks ***/
 
     function mintAllowed(address bToken, address minter, uint mintAmount) external returns (uint);
-    function mintVerify(address bToken, address minter, uint mintAmount, uint mintTokens) external;
+    function mintVerify(address bToken, address minter, uint actualMintAmount, uint mintTokens) external;
 
     function redeemAllowed(address bToken, address redeemer, uint redeemTokens) external returns (uint);
     function redeemVerify(address bToken, address redeemer, uint redeemAmount, uint redeemTokens) external;
@@ -28,7 +33,7 @@ contract ControllerInterface {
         address bToken,
         address payer,
         address borrower,
-        uint repayAmount,
+        uint actualRepayAmount,
         uint borrowerIndex) external;
 
     function liquidateBorrowAllowed(
@@ -70,4 +75,36 @@ contract ControllerInterface {
         address bTokenBorrowed,
         address bTokenCollateral,
         uint repayAmount) external view returns (uint, uint);
+
+    /*** EVENTS  ***/
+
+    /// @notice Emitted when an admin supports a market
+    event MarketListed(address bToken);
+
+    /// @notice Emitted when an account enters a market
+    event MarketEntered(address bToken, address account);
+
+    /// @notice Emitted when an account exits a market
+    event MarketExited(address bToken, address account);
+
+    /// @notice Emitted when a collateral factor is changed by admin
+    event NewCollateralFactor(address bToken, uint oldCollateralFactorMantissa, uint newCollateralFactorMantissa);
+
+    /// @notice Emitted when close factor is changed by admin
+    event NewCloseFactor(address bToken, uint oldCloseFactorMantissa, uint newCloseFactorMantissa);
+
+    /// @notice Emitted when liquidation incentive is changed by admin
+    event NewLiquidationIncentive(address bToken, uint oldLiquidationIncentiveMantissa, uint newLiquidationIncentiveMantissa);
+
+    /// @notice Emitted when maxAssets is changed by admin
+    event NewMaxAssets(uint oldMaxAssets, uint newMaxAssets);
+
+    /// @notice Emitted when price oracle is changed
+    event NewPriceOracle(address oldPriceOracle, address newPriceOracle);
+
+    /// @notice Emitted when an action is paused globally
+    event ActionPaused(string action, bool pauseState);
+
+    /// @notice Emitted when an action is paused on a market
+    event ActionPaused(address bToken, string action, bool pauseState);
 }

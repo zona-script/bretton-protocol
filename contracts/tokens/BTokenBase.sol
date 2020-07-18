@@ -19,9 +19,9 @@ contract BTokenBase is Erc20Interface, BTokenInterface, BTokenStorageV1 {
 
     function approve(address spender, uint tokens) external returns (bool success) {}
 
-    function transfer(address to, uint tokens) external nonReentrant returns (bool success) {}
+    function transfer(address to, uint tokens) external returns (bool success) {}
 
-    function transferFrom(address from, address to, uint tokens) external nonReentrant returns (bool success) {}
+    function transferFrom(address from, address to, uint tokens) external returns (bool success) {}
 
     /*** BTOKEN USER FUNCTIONS ***/
 
@@ -33,21 +33,33 @@ contract BTokenBase is Erc20Interface, BTokenInterface, BTokenStorageV1 {
 
     function supplyRatePerBlock() external view returns (uint) {}
 
-    function totalBorrowsCurrent() external nonReentrant returns (uint) {}
+    function totalBorrowsCurrent() external returns (uint) {}
 
-    function borrowBalanceCurrent(address account) external nonReentrant returns (uint) {}
+    function borrowBalanceCurrent(address account) external returns (uint) {}
 
     function borrowBalanceStored(address account) public view returns (uint) {}
 
-    function exchangeRateCurrent() public nonReentrant returns (uint) {}
+    function exchangeRateCurrent() public returns (uint) {}
 
     function exchangeRateStored() public view returns (uint) {}
 
     function getCash() external view returns (uint) {}
 
-    function accrueInterest() public returns (uint) {}
+    function accrueInterest() public returns (uint) {
+        // called on every action to accrue interest
+        // get interest rate since last update:
+            // borrowRate = interestRateModel.borrowRate() (this is rate per block)
+            // simpleInterestFactor = numOfBlocksSinceLastUpdate * borrowRate
+        // update borrow index:
+            // borrowInterestIndex = borrowInterestIndex * (1 + simpleInterestFactor)
+        // calculate interest  accured:
+            // interestAccured = totalBorrow * (1 + simpleInterestFactor)
+        // calculate new totalBorrowed and totalReserve:
+            // totalBorrowed += interestAccured
+            // totalReserved += interestAccured * (1 + reserveFactor)
+    }
 
-    function seize(address liquidator, address borrower, uint seizeTokens) external nonReentrant returns (uint) {}
+    function seize(address liquidator, address borrower, uint seizeTokens) external returns (uint) {}
 
     /*** BTOKEN INTERFACE ADMIN FUNCTIONS ***/
 
@@ -55,25 +67,80 @@ contract BTokenBase is Erc20Interface, BTokenInterface, BTokenStorageV1 {
 
     function _acceptAdmin() external returns (uint) {}
 
-    function _setController(ControllerInterface newController) public returns (uint) {}
+    function _setController(address newController) public returns (uint) {}
 
-    function _setReserveFactor(uint newReserveFactorMantissa) external nonReentrant returns (uint) {}
+    function _setReserveFactor(uint newReserveFactorMantissa) external returns (uint) {}
 
-    function _reduceReserves(uint reduceAmount) external nonReentrant returns (uint) {}
+    function _reduceReserves(uint reduceAmount) external returns (uint) {}
 
-    function _setInterestRateModel(InterestRateModelInterface newInterestRateModel) public returns (uint) {}
+    function _setInterestRateModel(address newInterestRateModel) public returns (uint) {}
 
     /*** INTERNAL FUNCTIONS ***/
 
-    /*** MODIFIERS ***/
+    /**
+     * @notice User supplies assets into the market and receives bTokens in exchange
+     * @dev Assumes interest has already been accrued up to the current block
+     * @param minter The address of the account which is supplying the assets
+     * @param mintAmount The amount of the underlying asset to supply
+     * @return (uint, uint) An error code (0=success, otherwise a failure, see ErrorReporter.sol), and the actual mint amount.
+     */
+    function mintFresh(address minter, uint mintAmount) internal returns (uint, uint) {
+        // check controller
+        // calculate numbers
+        // transferIn underlying from minter
+    }
 
     /**
-     * @dev Prevents a contract from calling itself, directly or indirectly.
+     * @notice User redeems bTokens in exchange for the underlying asset
+     * @dev Assumes interest has already been accrued up to the current block
+     * @param redeemer The address of the account which is redeeming the tokens
+     * @param redeemTokensIn The number of bTokens to redeem into underlying (only one of redeemTokensIn or redeemAmountIn may be non-zero)
+     * @param redeemAmountIn The number of underlying tokens to receive from redeeming bTokens (only one of redeemTokensIn or redeemAmountIn may be non-zero)
+     * @return uint 0=success, otherwise a failure (see ErrorReporter.sol for details)
      */
-    modifier nonReentrant() {
-        require(_notEntered, "re-entered");
-        _notEntered = false;
-        _;
-        _notEntered = true; // get a gas-refund post-Istanbul
+    function redeemFresh(address payable redeemer, uint redeemTokensIn, uint redeemAmountIn) internal returns (uint) {
+        // check controller
+        // calculate numbers
+        // transferOut underlying to redeemer
     }
+
+    /**
+     * @notice Users borrow assets from the protocol to their own address
+     * @param borrowAmount The amount of the underlying asset to borrow
+     * @return uint 0=success, otherwise a failure (see ErrorReporter.sol for details)
+     */
+    function borrowFresh(address payable borrower, uint borrowAmount) internal returns (uint) {
+        // check controller
+        // calculate numbers
+        // transferOut underlying to borrower
+    }
+
+    /**
+     * @notice Borrows are repaid by another user (possibly the borrower).
+     * @param payer the account paying off the borrow
+     * @param borrower the account with the debt being payed off
+     * @param repayAmount the amount of undelrying tokens being returned
+     * @return (uint, uint) An error code (0=success, otherwise a failure, see ErrorReporter.sol), and the actual repayment amount.
+     */
+    function repayBorrowFresh(address payer, address borrower, uint repayAmount) internal returns (uint, uint) {
+        // check controller
+        // calculate numbers
+        // transferIn underlying from payer
+    }
+
+    /**
+     * @notice The liquidator liquidates the borrowers collateral.
+     *  The collateral seized is transferred to the liquidator.
+     * @param borrower The borrower of this bToken to be liquidated
+     * @param liquidator The address repaying the borrow and seizing collateral
+     * @param bTokenCollateral The market in which to seize collateral from the borrower
+     * @param repayAmount The amount of the underlying borrowed asset to repay
+     * @return (uint, uint) An error code (0=success, otherwise a failure, see ErrorReporter.sol), and the actual repayment amount.
+     */
+     function liquidateBorrowFresh(address liquidator, address borrower, uint repayAmount, address bTokenCollateral) internal returns (uint, uint) {
+         // check controller
+         // calculate numbers
+         // transferIn collateral from liquidator
+         // call repayBorrowFresh
+     }
 }

@@ -1,8 +1,5 @@
 pragma solidity 0.5.16;
 
-import "./InterestRateModelInterface.sol";
-import "./ControllerInterface.sol";
-
 /**
  * @title BTokenInterface
  * @dev BToken token interface
@@ -57,12 +54,12 @@ contract BTokenInterface {
     /**
      * @notice Event emitted when controller is changed
      */
-    event NewController(ControllerInterface oldController, ControllerInterface newController);
+    event NewController(address oldController, address newController);
 
     /**
      * @notice Event emitted when interestRateModel is changed
      */
-    event NewMarketInterestRateModel(InterestRateModelInterface oldInterestRateModel, InterestRateModelInterface newInterestRateModel);
+    event NewMarketInterestRateModel(address oldInterestRateModel, address newInterestRateModel);
 
     /**
      * @notice Event emitted when the reserve factor is changed
@@ -94,8 +91,12 @@ contract BTokenInterface {
      */
     event Failure(uint error, uint info, uint detail);
 
-    /*** User Functions ***/
+    /**
+     * @notice Indicator that this is an BToken contract (for inspection)
+     */
+    function isBToken() external returns (bool);
 
+    /*** User Functions ***/
     function balanceOfUnderlying(address owner) external returns (uint);
     function getAccountSnapshot(address account) external view returns (uint, uint, uint, uint);
     function borrowRatePerBlock() external view returns (uint);
@@ -113,8 +114,8 @@ contract BTokenInterface {
 
     function _setPendingAdmin(address payable newPendingAdmin) external returns (uint);
     function _acceptAdmin() external returns (uint);
-    function _setController(ControllerInterface newController) public returns (uint);
+    function _setController(address newController) public returns (uint);
     function _setReserveFactor(uint newReserveFactorMantissa) external returns (uint);
     function _reduceReserves(uint reduceAmount) external returns (uint);
-    function _setInterestRateModel(InterestRateModelInterface newInterestRateModel) public returns (uint);
+    function _setInterestRateModel(address newInterestRateModel) public returns (uint);
 }

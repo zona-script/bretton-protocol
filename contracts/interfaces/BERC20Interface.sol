@@ -1,7 +1,5 @@
 pragma solidity 0.5.16;
 
-import "./BTokenInterface.sol";
-
 /**
  * @title BErc20Interface
  * @dev BErc20 token interface
@@ -16,7 +14,7 @@ contract BErc20Interface {
     function borrow(uint borrowAmount) external returns (uint);
     function repayBorrow(uint repayAmount) external returns (uint);
     function repayBorrowBehalf(address borrower, uint repayAmount) external returns (uint);
-    function liquidateBorrow(address borrower, uint repayAmount, BTokenInterface bTokenCollateral) external returns (uint);
+    function liquidateBorrow(address borrower, uint repayAmount, address bTokenCollateral) external returns (uint);
 
     /*** Admin Functions ***/
 
