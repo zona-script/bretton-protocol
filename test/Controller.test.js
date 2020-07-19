@@ -15,6 +15,8 @@ describe('Controller', function () {
   beforeEach(async function () {
     // Deploy a new Controller contract for each test
     controller = await Controller.new({ from: admin })
+    // Allow 10 market enters per user
+    await controller._setMaxAssets(new BN('10'), {from: admin})
 
     // Deploy a new bToken contract for listing
     listedToken = await BTokenFake.new()
@@ -81,14 +83,10 @@ describe('Controller', function () {
       tokenTwo = await BTokenFake.new()
       await controller._supportMarket(tokenOne.address, {from: admin})
       await controller._supportMarket(tokenTwo.address, {from: admin})
-
-      // Set maxAsset
-      const maxAsset = 1
-      await controller._setMaxAssets(maxAsset, {from: admin})
     })
 
     it('should not be able to enter market that is not listed', async () => {
-      unListedToken = await BTokenFake.new()
+      const unListedToken = await BTokenFake.new()
       const rcode = await controller.enterMarket.call(unListedToken.address, {from: user})
       expect(rcode).to.be.bignumber.equal(new BN('8'))
       expect(await controller.checkMembership.call(user, unListedToken.address, {from: user})).to.equal(false)
@@ -118,6 +116,8 @@ describe('Controller', function () {
     })
 
     it('should not be able to enter new market beyound maxAssets limit', async () => {
+      // Set max to 1
+      await controller._setMaxAssets(new BN('1'), {from: admin})
       // Enter tokenOne
       await controller.enterMarket(tokenOne.address, {from: user})
       // Enter tokenTwo should fail
@@ -156,7 +156,7 @@ describe('Controller', function () {
 
     it('should not allow mint if market is not listed', async () => {
       // unlisted token should not allow mint
-      unlistedToken = await BTokenFake.new()
+      const unlistedToken = await BTokenFake.new()
       const someMintAmount = 12123
       let rcode = await controller.mintAllowed.call(unlistedToken.address, user, someMintAmount)
       expect(rcode).to.be.bignumber.equal(new BN('8'))
@@ -218,24 +218,52 @@ describe('Controller', function () {
 
     })
 
-    it.skip('should not allow borrow if market is not listed', async () => {
-
+    it('should not allow borrow if market is not listed', async () => {
+      const unlistedToken = await BTokenFake.new()
+      const someBorrowAmount = 12123
+      let rcode = await controller.borrowAllowed.call(unlistedToken.address, borrower, someBorrowAmount)
+      expect(rcode).to.be.bignumber.equal(new BN('8'))
     })
 
-    it.skip('caller must bToken', async () => {
+    it('caller must bToken if borrower not entered market, and enter market for borrower', async () => {
+      const someBorrowAmount = 12123
+      // call from borrower should revert
+      await expectRevert(
+        controller.borrowAllowed.call(listedToken.address, borrower, someBorrowAmount, {from: borrower}),
+        'sender must be bToken'
+      )
 
+      // call from bToken should enter market for borrower
+      const rcode = await listedToken.callBorrowAllowed.call(controller.address, borrower, someBorrowAmount, {from: borrower})
+      expect(rcode).to.be.bignumber.equal(new BN('0'))
+      await listedToken.callBorrowAllowed(controller.address, borrower, someBorrowAmount, {from: borrower})
+      expect(await controller.checkMembership.call(borrower, listedToken.address)).to.equal(true)
     })
 
-    it.skip('should auto enter market for user if not entered already', async () => {
-
+    it('should not allow borrow if no pricing info for market', async () => {
+      // enter market
+      await controller.enterMarket(listedToken.address, {from: borrower})
+      // Set listedToken price to zero
+      await oracle.setPrice(listedToken.address, new BN('0'), {from: admin})
+      const someBorrowAmount = 12123
+      let rcode = await controller.borrowAllowed.call(listedToken.address, borrower, someBorrowAmount)
+      expect(rcode).to.be.bignumber.equal(new BN('12'))
     })
 
-    it.skip('should not allow borrow if no pricing info for market', async () => {
-
+    it('should not allow borrow if user have shortfall', async () => {
+      // setup shortfall
+      await shortfallSetup(controller, oracle, borrower)
+      const someBorrowAmount = 12123
+      let rcode = await controller.borrowAllowed.call(tokenOne.address, borrower, someBorrowAmount)
+      expect(rcode).to.be.bignumber.equal(new BN('4'))
     })
 
-    it.skip('should not allow borrow if user have shortfall', async () => {
-
+    it('should allow borrow if user have liquidity', async () => {
+      // should allow borrow if user have liquidity
+      await liquiditySetup(controller, oracle, borrower)
+      const someBorrowAmount = 12123
+      rcode = await controller.borrowAllowed.call(tokenOne.address, borrower, someBorrowAmount)
+      expect(rcode).to.be.bignumber.equal(new BN('0'))
     })
   })
 
@@ -248,7 +276,7 @@ describe('Controller', function () {
   describe('repayBorrowAllowed', function () {
     it('should not allow repay if market is not listed', async () => {
       // unlisted token should repayBorrowAllowed
-      unlistedToken = await BTokenFake.new()
+      const unlistedToken = await BTokenFake.new()
       const someRepayAmount = 12123
       let rcode = await controller.repayBorrowAllowed.call(unlistedToken.address, someAddress, someAddress, someRepayAmount)
       expect(rcode).to.be.bignumber.equal(new BN('8'))
@@ -273,21 +301,17 @@ describe('Controller', function () {
       collateralToken = await BTokenFake.new()
       await controller._supportMarket(borrowToken.address, {from: admin})
       await controller._supportMarket(collateralToken.address, {from: admin})
-
-      // Set maxAsset
-      const maxAsset = 1
-      await controller._setMaxAssets(maxAsset, {from: admin})
     })
 
     it('should not allow liquidate if borrowed market is not listed', async () => {
-      unlistedToken = await BTokenFake.new()
+      const unlistedToken = await BTokenFake.new()
       const someRepayAmount = 12123
       let rcode = await controller.liquidateBorrowAllowed.call(unlistedToken.address, listedToken.address, someAddress, someAddress, someRepayAmount)
       expect(rcode).to.be.bignumber.equal(new BN('8'))
     })
 
     it('should not allow liquidate if collateral market is not listed', async () => {
-      unlistedToken = await BTokenFake.new()
+      const unlistedToken = await BTokenFake.new()
       const someRepayAmount = 12123
       let rcode = await controller.liquidateBorrowAllowed.call(listedToken.address, unlistedToken.address, someAddress, someAddress, someRepayAmount)
       expect(rcode).to.be.bignumber.equal(new BN('8'))
@@ -453,7 +477,7 @@ describe('Controller', function () {
       expect(actualMaxAssets).to.be.bignumber.equal(maxAssets)
       // check event
       expectEvent(receipt, 'NewMaxAssets', {
-        oldMaxAssets: new BN('0'),
+        oldMaxAssets: new BN('10'),
         newMaxAssets: maxAssets
       })
     })
@@ -495,7 +519,7 @@ describe('Controller', function () {
     })
 
     it('cannot set collateral factor is market is not listed', async () => {
-      unListedToken = await BTokenFake.new()
+      const unListedToken = await BTokenFake.new()
       const rcode = await controller._setCollateralFactor.call(unListedToken.address, new BN('100000000000000000'), {from: admin})
       expect(rcode).to.be.bignumber.equal(new BN('8'))
     })
@@ -572,8 +596,6 @@ describe('Controller', function () {
     })
 
     it('should return error if cannot get snapshot from token', async () => {
-      // set up controller
-      await controller._setMaxAssets(new BN('10'), {from: admin})
       // add asset without snapshot for user
       tokenOne = await BTokenFake.new()
       tokenOne.setSnapShotRcode(new BN('1'))
@@ -586,8 +608,6 @@ describe('Controller', function () {
     })
 
     it('should return error if cannot get price info for token', async () => {
-      // set up controller
-      await controller._setMaxAssets(new BN('10'), {from: admin})
       // add asset for user
       tokenOne = await BTokenFake.new()
       await controller._supportMarket(tokenOne.address, {from: admin})
@@ -612,9 +632,6 @@ describe('Controller', function () {
   // Setup controller with a sample user that has some btoken and borrow balances
   // resulting in net positive liquidity of 30 ETH
   async function liquiditySetup(controller, oracle, testUser) {
-    // set up controller
-    await controller._setMaxAssets(new BN('10'), {from: admin})
-
     // add two assets for testUser
     tokenOne = await BTokenFake.new()
     tokenTwo = await BTokenFake.new()
@@ -671,9 +688,6 @@ describe('Controller', function () {
   // Setup controller with a sample user that has some btoken and borrow balances
   // resulting in net negative liquidity of 30 ETH (shortfall)
   async function shortfallSetup(controller, oracle, testUser) {
-    // set up controller
-    await controller._setMaxAssets(new BN('10'), {from: admin})
-
     // add two assets for testUser
     tokenOne = await BTokenFake.new()
     tokenTwo = await BTokenFake.new()

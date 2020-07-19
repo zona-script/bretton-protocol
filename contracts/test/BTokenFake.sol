@@ -1,6 +1,7 @@
 pragma solidity 0.5.16;
 
 import "../tokens/BTokenBase.sol";
+import "../interfaces/ControllerInterface.sol";
 
 /**
  * @title BTokenFake
@@ -43,5 +44,9 @@ contract BTokenFake is BTokenBase {
 
     function setSnapShotRcode(uint _snapshotRcode) public {
         snapshotRcode = _snapshotRcode;
+    }
+
+    function callBorrowAllowed(address controller, address borrower, uint borrowAmount) public returns (uint){
+        return ControllerInterface(controller).borrowAllowed(address(this), borrower, borrowAmount);
     }
 }

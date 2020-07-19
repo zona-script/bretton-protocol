@@ -12,35 +12,6 @@ import "../storages/ControllerStorage.sol";
   * @author Controller
   */
 contract Controller is Exponential, Ownable, ControllerErrorReporter, ControllerInterface, ControllerStorageV1 {
-    /*
-    Liquidity Calculation:
-
-    calculate sumCollateral and sumBorrow, and return liquidity or shortfall values
-
-    EnterMarket - A market which the user has enabled borrowing for, i.e the user can borrow
-                  from this market
-
-    SumCollateral - The total amount (in ETH) the user is allowed to borrow based on the user's
-                    supplied collateral across all markets the user has entered
-
-    SumBorrow - The total amount (in ETH) the user has borrowed across all markets the user has entered
-
-    for each asset in userAssets:
-        get: bTokenBalance, underlyingBorrowedBalance, bTokenToUnderlyingExchangeRate, collateralRate, and underlyingToETHoraclePrice
-        tokenToEtherFactor = underlyingToETHoraclePrice * bTokenToUnderlyingExchangeRate * collateralRate
-        sumCollateral += tokenToETHFactor * bTokenBalance
-        sumBorrowed += underlyingToETHoraclePrice * underlyingBorrowedBalance
-        if asset is asset to borrow/redeem:
-            need to consider borrow/redeem effect on sum
-            sumBorrowed += tokenToEtherFactor * amountToRedeem
-            sumBorrowed += underlyingToETHoraclePrice * amountToBorrow
-
-
-    if sumCollateral > sumBorrowed:
-        liquidity = sumCollateral - sumBorrowed;
-    else:
-        shortfall = sumBorrowed - sumCollateral;
-    */
 
     /**
      * @notice Construct a controller
@@ -76,21 +47,25 @@ contract Controller is Exponential, Ownable, ControllerErrorReporter, Controller
      * @return Success indicator if market was entered
      */
     function enterMarket(address bToken) external returns (uint) {
-        Market storage marketToJoin = markets[bToken];
+        return uint(addToMarketInternal(bToken, msg.sender));
+    }
+
+    function addToMarketInternal(address bToken, address borrower) internal returns (Error) {
+        Market storage marketToJoin = markets[address(bToken)];
 
         if (!marketToJoin.isListed) {
             // market is not listed, cannot join
-            return uint(Error.MARKET_NOT_LISTED);
+            return Error.MARKET_NOT_LISTED;
         }
 
-        if (marketToJoin.accountMembership[msg.sender] == true) {
+        if (marketToJoin.accountMembership[borrower] == true) {
             // already joined
-            return uint(Error.NO_ERROR);
+            return Error.NO_ERROR;
         }
 
-        if (accountAssets[msg.sender].length >= maxAssets)  {
+        if (accountAssets[borrower].length >= maxAssets)  {
             // no space, cannot join
-            return uint(Error.TOO_MANY_ASSETS);
+            return Error.TOO_MANY_ASSETS;
         }
 
         // survived the gauntlet, add to list
@@ -98,12 +73,12 @@ contract Controller is Exponential, Ownable, ControllerErrorReporter, Controller
         //  this avoids having to iterate through the list for the most common use cases
         //  that is, only when we need to perform liquidity checks
         //  and not whenever we want to check if an account is in a particular market
-        marketToJoin.accountMembership[msg.sender] = true;
-        accountAssets[msg.sender].push(BTokenInterface(bToken));
+        marketToJoin.accountMembership[borrower] = true;
+        accountAssets[borrower].push(BTokenInterface(bToken));
 
-        emit MarketEntered(address(bToken), msg.sender);
+        emit MarketEntered(bToken, borrower);
 
-        return uint(Error.NO_ERROR);
+        return Error.NO_ERROR;
     }
 
     /**
@@ -214,8 +189,64 @@ contract Controller is Exponential, Ownable, ControllerErrorReporter, Controller
         }
     }
 
-    function borrowAllowed(address bToken, address borrower, uint borrowAmount) external returns (uint) {}
-    function borrowVerify(address bToken, address borrower, uint borrowAmount) external {}
+    /**
+     * @notice Checks if the account should be allowed to borrow the underlying asset of the given market
+     * @param bToken The market to verify the borrow against
+     * @param borrower The account which would borrow the asset
+     * @param borrowAmount The amount of underlying the account would borrow
+     * @return 0 if the borrow is allowed, otherwise a semi-opaque error code (See ErrorReporter.sol)
+     */
+    function borrowAllowed(address bToken, address borrower, uint borrowAmount) external returns (uint) {
+        if (!markets[bToken].isListed) {
+            return uint(Error.MARKET_NOT_LISTED);
+        }
+
+        if (!markets[bToken].accountMembership[borrower]) {
+            // only bTokens may call borrowAllowed if borrower not in market
+            require(msg.sender == bToken, "sender must be bToken");
+
+            // attempt to add borrower to the market
+            Error err = addToMarketInternal(bToken, borrower);
+            if (err != Error.NO_ERROR) {
+                return uint(err);
+            }
+
+            // it should be impossible to break the important invariant
+            assert(markets[bToken].accountMembership[borrower]);
+        }
+
+        if (oracle.getUnderlyingPrice(bToken) == 0) {
+            return uint(Error.PRICE_ERROR);
+        }
+
+        (Error err, , uint shortfall) = getHypotheticalAccountLiquidityInternal(borrower, BTokenInterface(bToken), 0, borrowAmount);
+        if (err != Error.NO_ERROR) {
+            return uint(err);
+        }
+        if (shortfall > 0) {
+            return uint(Error.INSUFFICIENT_LIQUIDITY);
+        }
+
+        return uint(Error.NO_ERROR);
+    }
+
+    /**
+     * @notice Validates borrow and reverts on rejection. May emit logs.
+     * @param bToken Asset whose underlying is being borrowed
+     * @param borrower The address borrowing the underlying
+     * @param borrowAmount The amount of the underlying asset requested to borrow
+     */
+    function borrowVerify(address bToken, address borrower, uint borrowAmount) external {
+        // Shh - currently unused
+        bToken;
+        borrower;
+        borrowAmount;
+
+        // Shh - we don't ever want this hook to be marked pure
+        if (false) {
+            maxAssets = maxAssets;
+        }
+    }
 
     /**
      * @notice Checks if the account should be allowed to repay a borrow in the given market
