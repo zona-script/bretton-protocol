@@ -10,7 +10,7 @@ const PricingOracleFake = contract.fromArtifact('PricingOracleFake')
 
 describe('Controller', function () {
   const [ admin, user, nonBToken, someAddress, liquidator, borrower ] = accounts;
-  let controller, listedToken
+  let controller, oracle, listedToken
 
   beforeEach(async function () {
     // Deploy a new Controller contract for each test
@@ -19,6 +19,11 @@ describe('Controller', function () {
     // Deploy a new bToken contract for listing
     listedToken = await BTokenFake.new()
     await controller._supportMarket(listedToken.address, {from: admin})
+
+    // Deploy a new oracle and set price for listedToken
+    oracle = await PricingOracleFake.new()
+    oracle.setPrice(listedToken.address, new BN('431'))
+    controller._setPriceOracle(oracle.address, {from: admin})
   })
 
   it('isController', async () => {
@@ -166,17 +171,30 @@ describe('Controller', function () {
     it('should pass always', async () => {})
   })
 
-  describe.only('redeemAllowed', function () {
+  describe('redeemAllowed', function () {
     it('should not allow redeem if market is not listed', async () => {
-
+      const someRedeemAmount = new BN('123')
+      const rcode = await controller.redeemAllowed.call(someAddress, user, someRedeemAmount)
+      expect(rcode).to.be.bignumber.equal(new BN('8'))
     })
 
-    it.skip('should allow redeem if user did not enter market', async () => {
-
+    it('should allow redeem if user did not enter market', async () => {
+      // make sure user have shortfall for this test
+      await shortfallSetup(controller, oracle, user)
+      const someRedeemAmount = new BN('123')
+      const rcode = await controller.redeemAllowed.call(listedToken.address, user, someRedeemAmount)
+      expect(rcode).to.be.bignumber.equal(new BN('0'))
     })
 
-    it.skip('should not allow redeem if user has shortfall', async () => {
-
+    it('should not allow redeem if user has shortfall', async () => {
+      // setup shortfall
+      await shortfallSetup(controller, oracle, user)
+      const someRedeemAmount = new BN('123')
+      // enter market
+      await controller.enterMarket(listedToken.address, {from: user})
+      // try redeem
+      const rcode = await controller.redeemAllowed.call(listedToken.address, user, someRedeemAmount)
+      expect(rcode).to.be.bignumber.equal(new BN('4'))
     })
   })
 
@@ -277,7 +295,7 @@ describe('Controller', function () {
 
     it('should not allow liquidate if borrower does not have shortfall', async () => {
       // make sure borrower has liquidity
-      await liquiditySetup(controller, borrower)
+      await liquiditySetup(controller, oracle, borrower)
 
       const someRepayAmount = 12123
       const rcode = await controller.liquidateBorrowAllowed.call(borrowToken.address, collateralToken.address, someAddress, borrower, someRepayAmount)
@@ -286,7 +304,7 @@ describe('Controller', function () {
 
     it('should not allow liquidate beyound closing factor', async () => {
       // make sure borrower has shortfall
-      await shortfallSetup(controller, borrower)
+      await shortfallSetup(controller, oracle, borrower)
 
       // update borrowBalance of borrowedToken
       const borrowedAmount = new BN('100')
@@ -375,7 +393,7 @@ describe('Controller', function () {
       expect(oracleAddress).to.be.bignumber.equal(offChainOracle.address)
       // check event
       expectEvent(receipt, 'NewPriceOracle', {
-        oldPriceOracle: '0x0000000000000000000000000000000000000000',
+        oldPriceOracle: oracle.address,
         newPriceOracle: oracleAddress
       })
     })
@@ -457,18 +475,6 @@ describe('Controller', function () {
   })
 
   describe('_setCollateralFactor', function () {
-    let fakeOracle, listedToken
-    beforeEach(async function () {
-      listedToken = await BTokenFake.new()
-      await controller._supportMarket(listedToken.address, {from: admin})
-
-      // Deploy and setup fakeOracle
-      fakeOracle = await PricingOracleFake.new({from: admin})
-      const nonZeroPrice = new BN('1')
-      fakeOracle.setPrice(listedToken.address, nonZeroPrice)
-      controller._setPriceOracle(fakeOracle.address, {from: admin})
-    })
-
     it('only admin can set collateralFactor', async () => {
       const collateralFactorMantissa = new BN('500000000000000000')
       await expectRevert(
@@ -501,8 +507,8 @@ describe('Controller', function () {
     })
 
     it('asset must have pricing if collateralFactor is non-zero', async () => {
-      // Set fakeOracle price to zero
-      fakeOracle.setPrice(listedToken.address, new BN('0'))
+      // Set oracle price to zero
+      oracle.setPrice(listedToken.address, new BN('0'))
 
       // Set non-zero collateral factor
       const nonZeroCollateralFactorMantissa = new BN('100000000000000000')
@@ -548,7 +554,7 @@ describe('Controller', function () {
 
   describe('getAccountLiquidity', function () {
     it('should calculate account liquidity with positive liquidity', async () => {
-      await liquiditySetup(controller, user)
+      await liquiditySetup(controller, oracle, user)
 
       const result = await controller.getAccountLiquidity.call(user)
       expect(result[0]).to.be.bignumber.equal(new BN('0')) // rcode
@@ -557,7 +563,7 @@ describe('Controller', function () {
     })
 
     it('should calculate account liquidity with negative liquidity (shortfall)', async () => {
-      await shortfallSetup(controller, user)
+      await shortfallSetup(controller, oracle, user)
 
       const result = await controller.getAccountLiquidity.call(user)
       expect(result[0]).to.be.bignumber.equal(new BN('0')) // rcode
@@ -605,7 +611,7 @@ describe('Controller', function () {
 
   // Setup controller with a sample user that has some btoken and borrow balances
   // resulting in net positive liquidity of 30 ETH
-  async function liquiditySetup(controller, testUser) {
+  async function liquiditySetup(controller, oracle, testUser) {
     // set up controller
     await controller._setMaxAssets(new BN('10'), {from: admin})
 
@@ -622,13 +628,12 @@ describe('Controller', function () {
     expect(await controller.checkMembership.call(testUser, tokenTwo.address, {from: testUser})).to.equal(true)
 
     // set up pricing in oracle for assets
-    const testOracle = await PricingOracleFake.new()
     tokenOneToEtherPriceMantissa = new BN('2000000000000000000') // 2 Token / ETH
     tokenTwoToEtherPriceMantissa = new BN('4000000000000000000') // 4 Token / ETh
-    testOracle.setPrice(tokenOne.address, tokenOneToEtherPriceMantissa)
-    testOracle.setPrice(tokenTwo.address, tokenTwoToEtherPriceMantissa)
-    await controller._setPriceOracle(testOracle.address, {from: admin})
-    expect(await controller.oracle.call()).to.equal(testOracle.address)
+    oracle.setPrice(tokenOne.address, tokenOneToEtherPriceMantissa)
+    oracle.setPrice(tokenTwo.address, tokenTwoToEtherPriceMantissa)
+    await controller._setPriceOracle(oracle.address, {from: admin})
+    expect(await controller.oracle.call()).to.equal(oracle.address)
 
     // set up tokenBalance, borrowBalance, and exchangeRate for both tokens
     const tokenOneTokenBalance = new BN('10000000000000000000') // 10
@@ -665,7 +670,7 @@ describe('Controller', function () {
 
   // Setup controller with a sample user that has some btoken and borrow balances
   // resulting in net negative liquidity of 30 ETH (shortfall)
-  async function shortfallSetup(controller, testUser) {
+  async function shortfallSetup(controller, oracle, testUser) {
     // set up controller
     await controller._setMaxAssets(new BN('10'), {from: admin})
 
@@ -682,13 +687,12 @@ describe('Controller', function () {
     expect(await controller.checkMembership.call(testUser, tokenTwo.address, {from: testUser})).to.equal(true)
 
     // set up pricing in oracle for assets
-    const testOracle = await PricingOracleFake.new()
     tokenOneToEtherPriceMantissa = new BN('2000000000000000000') // 2 Token / ETH
     tokenTwoToEtherPriceMantissa = new BN('4000000000000000000') // 4 Token / ETh
-    testOracle.setPrice(tokenOne.address, tokenOneToEtherPriceMantissa)
-    testOracle.setPrice(tokenTwo.address, tokenTwoToEtherPriceMantissa)
-    await controller._setPriceOracle(testOracle.address, {from: admin})
-    expect(await controller.oracle.call()).to.equal(testOracle.address)
+    oracle.setPrice(tokenOne.address, tokenOneToEtherPriceMantissa)
+    oracle.setPrice(tokenTwo.address, tokenTwoToEtherPriceMantissa)
+    await controller._setPriceOracle(oracle.address, {from: admin})
+    expect(await controller.oracle.call()).to.equal(oracle.address)
 
     // set up tokenBalance, borrowBalance, and exchangeRate for both tokens
     const tokenOneTokenBalance = new BN('10000000000000000000') // 10

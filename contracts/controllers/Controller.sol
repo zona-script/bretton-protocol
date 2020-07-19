@@ -43,7 +43,7 @@ contract Controller is Exponential, Ownable, ControllerErrorReporter, Controller
     */
 
     /**
-     * @notice Construct an interest rate model
+     * @notice Construct a controller
      */
     constructor() public {}
 
@@ -166,7 +166,34 @@ contract Controller is Exponential, Ownable, ControllerErrorReporter, Controller
      * @return 0 if the redeem is allowed, otherwise a semi-opaque error code (See ErrorReporter.sol)
      */
     function redeemAllowed(address bToken, address redeemer, uint redeemTokens) external returns (uint) {
+        uint allowed = redeemAllowedInternal(bToken, redeemer, redeemTokens);
+        if (allowed != uint(Error.NO_ERROR)) {
+            return allowed;
+        }
 
+        return uint(Error.NO_ERROR);
+    }
+
+    function redeemAllowedInternal(address bToken, address redeemer, uint redeemTokens) internal view returns (uint) {
+        if (!markets[bToken].isListed) {
+            return uint(Error.MARKET_NOT_LISTED);
+        }
+
+        /* If the redeemer is not 'in' the market, then we can bypass the liquidity check */
+        if (!markets[bToken].accountMembership[redeemer]) {
+            return uint(Error.NO_ERROR);
+        }
+
+        /* Otherwise, perform a hypothetical liquidity check to guard against shortfall */
+        (Error err, , uint shortfall) = getHypotheticalAccountLiquidityInternal(redeemer, BTokenInterface(bToken), redeemTokens, 0);
+        if (err != Error.NO_ERROR) {
+            return uint(err);
+        }
+        if (shortfall > 0) {
+            return uint(Error.INSUFFICIENT_LIQUIDITY);
+        }
+
+        return uint(Error.NO_ERROR);
     }
 
     /**
