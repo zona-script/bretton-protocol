@@ -49,4 +49,8 @@ contract BTokenFake is BTokenBase {
     function callBorrowAllowed(address controller, address borrower, uint borrowAmount) public returns (uint){
         return ControllerInterface(controller).borrowAllowed(address(this), borrower, borrowAmount);
     }
+
+    function exchangeRateStored() public view returns (uint) {
+        return exchangeRateMantissa;
+    }
 }

@@ -567,7 +567,7 @@ describe('Controller', function () {
       )
 
       const receipt = await controller._setMaxAssets(maxAssets, {from: admin})
-      // check market is listed
+      // check new maxAsset
       const actualMaxAssets = await controller.maxAssets.call()
       expect(actualMaxAssets).to.be.bignumber.equal(maxAssets)
       // check event
@@ -579,17 +579,35 @@ describe('Controller', function () {
   })
 
   describe('_setLiquidationIncentive', function () {
-    // liquidation incentive
-    it.skip('only admin can set liquidationIncentive', async () => {
+    it('only admin can set liquidationIncentive', async () => {
+      const liquidationIncentiveMantissa = new BN('1200000000000000000') // 1.2
+      await expectRevert(
+        controller._setLiquidationIncentive(someAddress, liquidationIncentiveMantissa, {from: user}),
+        'Ownable: caller is not the owner'
+      )
 
+      const receipt = await controller._setLiquidationIncentive(someAddress, liquidationIncentiveMantissa, {from: admin})
+      // check new liquidation incentive
+      const marketInfo = await controller.markets.call(someAddress)
+      expect(marketInfo[3]).to.be.bignumber.equal(liquidationIncentiveMantissa)
+      // check event
+      expectEvent(receipt, 'NewLiquidationIncentive', {
+        bToken: someAddress,
+        oldLiquidationIncentiveMantissa: new BN('0'),
+        newLiquidationIncentiveMantissa: liquidationIncentiveMantissa
+      })
     })
 
-    it.skip('liquidationIncentive cannot be higher than maxLiquidationIncentive', async () => {
-
+    it('liquidationIncentive cannot be higher than maxLiquidationIncentive', async () => {
+      const liquidationIncentiveMantissaTooLarge = new BN('1500000000000000001') // max is 1.5
+      const rcode = await controller._setLiquidationIncentive.call(someAddress, liquidationIncentiveMantissaTooLarge, {from: admin})
+      expect(rcode).to.be.bignumber.equal(new BN('7'))
     })
 
-    it.skip('liquidationIncentive cannot be minLiquidationIncentive', async () => {
-
+    it('liquidationIncentive cannot be minLiquidationIncentive', async () => {
+      const liquidationIncentiveMantissaTooSmall = new BN('900000000000000000') // min is 1
+      const rcode = await controller._setLiquidationIncentive.call(someAddress, liquidationIncentiveMantissaTooSmall, {from: admin})
+      expect(rcode).to.be.bignumber.equal(new BN('7'))
     })
   })
 
@@ -717,11 +735,43 @@ describe('Controller', function () {
     })
   })
 
-  it('should calculate account liquidity with exceed shortfall', async () => {
-  })
+  describe('liquidateCalculateSeizeTokens', function () {
+    it('should fail if no price for collateral token', async () => {
+      const amountRepay = new BN('123')
+      const result = await controller.liquidateCalculateSeizeTokens.call(someAddress, listedToken.address, amountRepay)
+      expect(result[0]).to.be.bignumber.equal(new BN('12')) // rcode
+      expect(result[1]).to.be.bignumber.equal(new BN('0')) // number of collateral token
+    })
 
-  it('should calculate collateral to seize given underlying amount', async () => {
+    it('should fail if no price for borrowed token', async () => {
+      const amountRepay = new BN('123')
+      const result = await controller.liquidateCalculateSeizeTokens.call(listedToken.address, someAddress, amountRepay)
+      expect(result[0]).to.be.bignumber.equal(new BN('12')) // rcode
+      expect(result[1]).to.be.bignumber.equal(new BN('0')) // number of collateral token
+    })
 
+    it('should calculate collateral to seize given underlying amount', async () => {
+      // setup 2 tokens with pricing and exchange rate
+      const borrowToken = await BTokenFake.new()
+      const collateralToken = await BTokenFake.new()
+      await borrowToken.setExchangeRate(new BN('2000000000000000000')) // 2
+      await collateralToken.setExchangeRate(new BN('3000000000000000000')) // 3
+      await oracle.setPrice(borrowToken.address, new BN('4000000000000000000'), {from: admin}) // 4
+      await oracle.setPrice(collateralToken.address, new BN('5000000000000000000'), {from: admin}) // 5
+      // set liquidation incentive to 5% to borrow token
+      const liquidationIncentiveMantissa = new BN('1050000000000000000') // 1.05
+      const receipt = await controller._setLiquidationIncentive(borrowToken.address, liquidationIncentiveMantissa, {from: admin})
+      // calculate
+      const amountRepay = new BN('1000000000000000000') // 1
+      const result = await controller.liquidateCalculateSeizeTokens.call(borrowToken.address, collateralToken.address, amountRepay)
+      expect(result[0]).to.be.bignumber.equal(new BN('0')) // rcode
+      // seizeAmount = amountRepay * liquidationIncentive * priceBorrowed / priceCollateral
+      // seizeTokens = seizeAmount / exchangeRate
+      // amountRepay * (liquidationIncentive * priceBorrowed) / (priceCollateral * exchangeRate)
+      // = 1 * (1.05 * 4) / (5 * 3)
+      // = 0.28
+      expect(result[1]).to.be.bignumber.equal(new BN('280000000000000000')) // seizeTokens
+    })
   })
 
   // Setup controller with a sample user that has some btoken and borrow balances

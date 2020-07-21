@@ -17,7 +17,16 @@ contract Controller is Exponential, Ownable, ControllerErrorReporter, Controller
      */
     constructor() public {}
 
-    /*** Assets You Are In ***/
+    /*** PUBLIC FUNCTIONS ***/
+
+    /**
+     * @notice Return all of the markets
+     * @dev The automatic getter may be used to access an individual market.
+     * @return The list of market addresses
+     */
+    function getAllMarkets() public view returns (BTokenInterface[] memory) {
+        return allMarkets;
+    }
 
     /**
      * @notice Returns the assets an account has entered
@@ -647,21 +656,56 @@ contract Controller is Exponential, Ownable, ControllerErrorReporter, Controller
         }
     }
 
-    function liquidateCalculateSeizeTokens(
-        address bTokenBorrowed,
-        address bTokenCollateral,
-        uint repayAmount) external view returns (uint, uint) {}
-
-
-    /*** PUBLIC FUNCTIONS ***/
-
     /**
-     * @notice Return all of the markets
-     * @dev The automatic getter may be used to access an individual market.
-     * @return The list of market addresses
+     * @notice Calculate number of tokens of collateral asset to seize given an underlying amount
+     * @dev Used in liquidation (called in cToken.liquidateBorrowFresh)
+     * @param bTokenBorrowed The address of the borrowed cToken
+     * @param bTokenCollateral The address of the collateral cToken
+     * @param actualRepayAmount The amount of bTokenBorrowed underlying to convert into bTokenCollateral tokens
+     * @return (errorCode, number of bTokenCollateral tokens to be seized in a liquidation)
      */
-    function getAllMarkets() public view returns (BTokenInterface[] memory) {
-        return allMarkets;
+    function liquidateCalculateSeizeTokens(address bTokenBorrowed, address bTokenCollateral, uint actualRepayAmount) external view returns (uint, uint) {
+        // Read oracle prices for borrowed and collateral markets
+        uint priceBorrowedMantissa = oracle.getUnderlyingPrice(bTokenBorrowed);
+        uint priceCollateralMantissa = oracle.getUnderlyingPrice(bTokenCollateral);
+        if (priceBorrowedMantissa == 0 || priceCollateralMantissa == 0) {
+            return (uint(Error.PRICE_ERROR), 0);
+        }
+
+        /*
+         * Get the exchange rate and calculate the number of collateral tokens to seize:
+         *  seizeAmount = actualRepayAmount * liquidationIncentive * priceBorrowed / priceCollateral
+         *  seizeTokens = seizeAmount / exchangeRate
+         *   = actualRepayAmount * (liquidationIncentive * priceBorrowed) / (priceCollateral * exchangeRate)
+         */
+        uint exchangeRateMantissa = BTokenInterface(bTokenCollateral).exchangeRateStored(); // Note: reverts on error
+        uint seizeTokens;
+        Exp memory numerator;
+        Exp memory denominator;
+        Exp memory ratio;
+        MathError mathErr;
+
+        (mathErr, numerator) = mulExp(markets[bTokenBorrowed].liquidationIncentiveMantissa, priceBorrowedMantissa);
+        if (mathErr != MathError.NO_ERROR) {
+            return (uint(Error.MATH_ERROR), 0);
+        }
+
+        (mathErr, denominator) = mulExp(priceCollateralMantissa, exchangeRateMantissa);
+        if (mathErr != MathError.NO_ERROR) {
+            return (uint(Error.MATH_ERROR), 0);
+        }
+
+        (mathErr, ratio) = divExp(numerator, denominator);
+        if (mathErr != MathError.NO_ERROR) {
+            return (uint(Error.MATH_ERROR), 0);
+        }
+
+        (mathErr, seizeTokens) = mulScalarTruncate(ratio, actualRepayAmount);
+        if (mathErr != MathError.NO_ERROR) {
+            return (uint(Error.MATH_ERROR), 0);
+        }
+
+        return (uint(Error.NO_ERROR), seizeTokens);
     }
 
     /*** ADMIN FUNCTIONS ***/
@@ -785,6 +829,38 @@ contract Controller is Exponential, Ownable, ControllerErrorReporter, Controller
 
         // Emit event with asset, old collateral factor, and new collateral factor
         emit NewCollateralFactor(bToken, oldCollateralFactorMantissa, newCollateralFactorMantissa);
+
+        return uint(Error.NO_ERROR);
+    }
+
+    /**
+     * @notice Sets liquidationIncentive
+     * @dev Admin function to set liquidationIncentive
+     * @param newLiquidationIncentiveMantissa New liquidationIncentive scaled by 1e18
+     * @return uint 0=success, otherwise a failure. (See ErrorReporter for details)
+     */
+    function _setLiquidationIncentive(address bToken, uint newLiquidationIncentiveMantissa) onlyOwner external returns (uint) {
+
+        // Check de-scaled min <= newLiquidationIncentive <= max
+        Exp memory newLiquidationIncentive = Exp({mantissa: newLiquidationIncentiveMantissa});
+        Exp memory minLiquidationIncentive = Exp({mantissa: liquidationIncentiveMinMantissa});
+        if (lessThanExp(newLiquidationIncentive, minLiquidationIncentive)) {
+            return fail(Error.INVALID_LIQUIDATION_INCENTIVE, FailureInfo.SET_LIQUIDATION_INCENTIVE_VALIDATION);
+        }
+
+        Exp memory maxLiquidationIncentive = Exp({mantissa: liquidationIncentiveMaxMantissa});
+        if (lessThanExp(maxLiquidationIncentive, newLiquidationIncentive)) {
+            return fail(Error.INVALID_LIQUIDATION_INCENTIVE, FailureInfo.SET_LIQUIDATION_INCENTIVE_VALIDATION);
+        }
+
+        // Save current value for use in log
+        uint oldLiquidationIncentiveMantissa = markets[bToken].liquidationIncentiveMantissa;
+
+        // Set liquidation incentive to new incentive
+        markets[bToken].liquidationIncentiveMantissa = newLiquidationIncentiveMantissa;
+
+        // Emit event with old incentive, new incentive
+        emit NewLiquidationIncentive(bToken, oldLiquidationIncentiveMantissa, newLiquidationIncentiveMantissa);
 
         return uint(Error.NO_ERROR);
     }
