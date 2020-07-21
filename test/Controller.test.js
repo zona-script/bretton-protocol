@@ -445,8 +445,20 @@ describe('Controller', function () {
 
     })
 
-    it.skip('should not allow transfer if user is not allowed to redeem the transfer amount', async () => {
+    it('should not allow transfer if user is not allowed to redeem the transfer amount', async () => {
+      // give user some shortfall
+      await shortfallSetup(controller, oracle, user)
+      const someTransferAmount = new BN('123')
+      const rcode = await controller.transferAllowed.call(tokenOne.address, user, someAddress, someTransferAmount)
+      expect(rcode).to.be.bignumber.equal(new BN('4'))
+    })
 
+    it('should allow transfer if user is allowed to redeem the transfer amount', async () => {
+      // give user some liquidity
+      await liquiditySetup(controller, oracle, user)
+      const someTransferAmount = new BN('123')
+      const rcode = await controller.transferAllowed.call(tokenOne.address, user, someAddress, someTransferAmount)
+      expect(rcode).to.be.bignumber.equal(new BN('0'))
     })
   })
 

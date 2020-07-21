@@ -312,6 +312,8 @@ contract Controller is Exponential, Ownable, ControllerErrorReporter, Controller
         address liquidator,
         address borrower,
         uint repayAmount) external returns (uint) {
+        // Shh - currently unused
+        liquidator;
 
         if (!markets[bTokenBorrowed].isListed || !markets[bTokenCollateral].isListed) {
             return uint(Error.MARKET_NOT_LISTED);
@@ -385,6 +387,8 @@ contract Controller is Exponential, Ownable, ControllerErrorReporter, Controller
 
         // Shh - currently unused
         seizeTokens;
+        liquidator;
+        borrower;
 
         if (!markets[bTokenCollateral].isListed || !markets[bTokenBorrowed].isListed) {
             return uint(Error.MARKET_NOT_LISTED);
@@ -424,9 +428,47 @@ contract Controller is Exponential, Ownable, ControllerErrorReporter, Controller
         }
     }
 
-    function transferAllowed(address bToken, address src, address dst, uint transferTokens) external returns (uint) {}
+    /**
+     * @notice Checks if the account should be allowed to transfer tokens in the given market
+     * @param bToken The market to verify the transfer against
+     * @param src The account which sources the tokens
+     * @param dst The account which receives the tokens
+     * @param transferTokens The number of bTokens to transfer
+     * @return 0 if the transfer is allowed, otherwise a semi-opaque error code (See ErrorReporter.sol)
+     */
+    function transferAllowed(address bToken, address src, address dst, uint transferTokens) external returns (uint) {
+        // Shh - currently unused
+        dst;
 
-    function transferVerify(address bToken, address src, address dst, uint transferTokens) external {}
+        // Currently the only consideration is whether or not
+        // the src is allowed to redeem this many tokens
+        uint allowed = redeemAllowedInternal(bToken, src, transferTokens);
+        if (allowed != uint(Error.NO_ERROR)) {
+            return allowed;
+        }
+
+        return uint(Error.NO_ERROR);
+    }
+
+    /**
+     * @notice Validates transfer and reverts on rejection. May emit logs.
+     * @param bToken Asset being transferred
+     * @param src The account which sources the tokens
+     * @param dst The account which receives the tokens
+     * @param transferTokens The number of bTokens to transfer
+     */
+    function transferVerify(address bToken, address src, address dst, uint transferTokens) external {
+        // Shh - currently unused
+        bToken;
+        src;
+        dst;
+        transferTokens;
+
+        // Shh - we don't ever want this hook to be marked pure
+        if (false) {
+            maxAssets = maxAssets;
+        }
+    }
 
     /*** Liquidity/Liquidation Calculations ***/
 
