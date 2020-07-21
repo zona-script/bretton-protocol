@@ -106,6 +106,9 @@ describe('Controller', function () {
         bToken: tokenOne.address,
         account: user
       })
+      // check assetsin
+      const assetsIn = await controller.getAssetsIn(user)
+      expect(assetsIn.length).to.equal(1)
     })
 
     it('should not return error entering market already entered', async () => {
@@ -129,20 +132,47 @@ describe('Controller', function () {
   })
 
   describe('exitMarkets', function () {
-    it.skip('should not be able to exit market if user has borrow balance in that market', async () => {
-
+    it('should not be able to exit market if user has borrow balance in that market', async () => {
+      // give user some liquidity
+      await liquiditySetup(controller, oracle, user)
+      // give user some borrowed balance for the token to exit
+      await tokenOne.setBorrowBalanceStored(new BN('1'), user)
+      // try exit
+      const rcode = await controller.exitMarket.call(tokenOne.address, {from: user})
+      expect(rcode).to.be.bignumber.equal(new BN('11'))
     })
 
-    it.skip('should not be able to exit market if user is not allowed to redeem all their token in this market', async () => {
-
+    it('should not be able to exit market if user is not allowed to redeem all their token in this market', async () => {
+      // enter market to a new token
+      await controller.enterMarket(listedToken.address, {from: user})
+      // give user some shortfall to tokenOne and tokenTwo
+      await shortfallSetup(controller, oracle, user)
+      // try exit
+      const rcode = await controller.exitMarket.call(listedToken.address, {from: user})
+      expect(rcode).to.be.bignumber.equal(new BN('13'))
     })
 
-    it.skip('should be able to exit market', async () => {
-
+    it('should be able to exit market', async () => {
+      // enter market to a new token
+      await controller.enterMarket(listedToken.address, {from: user})
+      // try exit
+      const receipt = await controller.exitMarket(listedToken.address, {from: user})
+      // check market exited
+      expect(await controller.checkMembership.call(user, listedToken.address)).to.equal(false)
+      // check event
+      expectEvent(receipt, 'MarketExited', {
+        bToken: listedToken.address,
+        account: user
+      })
+      // check assetsin
+      const assetsIn = await controller.getAssetsIn(user)
+      expect(assetsIn.length).to.equal(0)
     })
 
-    it.skip('should be able to exit market already exited', async () => {
-
+    it('should be able to exit market user is not in', async () => {
+      // try exit
+      const rcode = await controller.exitMarket.call(listedToken.address, {from: user})
+      expect(rcode).to.be.bignumber.equal(new BN('0'))
     })
   })
 

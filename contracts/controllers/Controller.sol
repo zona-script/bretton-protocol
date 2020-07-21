@@ -84,12 +84,61 @@ contract Controller is Exponential, Ownable, ControllerErrorReporter, Controller
      * @notice Removes asset from sender's account liquidity calculation
      * @dev Sender must not have an outstanding borrow balance in the asset,
      *  or be providing necessary collateral for an outstanding borrow.
-     * @param bToken The address of the asset to be removed
+     * @param bTokenAddress The address of the asset to be removed
      * @return Whether or not the account successfully exited the market
      */
-    function exitMarket(address bToken) external returns (uint) {
+    function exitMarket(address bTokenAddress) external returns (uint) {
+        BTokenInterface bToken = BTokenInterface(bTokenAddress);
+        // Get sender tokensHeld and amountOwed underlying from the bToken
+        (uint oErr, uint tokensHeld, uint amountOwed, ) = bToken.getAccountSnapshot(msg.sender);
+        require(oErr == 0, "exitMarket: getAccountSnapshot failed"); // semi-opaque error code
 
+        // Fail if the sender has a borrow balance
+        if (amountOwed != 0) {
+            return fail(Error.NONZERO_BORROW_BALANCE, FailureInfo.EXIT_MARKET_BALANCE_OWED);
+        }
+
+        // Fail if the sender is not permitted to redeem all of their tokens
+        uint allowed = redeemAllowedInternal(bTokenAddress, msg.sender, tokensHeld);
+        if (allowed != 0) {
+            return failOpaque(Error.REJECTION, FailureInfo.EXIT_MARKET_REJECTION, allowed);
+        }
+
+        Market storage marketToExit = markets[address(bToken)];
+
+        // Return true if the sender is not already ‘in’ the market
+        if (!marketToExit.accountMembership[msg.sender]) {
+            return uint(Error.NO_ERROR);
+        }
+
+        // Set bToken account membership to false
+        delete marketToExit.accountMembership[msg.sender];
+
+        // Delete bToken from the account’s list of assets
+        // load into memory for faster iteration
+        BTokenInterface[] memory userAssetList = accountAssets[msg.sender];
+        uint len = userAssetList.length;
+        uint assetIndex = len;
+        for (uint i = 0; i < len; i++) {
+            if (userAssetList[i] == bToken) {
+                assetIndex = i;
+                break;
+            }
+        }
+
+        // We *must* have found the asset in the list or our redundant data structure is broken
+        assert(assetIndex < len);
+
+        // copy last item in list to location of item to be removed, reduce length by 1
+        BTokenInterface[] storage storedList = accountAssets[msg.sender];
+        storedList[assetIndex] = storedList[storedList.length - 1];
+        storedList.length--;
+
+        emit MarketExited(bTokenAddress, msg.sender);
+
+        return uint(Error.NO_ERROR);
     }
+
 
     /*** Policy Hooks ***/
 
