@@ -1,10 +1,12 @@
 pragma solidity 0.5.16;
 
+import "../storages/BTokenStorage.sol";
+
 /**
  * @title BTokenInterface
  * @dev BToken token interface
  */
-contract BTokenInterface {
+contract BTokenInterface is BTokenStorageV1 {
 
     /*** Market Events ***/
 
@@ -91,11 +93,6 @@ contract BTokenInterface {
      */
     event Failure(uint error, uint info, uint detail);
 
-    /**
-     * @notice Indicator that this is an BToken contract (for inspection)
-     */
-    function isBToken() external returns (bool);
-
     /*** User Functions ***/
     function balanceOfUnderlying(address owner) external returns (uint);
     function getAccountSnapshot(address account) external view returns (uint, uint, uint, uint);
@@ -114,8 +111,8 @@ contract BTokenInterface {
 
     function _setPendingAdmin(address payable newPendingAdmin) external returns (uint);
     function _acceptAdmin() external returns (uint);
-    function _setController(address newController) public returns (uint);
+    function _setController(address newController) external returns (uint);
     function _setReserveFactor(uint newReserveFactorMantissa) external returns (uint);
     function _reduceReserves(uint reduceAmount) external returns (uint);
-    function _setInterestRateModel(address newInterestRateModel) public returns (uint);
+    function _setInterestRateModel(address newInterestRateModel) external returns (uint);
 }

@@ -2,14 +2,14 @@ pragma solidity 0.5.16;
 
 import "../interfaces/BTokenInterface.sol";
 import "../interfaces/Erc20Interface.sol";
-import "../storages/BTokenStorage.sol";
+import "../utils/ErrorReporter.sol";
 
 /**
  * @title Bretton's BToken Base Contract
  * @notice Abstract base for BTokens. Implements Erc20Interface and BTokenInterface
  * @author Bretton
  */
-contract BTokenBase is Erc20Interface, BTokenInterface, BTokenStorageV1 {
+contract BTokenBase is Erc20Interface, TokenErrorReporter, BTokenInterface {
 
     /*** ERC20 USER FUNCTIONS ***/
 
@@ -67,7 +67,29 @@ contract BTokenBase is Erc20Interface, BTokenInterface, BTokenStorageV1 {
 
     function _acceptAdmin() external returns (uint) {}
 
-    function _setController(address newController) public returns (uint) {}
+    /**
+     * @notice Sets a new controller for the market
+     * @dev Admin function to set a new controller
+     * @return uint 0=success, otherwise a failure (see ErrorReporter.sol for details)
+     */
+    function _setController(address newController) external returns (uint) {
+        // Check caller is admin
+        /* if (msg.sender != admin) {
+            return fail(Error.UNAUTHORIZED, FailureInfo.SET_COMPTROLLER_OWNER_CHECK);
+        } */
+
+        ControllerInterface oldController = controller;
+        // Ensure invoke controller.isController() returns true
+        /* require(ControllerInterface(newController).isController(), "marker method returned false"); */
+
+        // Set market's controller to newController
+        controller = ControllerInterface(newController);
+
+        // Emit NewController(oldController, newController)
+        /* emit NewController(oldController, newController); */
+
+        return uint(Error.NO_ERROR);
+    }
 
     function _setReserveFactor(uint newReserveFactorMantissa) external returns (uint) {}
 

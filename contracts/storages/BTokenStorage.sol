@@ -1,5 +1,7 @@
 pragma solidity 0.5.16;
 
+import "../interfaces/ControllerInterface.sol";
+
 /**
  * @title BTokenStorageV1
  * @notice Storage variable definition for BToken. Version 1
@@ -35,4 +37,9 @@ contract BTokenStorageV1 {
        * @notice Total number of tokens in circulation
        */
       uint public totalSupply;
+
+      /**
+       * @notice Contract which oversees inter-bToken operations
+       */
+      ControllerInterface public controller;
 }

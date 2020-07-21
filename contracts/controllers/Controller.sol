@@ -4,14 +4,13 @@ import "../math/Exponential.sol";
 import "../utils/Ownable.sol";
 import "../utils/ErrorReporter.sol";
 import "../interfaces/ControllerInterface.sol";
-import "../storages/ControllerStorage.sol";
 
 /**
   * @title Bretton's Controller Implementation
   * @notice Risk model contract that control and permit BToken user actions
   * @author Controller
   */
-contract Controller is Exponential, Ownable, ControllerErrorReporter, ControllerInterface, ControllerStorageV1 {
+contract Controller is Exponential, Ownable, ControllerErrorReporter, ControllerInterface {
 
     /**
      * @notice Construct a controller
@@ -340,27 +339,90 @@ contract Controller is Exponential, Ownable, ControllerErrorReporter, Controller
         return uint(Error.NO_ERROR);
     }
 
+    /**
+     * @notice Validates liquidateBorrow and reverts on rejection. May emit logs.
+     * @param bTokenBorrowed Asset which was borrowed by the borrower
+     * @param bTokenCollateral Asset which was used as collateral and will be seized
+     * @param liquidator The address repaying the borrow and seizing the collateral
+     * @param borrower The address of the borrower
+     * @param actualRepayAmount The amount of underlying being repaid
+     */
     function liquidateBorrowVerify(
         address bTokenBorrowed,
         address bTokenCollateral,
         address liquidator,
         address borrower,
-        uint repayAmount,
-        uint seizeTokens) external {}
+        uint actualRepayAmount,
+        uint seizeTokens) external {
+        // Shh - currently unused
+        bTokenBorrowed;
+        bTokenCollateral;
+        liquidator;
+        borrower;
+        actualRepayAmount;
+        seizeTokens;
 
+        // Shh - we don't ever want this hook to be marked pure
+        if (false) {
+            maxAssets = maxAssets;
+        }
+    }
+
+    /**
+     * @notice Checks if the seizing of assets should be allowed to occur
+     * @param bTokenCollateral Asset which was used as collateral and will be seized
+     * @param bTokenBorrowed Asset which was borrowed by the borrower
+     * @param liquidator The address repaying the borrow and seizing the collateral
+     * @param borrower The address of the borrower
+     * @param seizeTokens The number of collateral tokens to seize
+     */
     function seizeAllowed(
         address bTokenCollateral,
         address bTokenBorrowed,
         address liquidator,
         address borrower,
-        uint seizeTokens) external returns (uint) {}
+        uint seizeTokens) external returns (uint) {
 
+        // Shh - currently unused
+        seizeTokens;
+
+        if (!markets[bTokenCollateral].isListed || !markets[bTokenBorrowed].isListed) {
+            return uint(Error.MARKET_NOT_LISTED);
+        }
+
+        if (BTokenInterface(bTokenCollateral).controller() != BTokenInterface(bTokenBorrowed).controller()) {
+            return uint(Error.CONTROLLER_MISMATCH);
+        }
+
+        return uint(Error.NO_ERROR);
+    }
+
+    /**
+     * @notice Validates seize and reverts on rejection. May emit logs.
+     * @param bTokenCollateral Asset which was used as collateral and will be seized
+     * @param bTokenBorrowed Asset which was borrowed by the borrower
+     * @param liquidator The address repaying the borrow and seizing the collateral
+     * @param borrower The address of the borrower
+     * @param seizeTokens The number of collateral tokens to seize
+     */
     function seizeVerify(
         address bTokenCollateral,
         address bTokenBorrowed,
         address liquidator,
         address borrower,
-        uint seizeTokens) external {}
+        uint seizeTokens) external {
+        // Shh - currently unused
+        bTokenCollateral;
+        bTokenBorrowed;
+        liquidator;
+        borrower;
+        seizeTokens;
+
+        // Shh - we don't ever want this hook to be marked pure
+        if (false) {
+            maxAssets = maxAssets;
+        }
+    }
 
     function transferAllowed(address bToken, address src, address dst, uint transferTokens) external returns (uint) {}
 
@@ -468,7 +530,7 @@ contract Controller is Exponential, Ownable, ControllerErrorReporter, Controller
                 return (Error.MATH_ERROR, 0, 0);
             }
 
-            /* // Calculate effects of interacting with bTokenModify
+            // Calculate effects of interacting with bTokenModify
             if (asset == bTokenModify) {
                 // redeem effect
                 // sumBorrowPlusEffects += tokensToDenom * redeemTokens
@@ -483,7 +545,7 @@ contract Controller is Exponential, Ownable, ControllerErrorReporter, Controller
                 if (mErr != MathError.NO_ERROR) {
                     return (Error.MATH_ERROR, 0, 0);
                 }
-            } */
+            }
         }
 
         // These are safe, as the underflow condition is checked first

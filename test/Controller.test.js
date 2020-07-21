@@ -9,7 +9,7 @@ const OffChainPriceOracle = contract.fromArtifact('OffChainPriceOracle')
 const PricingOracleFake = contract.fromArtifact('PricingOracleFake')
 
 describe('Controller', function () {
-  const [ admin, user, nonBToken, someAddress, liquidator, borrower ] = accounts;
+  const [ admin, user, nonBToken, someAddress, liquidator, borrower, redeemer ] = accounts;
   let controller, oracle, listedToken
 
   beforeEach(async function () {
@@ -19,8 +19,9 @@ describe('Controller', function () {
     await controller._setMaxAssets(new BN('10'), {from: admin})
 
     // Deploy a new bToken contract for listing
-    listedToken = await BTokenFake.new()
+    listedToken = await BTokenFake.new({from: admin})
     await controller._supportMarket(listedToken.address, {from: admin})
+    await listedToken._setController(controller.address, {from: admin})
 
     // Deploy a new oracle and set price for listedToken
     oracle = await PricingOracleFake.new()
@@ -188,13 +189,34 @@ describe('Controller', function () {
 
     it('should not allow redeem if user has shortfall', async () => {
       // setup shortfall
-      await shortfallSetup(controller, oracle, user)
+      await shortfallSetup(controller, oracle, redeemer)
       const someRedeemAmount = new BN('123')
-      // enter market
-      await controller.enterMarket(listedToken.address, {from: user})
-      // try redeem
-      const rcode = await controller.redeemAllowed.call(listedToken.address, user, someRedeemAmount)
+      const rcode = await controller.redeemAllowed.call(tokenOne.address, redeemer, someRedeemAmount)
       expect(rcode).to.be.bignumber.equal(new BN('4'))
+    })
+
+    it('should not allow redeem if redeem amount creates shortfall', async () => {
+      // give user some liquidity
+      await liquiditySetup(controller, oracle, redeemer)
+      const someAmountOverLiquidity = new BN('30000000000000000001')
+      const rcode = await controller.redeemAllowed.call(tokenOne.address, redeemer, someAmountOverLiquidity)
+      expect(rcode).to.be.bignumber.equal(new BN('4'))
+    })
+
+    it('should allow redeem if user have liquidity', async () => {
+      // give user some liquidity
+      await liquiditySetup(controller, oracle, redeemer)
+      const someRedeemAmount = 12123
+      const rcode = await controller.redeemAllowed.call(tokenOne.address, redeemer, someRedeemAmount)
+      expect(rcode).to.be.bignumber.equal(new BN('0'))
+    })
+
+    it('should allow redeem if user have exactly zero liquidity and shortfall after redeem', async () => {
+      // give user some liquidity
+      await liquiditySetup(controller, oracle, redeemer)
+      const liquidityAmount = new BN('30000000000000000000')
+      const rcode = await controller.redeemAllowed.call(tokenOne.address, redeemer, liquidityAmount)
+      expect(rcode).to.be.bignumber.equal(new BN('0'))
     })
   })
 
@@ -258,12 +280,28 @@ describe('Controller', function () {
       expect(rcode).to.be.bignumber.equal(new BN('4'))
     })
 
+    it('should not allow borrow if borrow amount creates shortfall', async () => {
+      // give user some liquidity
+      await liquiditySetup(controller, oracle, borrower)
+      const borrowAmountOverLiquidity = new BN('30000000000000000001')
+      const rcode = await controller.borrowAllowed.call(tokenOne.address, borrower, borrowAmountOverLiquidity)
+      expect(rcode).to.be.bignumber.equal(new BN('4'))
+    })
+
     it('should allow borrow if user have liquidity', async () => {
       // should allow borrow if user have liquidity
       await liquiditySetup(controller, oracle, borrower)
       const someBorrowAmount = 12123
-      rcode = await controller.borrowAllowed.call(tokenOne.address, borrower, someBorrowAmount)
+      const rcode = await controller.borrowAllowed.call(tokenOne.address, borrower, someBorrowAmount)
       expect(rcode).to.be.bignumber.equal(new BN('0'))
+    })
+
+    it('should allow borrow if user have exactly zero liquidity and shortfall after borrow', async () => {
+      // give user some liquidity
+      await liquiditySetup(controller, oracle, borrower)
+      const borrowAmountExactlyEqualToLiquidity = new BN('30000000000000000000')
+      const rcode = await controller.borrowAllowed.call(tokenOne.address, borrower, borrowAmountExactlyEqualToLiquidity)
+      expect(rcode).to.be.bignumber.equal(new BN('4'))
     })
   })
 
@@ -368,16 +406,31 @@ describe('Controller', function () {
 
     })
 
-    it.skip('should not allow seize if borrowed market is not listed', async () => {
-
+    it('should not allow seize if borrowed market is not listed', async () => {
+      const unListedToken = await BTokenFake.new()
+      const someAmount = new BN('123')
+      const rcode = await controller.seizeAllowed.call(unListedToken.address, listedToken.address, someAddress, someAddress, someAmount)
+      expect(rcode).to.be.bignumber.equal(new BN('8'))
     })
 
-    it.skip('should not allow seize if collateral market is not listed', async () => {
-
+    it('should not allow seize if collateral market is not listed', async () => {
+      const unListedToken = await BTokenFake.new()
+      const someAmount = new BN('123')
+      const rcode = await controller.seizeAllowed.call(listedToken.address, unListedToken.address, someAddress, someAddress, someAmount)
+      expect(rcode).to.be.bignumber.equal(new BN('8'))
     })
 
-    it.skip('should not allow seize if borrowed market and collateral market have different controller instance', async () => {
-
+    it('should not allow seize if borrowed market and collateral market have different controller instance', async () => {
+      // create another listed token
+      const anotherListedToken = await BTokenFake.new({from: admin})
+      await controller._supportMarket(anotherListedToken.address, {from: admin})
+      // create a different controllers for tokens
+      const newController = await Controller.new()
+      await anotherListedToken._setController(newController.address, {from: admin})
+      // try seizeAllowed
+      const someAmount = new BN('123')
+      const rcode = await controller.seizeAllowed.call(listedToken.address, anotherListedToken.address, someAddress, someAddress, someAmount)
+      expect(rcode).to.be.bignumber.equal(new BN('2'))
     })
   })
 

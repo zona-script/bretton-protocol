@@ -1,11 +1,8 @@
 pragma solidity 0.5.16;
 
-contract ControllerInterface {
+import "../storages/ControllerStorage.sol";
 
-    /**
-     * @notice Indicator that this is an Controller contract (for inspection)
-     */
-    function isController() external returns (bool);
+contract ControllerInterface is ControllerStorageV1 {
 
     /*** Assets You Are In ***/
 
