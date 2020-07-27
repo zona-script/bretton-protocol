@@ -18,12 +18,12 @@ contract StandardToken is Erc20Interface {
     mapping (address => mapping (address => uint256)) public allowance;
     mapping(address => uint256) public balanceOf;
 
-    constructor(uint256 initialAmount_, string memory tokenName_, uint8 decimalUnits_, string memory tokenSymbol_) public {
+    constructor(uint256 initialAmount_, string memory name_, uint8 decimals_, string memory symbol_) public {
         totalSupply = initialAmount_;
         balanceOf[msg.sender] = initialAmount_;
-        name = tokenName_;
-        symbol = tokenSymbol_;
-        decimals = decimalUnits_;
+        name = name_;
+        symbol = symbol_;
+        decimals = decimals_;
     }
 
     function transfer(address dst, uint256 amount) external returns (bool) {
