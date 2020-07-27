@@ -11,7 +11,7 @@ import "../externals/ERC20Detailed.sol";
 import "../providers/Compound.sol";
 
 // Fake implementation of compound's cToken for testing
-contract cTokenFake is ERC20, ERC20Detailed, Compound {
+contract CompoundFake is ERC20, ERC20Detailed, Compound {
     using SafeERC20 for IERC20;
     using Address for address;
     using SafeMath for uint256;

@@ -4,7 +4,7 @@ const { expect } = require('chai')
 
 // Load compiled artifacts
 const ERC20Fake = contract.fromArtifact('ERC20Fake')
-const cTokenFake = contract.fromArtifact('cTokenFake')
+const CompoundFake = contract.fromArtifact('CompoundFake')
 const dPool = contract.fromArtifact('dPool')
 const dToken = contract.fromArtifact('dToken')
 
@@ -26,22 +26,22 @@ describe('Feature', function () {
     await this.underlyingTwo.mint(user, '100000000000000000000') // 100
 
     // deploy cTokens, and seed with some underlyings
-    this.cTokenOne = await cTokenFake.new(
-      'cTokenOne',
+    this.compoundOne = await CompoundFake.new(
+      'compoundOne',
       'CTO',
       '6',
       this.underlyingOne.address,
       '10000000000000000000', // exchange rate - 10
     )
-    await this.underlyingOne.mint(this.cTokenOne.address, '100000000') // 100
-    this.cTokenTwo = await cTokenFake.new(
-      'cTokenTwo',
+    await this.underlyingOne.mint(this.compoundOne.address, '100000000') // 100
+    this.compoundTwo = await CompoundFake.new(
+      'compoundTwo',
       'CTT',
       '18',
       this.underlyingTwo.address,
       '10000000000000000000', // exchange rate - 10
     )
-    await this.underlyingTwo.mint(this.cTokenTwo.address, '100000000000000000000') // 100
+    await this.underlyingTwo.mint(this.compoundTwo.address, '100000000000000000000') // 100
 
 
     // deploy dPools
@@ -50,14 +50,14 @@ describe('Feature', function () {
       'DPO',
       '6',
       this.underlyingOne.address,
-      this.cTokenOne.address
+      this.compoundOne.address
     )
     this.dPoolTwo = await dPool.new(
       'dPoolTwo',
       'DPT',
       '18',
       this.underlyingTwo.address,
-      this.cTokenTwo.address
+      this.compoundTwo.address
     )
 
     // deploy dTokens
@@ -78,25 +78,29 @@ describe('Feature', function () {
     /*** MINT ***/
 
     // mint dToken
-    const underlyingAmountToMint = new BN('100000000000000000000') // 100
-    await this.dToken.mint(this.underlyingTwo.address, underlyingAmountToMint, { from: user })
+    await this.dToken.mint(this.underlyingOne.address, new BN('100000000'), { from: user }) // mint with 100 of underlying one
+    await this.dToken.mint(this.underlyingTwo.address, new BN('100000000000000000000'), { from: user }) // mint with 100 of underlying two
 
-    // should deposit 100 underlyingTwo into dPool
+    // should deposit 100 of underingOne and underlyingTwo into dPools
+    expect(await this.underlyingOne.balanceOf.call(user)).to.be.bignumber.equal(new BN('0'))
     expect(await this.underlyingTwo.balanceOf.call(user)).to.be.bignumber.equal(new BN('0'))
-    expect(await this.dPoolTwo.calcPoolValueInUnderlying()).to.be.bignumber.equal(underlyingAmountToMint)
+    expect(await this.dPoolOne.calcPoolValueInUnderlying()).to.be.bignumber.equal(new BN('100000000'))
+    expect(await this.dPoolTwo.calcPoolValueInUnderlying()).to.be.bignumber.equal(new BN('100000000000000000000'))
 
-    // should mint 100 dToken
-    expect(await this.dToken.totalSupply.call()).to.be.bignumber.equal(underlyingAmountToMint)
-    expect(await this.dToken.balanceOf.call(user)).to.be.bignumber.equal(underlyingAmountToMint)
+    // should mint 200 dToken
+    expect(await this.dToken.totalSupply.call()).to.be.bignumber.equal(new BN('200000000000000000000'))
+    expect(await this.dToken.balanceOf.call(user)).to.be.bignumber.equal(new BN('200000000000000000000'))
 
     /*** REDEEM ***/
 
     // redeem dToken
-    const underlyingAmountToRedeem = new BN('100000000000000000000') // 100
-    await this.dToken.redeem(this.underlyingTwo.address, underlyingAmountToRedeem, { from: user })
+    await this.dToken.redeem(this.underlyingOne.address, new BN('100000000'), { from: user }) // redeem into 100 of underlying one
+    await this.dToken.redeem(this.underlyingTwo.address, new BN('100000000000000000000'), { from: user })  // redeem into 100 of underlying two
 
     // should withdraw 100 underlyingTwo from dPool
-    expect(await this.underlyingTwo.balanceOf.call(user)).to.be.bignumber.equal(underlyingAmountToRedeem)
+    expect(await this.underlyingOne.balanceOf.call(user)).to.be.bignumber.equal(new BN('100000000'))
+    expect(await this.underlyingTwo.balanceOf.call(user)).to.be.bignumber.equal(new BN('100000000000000000000'))
+    expect(await this.dPoolOne.calcPoolValueInUnderlying()).to.be.bignumber.equal(new BN('0'))
     expect(await this.dPoolTwo.calcPoolValueInUnderlying()).to.be.bignumber.equal(new BN('0'))
 
     // should burn 100 dToken
@@ -104,22 +108,23 @@ describe('Feature', function () {
     expect(await this.dToken.balanceOf.call(user)).to.be.bignumber.equal(new BN('0'))
   })
 
-  it('claim interest earnings from multiple dPools', async () => {
+  it('accure interest earnings from multiple dPools', async () => {
     // mint
-    const underlyingAmountToMint = new BN('100000000000000000000')
-    await this.dToken.mint(this.underlyingTwo.address, underlyingAmountToMint, { from: user })
+    await this.dToken.mint(this.underlyingOne.address, new BN('100000000'), { from: user }) // mint with 100 of underlying one
+    await this.dToken.mint(this.underlyingTwo.address, new BN('100000000000000000000'), { from: user }) // mint with 100 of underlying two
 
     // accrueInterest
-    const interest = 2
-    await this.cTokenTwo.accrueInterest(interest) // increase exchange rate by 2x
+    await this.compoundOne.accrueInterest('2') // increase compound token one exchange rate by 2x
+    await this.compoundTwo.accrueInterest('4') // increase compound token two exchange rate by 3x
 
     // redeem
-    const underlyingAmountToRedeem = new BN('100000000000000000000') // 100
-    await this.dToken.redeem(this.underlyingTwo.address, underlyingAmountToRedeem, { from: user })
-
-    // should still have half of compound cToken accured in dPool in interest earning
-    expect(await this.dPoolTwo.calcEarningInUnderlying()).to.be.bignumber.equal(new BN('100000000000000000000'))
-    expect(await this.dPoolTwo.calcPoolValueInUnderlying()).to.be.bignumber.equal(new BN('100000000000000000000'))
+    // should still have left over compound cToken dPool from accured interest
+    await this.dToken.redeem(this.underlyingOne.address, new BN('100000000'), { from: user }) // redeem into 100 of underlying one
+    expect(await this.dPoolOne.calcEarningInUnderlying()).to.be.bignumber.equal(new BN('100000000')) // 100 of underlying one
+    expect(await this.dPoolOne.calcPoolValueInUnderlying()).to.be.bignumber.equal(new BN('100000000')) // 200 of underlying two
+    await this.dToken.redeem(this.underlyingTwo.address, new BN('100000000000000000000'), { from: user })  // redeem into 100 of underlying two
+    expect(await this.dPoolTwo.calcEarningInUnderlying()).to.be.bignumber.equal(new BN('300000000000000000000')) // 100 of underlying one
+    expect(await this.dPoolTwo.calcPoolValueInUnderlying()).to.be.bignumber.equal(new BN('300000000000000000000')) // 200 of underlying two
   })
 
   it.skip('collect provider token rewards from multiple dPools', async () => {

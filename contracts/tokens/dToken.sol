@@ -14,7 +14,6 @@ import "../interfaces/dPoolInterface.sol";
  * @title dToken
  * @dev dToken are collateralized assets pegged to a specific value.
         Collaterals are dPool tokens
-        When collaterals are all stable coins, dToken have 1:1 ratio with dPool tokens
  */
 contract dToken is ERC20, ERC20Detailed, ReentrancyGuard {
     using SafeERC20 for IERC20;
@@ -66,7 +65,8 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard {
         // check mining manager to register mint rewards
 
         // mint dToken
-        _mint(msg.sender, _amount);
+        uint mintAmount = _convertToDToken(_underlying, _amount);
+        _mint(msg.sender, mintAmount);
     }
 
     // redeem _amount of dToken into _underlying
@@ -92,7 +92,8 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard {
         // check mining manager to register mint rewards
 
         // burn dToken
-        _burn(msg.sender, _amount);
+        uint burnAmount = _convertToDToken(_underlying, _amount);
+        _burn(msg.sender, burnAmount);
     }
 
     function isUnderlyingSupported(address _underlying) public view returns (bool) {
@@ -108,5 +109,13 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard {
     // aprove underlying token to pool
     function _approveUnderlyingToPool(address _underlying, address _pool) internal {
         IERC20(_underlying).safeApprove(_pool, uint(-1));
+    }
+
+    function _convertToDToken(address _underlying, uint _underlyingAmount) internal returns (uint) {
+        uint underlyingDecimalPlace = uint(ERC20Detailed(_underlying).decimals());
+        uint dTokenAmount;
+        // expect underlying to have less or equal decimals than dToken
+        dTokenAmount = uint(10**(uint(18).sub(underlyingDecimalPlace))).mul(_underlyingAmount);
+        return dTokenAmount;
     }
 }
