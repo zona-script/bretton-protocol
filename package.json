@@ -6,7 +6,7 @@
     "clean": "rm -rf build",
     "build": "oz compile",
     "clean-build": "npm run clean && npm run build",
-    "test": "npm run clean-build && mocha --exit --recursive test"
+    "test": "npm run clean-build && mocha --exit --recursive test --timeout 10000"
   },
   "author": "Bretton Protocol",
   "license": "MIT",
