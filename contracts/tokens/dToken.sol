@@ -53,12 +53,12 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard {
         external
         nonReentrant
     {
-        require(_amount > 0, "deposit must be greater than 0");
-        require(isUnderlyingSupported(_underlying), "underlying is not supported");
+        require(_amount > 0, "DTOKEN: mint must be greater than 0");
+        require(isUnderlyingSupported(_underlying), "DTOKEN: mint underlying is not supported");
 
         // check risk manager
 
-        // transfer token into dToken and deposit into dPool
+        // transfer underlying into dToken and deposit into dPool
         dPoolInterface pool = dPoolInterface(underlyingToDPoolMap[_underlying]);
         IERC20(_underlying).safeTransferFrom(msg.sender, address(this), _amount);
         pool.deposit(_amount);
@@ -79,8 +79,8 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard {
         external
         nonReentrant
     {
-        require(_amount > 0, "deposit must be greater than 0");
-        require(isUnderlyingSupported(_underlying), "underlying is not supported");
+        require(_amount > 0, "DTOKEN: redeem must be greater than 0");
+        require(isUnderlyingSupported(_underlying), "DTOKEN: redeem underlying is not supported");
 
         // check risk manager
 

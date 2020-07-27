@@ -4,6 +4,7 @@ import "../externals/SafeMath.sol";
 import "../externals/Address.sol";
 import "../externals/SafeERC20.sol";
 import "../externals/ReentrancyGuard.sol";
+import "../externals/Ownable.sol";
 import "../externals/IERC20.sol";
 import "../externals/ERC20.sol";
 import "../externals/ERC20Detailed.sol";
@@ -26,17 +27,15 @@ contract dPool is ERC20, ERC20Detailed, ReentrancyGuard {
     address public underlying;
     // total balance of underlying in this pool (total deposit + interest accrued)
     // total deposits = totalSupply
-    // totalPoolBalance could be greater than totalSupply since underlying in pool accrues interest
-    uint256 public totalPoolBalance;
+    // pool value in underlying could be greater than totalSupply since underlying in pool accrues interest
+
     // compound pool address of underlying
     address public compound;
 
     enum Lender {
-       NONE,
        COMPOUND
     }
-
-    Lender public provider = Lender.NONE;
+    Lender public provider;
 
     constructor (
         string memory _name,
@@ -51,6 +50,8 @@ contract dPool is ERC20, ERC20Detailed, ReentrancyGuard {
         underlying = _underlying;
         compound = _compound;
 
+        provider = Lender.COMPOUND;
+
         _approveUnderlyingToProvider();
     }
 
@@ -62,13 +63,13 @@ contract dPool is ERC20, ERC20Detailed, ReentrancyGuard {
         external
         nonReentrant
     {
-        require(_amount > 0, "deposit must be greater than 0");
+        require(_amount > 0, "DPOOL: deposit must be greater than 0");
 
-        // Transfer underlying into this pool, increase totalPoolBalance
+        // Transfer underlying into this pool, increase pool value in underlying
         IERC20(underlying).safeTransferFrom(msg.sender, address(this), _amount);
 
-        // Update totalPoolBalance
-        totalPoolBalance = calcPoolValueInUnderlying();
+        // Supply underlying to provider
+        _supplyProvider(balancePoolInUnderlying());
 
         // Mint dPool token for depositer, increase totalSupply
         _mint(msg.sender, _amount);
@@ -80,8 +81,8 @@ contract dPool is ERC20, ERC20Detailed, ReentrancyGuard {
         external
         nonReentrant
     {
-        require(_amount > 0, "withdraw must be greater than 0");
-        require(_amount <= balanceOf(msg.sender), "insufficient balance");
+        require(_amount > 0, "DPOOL: withdraw must be greater than 0");
+        require(_amount <= balanceOf(msg.sender), "DPOOL: withdraw insufficient balance");
 
         // Check if pool has enough idle underlying to withdraw
         uint256 availableToWithdraw = IERC20(underlying).balanceOf(address(this));
@@ -90,42 +91,11 @@ contract dPool is ERC20, ERC20Detailed, ReentrancyGuard {
           _withdrawSome(_amount.sub(availableToWithdraw));
         }
 
-        // Transfer underlying to withdrawer, decrease totalPoolBalance
+        // Transfer underlying to withdrawer, decrease pool value in underlying
         IERC20(underlying).safeTransfer(msg.sender, _amount);
-
-        // Update totalPoolBalance
-        totalPoolBalance = calcPoolValueInUnderlying();
 
         // Burn dPool token for withdrawer, decrease totalSupply
         _burn(msg.sender, _amount);
-    }
-
-    // figure out which lender has best return
-    function recommend() public view returns (Lender) {
-        // just return compound for now
-        return Lender.COMPOUND;
-    }
-
-    // rebalance pool balance into pool with best return
-    function rebalance() public {
-        Lender newProvider = recommend();
-
-        if (newProvider != provider) {
-          _withdrawAll();
-        }
-
-        if (balancePoolInUnderlying() > 0) {
-          if (newProvider == Lender.COMPOUND) {
-            _supplyCompound(balancePoolInUnderlying());
-          }
-        }
-
-        provider = newProvider;
-    }
-
-    // Interest earned is difference between total pool balance and total supply
-    function calcEarningInUnderlying() public view returns(uint256) {
-        return calcPoolValueInUnderlying().sub(_totalSupply);
     }
 
     // balance of underlying in this pool
@@ -154,6 +124,11 @@ contract dPool is ERC20, ERC20Detailed, ReentrancyGuard {
                .add(balancePoolInUnderlying());
     }
 
+    // Interest earned = pool value - total supply
+    function calcEarningInUnderlying() public view returns(uint256) {
+        return calcPoolValueInUnderlying().sub(_totalSupply);
+    }
+
     /*** INTERNAL FUNCTIONS ***/
 
     // aprove underlying token to providers
@@ -165,14 +140,14 @@ contract dPool is ERC20, ERC20Detailed, ReentrancyGuard {
     // _amount = amount of underlying to withdraw
     function _withdrawSome(uint256 _amount) internal {
         if (provider == Lender.COMPOUND) {
-          _withdrawCompound(_amount);
+            _withdrawCompound(_amount);
         }
     }
 
     // withdraw some underlying amount from compound
     // _amount = amount of underlying to withdraw
     function _withdrawCompound(uint256 _amount) internal {
-        require(balanceCompoundInUnderlying() >= _amount, "insufficient funds");
+        require(balanceCompoundInUnderlying() >= _amount, "COMPOUND: withdraw insufficient funds");
         require(Compound(compound).redeemUnderlying(_amount) == 0, "COMPOUND: redeemUnderlying failed");
     }
 
@@ -180,13 +155,22 @@ contract dPool is ERC20, ERC20Detailed, ReentrancyGuard {
     function _withdrawAll() internal {
         uint256 amount = balanceCompound();
         if (amount > 0) {
-            _withdrawCompound(balanceCompoundInUnderlying().sub(1)); // ??? why sub 1
+            _withdrawCompound(balanceCompoundInUnderlying()); // ??? why sub 1
+        }
+    }
+
+    // supply some underlying amount to provider
+    // _amount = amount of underlying to supply
+    function _supplyProvider(uint _amount) internal {
+        if (provider == Lender.COMPOUND) {
+            _supplyCompound(_amount);
         }
     }
 
     // supply some underlying amount to compound
     // _amount = amount of underlying to supply
     function _supplyCompound(uint _amount) internal {
+        // check compound rcode
         require(Compound(compound).mint(_amount) == 0, "COMPOUND: mint failed");
     }
 }
