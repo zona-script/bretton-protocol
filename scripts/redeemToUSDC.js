@@ -10,7 +10,7 @@ async function main() {
   web3.eth.defaultAccount = account.address;
   const loader = setupLoader({ provider: web3 }).web3
 
-  const dUSDAddress = '0xdd4e3c7A3C093412E48A3Ca17Dc4521eCAc86E26'
+  const dUSDAddress = '0x33551cE572363102d522cfFEE0fB84d564B5b507'
   const dUSD = loader.fromArtifact('dUSD', dUSDAddress)
 
   const USDCAddress = '0x0D9C8723B343A8368BebE0B5E89273fF8D712e3C'

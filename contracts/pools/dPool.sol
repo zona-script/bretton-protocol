@@ -118,6 +118,11 @@ contract dPool is ERC20, ERC20Detailed, ReentrancyGuard {
 
     /*** VIEW FUNCTIONS ***/
 
+    // balance of underlying in this pool
+    function balanceInUnderlying() public view returns (uint256) {
+        return IERC20(underlying).balanceOf(address(this));
+    }
+
     // balance of compound token in this pool
     function balanceCompound() public view returns (uint256) {
         return IERC20(compound).balanceOf(address(this));
@@ -135,7 +140,8 @@ contract dPool is ERC20, ERC20Detailed, ReentrancyGuard {
 
     // calculate total underlying balance of this pool
     function calcPoolValueInUnderlying() public view returns (uint) {
-        return balanceCompoundInUnderlying();
+        return balanceCompoundInUnderlying()
+               .add(balanceInUnderlying());
     }
 
     // Interest earned = pool value - total supply

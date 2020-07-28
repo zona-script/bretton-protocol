@@ -10,10 +10,10 @@ async function main() {
   web3.eth.defaultAccount = account.address;
   const loader = setupLoader({ provider: web3 }).web3
 
-  const dUSDCpAddress = '0x6968E171E85D325e017173a8ee0ebF633261F970'
+  const dUSDCpAddress = '0x6a474ba655401D91b43fbF7Aa82589e21aaD9F3b'
   const dUSDCp = loader.fromArtifact('dPool', dUSDCpAddress)
 
-  const dUSDTpAddress = '0xFf687af06ef7a52A7e95c0739b832d3A5FD04946'
+  const dUSDTpAddress = '0xd3E15E16ed8e0337D13587Ec791b88c3e7E62d3d'
   const dUSDTp = loader.fromArtifact('dPool', dUSDTpAddress)
 
   // USDC Pool

@@ -10,7 +10,7 @@ async function main() {
   web3.eth.defaultAccount = account.address;
   const loader = setupLoader({ provider: web3 }).web3
 
-  const dUSDAddress = '0xdd4e3c7A3C093412E48A3Ca17Dc4521eCAc86E26'
+  const dUSDAddress = '0x33551cE572363102d522cfFEE0fB84d564B5b507'
   const dUSD = loader.fromArtifact('dUSD', dUSDAddress)
 
   const USDTAddress = '0x516de3a7A567d81737e3a46ec4FF9cFD1fcb0136'
@@ -25,7 +25,7 @@ async function main() {
   const dUSDBalanceBefore = await dUSD.methods.balanceOf(account.address).call() / 1e18 // dUSD is 18 decimal place
   console.log('dUSD balance before mint: ' + dUSDBalanceBefore)
 
-  const amountToMint = '900000000' // 1 USDT
+  const amountToMint = '100000000' // 1 USDT
   // approve dUSD with 1 USDT
   console.log('Approving USDT...')
   await USDT.methods.approve(dUSDAddress, amountToMint).send({ from: account.address })
