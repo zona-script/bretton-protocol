@@ -4,23 +4,23 @@
   "proxies": {
     "Delta Protocol/dUSDCp": [
       {
-        "address": "0x085233DDaDbB037983EcF1E2192ff8da1AB7c1f2",
+        "address": "0x6968E171E85D325e017173a8ee0ebF633261F970",
         "kind": "NonProxy",
-        "bytecodeHash": "6589bfc69734cbfc4cb90c68a193b33454bf9dee606bb09b56aa4bdbeaaec2f6"
+        "bytecodeHash": "b30c4a3d87aa5985c391b5a68077acca54b414d7ca106588a5901212d33a375b"
       }
     ],
     "Delta Protocol/dUSDTp": [
       {
-        "address": "0x39a28f24728cDDCfeC7C69e8cc0B467D7336b734",
+        "address": "0xFf687af06ef7a52A7e95c0739b832d3A5FD04946",
         "kind": "NonProxy",
-        "bytecodeHash": "9739f947064403ff26554bdd73bc7f53db6bba5fc028ff2b94e8e63dd778b504"
+        "bytecodeHash": "71fd316c862f14136c1ae38f122e82e7d4f4eaa4fd11b2cda26ab16b4052c450"
       }
     ],
     "Delta Protocol/dUSD": [
       {
-        "address": "0xCE61dA65F2718c6095481aB8c7f049481b297b17",
+        "address": "0xdd4e3c7A3C093412E48A3Ca17Dc4521eCAc86E26",
         "kind": "NonProxy",
-        "bytecodeHash": "2467d93ab17814bc0e8c50f0b58ad5efe711b3dc30caee8719ecf177a1014e18"
+        "bytecodeHash": "2b98d8c9ffda061b6531576a00f9836889c0845c2a4e4c989eb7c301821f24e6"
       }
     ]
   },

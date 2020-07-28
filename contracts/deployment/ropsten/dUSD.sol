@@ -29,8 +29,8 @@ contract dUSD is dToken {
 
     function getInitialPools()  pure internal returns (address[] memory) {
         address[] memory pools = new address[](2);
-        pools[0] = address(0x085233DDaDbB037983EcF1E2192ff8da1AB7c1f2); // USDC dPool
-        pools[1] = address(0x39a28f24728cDDCfeC7C69e8cc0B467D7336b734); // USDT dPool
+        pools[0] = address(0x6968E171E85D325e017173a8ee0ebF633261F970); // USDC dPool
+        pools[1] = address(0xFf687af06ef7a52A7e95c0739b832d3A5FD04946); // USDT dPool
         return pools;
     }
 }
