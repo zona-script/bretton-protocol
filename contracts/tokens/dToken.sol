@@ -57,7 +57,7 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard {
 
     // redeem _amount of dToken into _underlying
     // _underlying = address of underlying token
-    // _amount = amount of dToken to redeem
+    // _amount = amount of underlying to redeem
     function redeem(
         address _underlying,
         uint _amount
