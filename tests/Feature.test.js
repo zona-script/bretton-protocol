@@ -169,6 +169,16 @@ describe('Features', function () {
     expect(await this.dPoolTwo.calcPoolValueInUnderlying()).to.be.bignumber.equal(new BN('20000000000000000000')) // 20 of underlying two
   })
 
+  it('swap between two underlyings', async () => {
+    // mint underlyingTwo to seed pool
+    await this.dToken.mint(this.underlyingTwo.address, new BN('100000000000000000000'), { from: user }) // mint with 100 of underlying two
+
+    // swap
+    await this.dToken.swap(this.underlyingOne.address, new BN('5000000'), this.underlyingTwo.address, { from: user }) // swap 5 underlyingOne to 5 underlyingTwo
+    expect(await this.underlyingOne.balanceOf.call(user)).to.be.bignumber.equal(new BN('95000000')) // 100 - 5 from swap
+    expect(await this.underlyingTwo.balanceOf.call(user)).to.be.bignumber.equal(new BN('5000000000000000000'))  // 5 from swap
+  })
+
   it.skip('collect provider token rewards from multiple dPools', async () => {
   })
 

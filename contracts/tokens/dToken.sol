@@ -49,9 +49,58 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard {
         address _underlying,
         uint _amount
     )
+        public
+        nonReentrant
+    {
+        _mintInternal(_underlying, _amount);
+    }
+
+    // redeem _amount of dToken into _underlying
+    // _underlying = address of underlying token
+    // _amount = amount of dToken to redeem
+    function redeem(
+        address _underlying,
+        uint _amount
+    )
+        public
+        nonReentrant
+    {
+        _redeemInternal(_underlying, _amount);
+    }
+
+    // swap _amountFrom of _underlyingFrom to _underlyingTo
+    function swap(
+        address _underlyingFrom,
+        uint _amountFrom,
+        address _underlyingTo
+    )
         external
         nonReentrant
     {
+        // check if there is sufficient underlyingTo to swap
+        // currently there are no exchange rate between underlyings as only stable coins are supported
+        dPoolInterface pool = dPoolInterface(underlyingToDPoolMap[_underlyingTo]);
+        uint amountTo = _scaleTokenAmount(_underlyingFrom, _amountFrom, _underlyingTo);
+        require(pool.calcPoolValueInUnderlying() >= amountTo, "DTOKEN: insufficient underlyingTo for swap");
+
+        // mint with _underlyingFrom
+        _mintInternal(_underlyingFrom, _amountFrom);
+
+        // redeem to _underlyingTo
+        _redeemInternal(_underlyingTo, amountTo);
+    }
+
+    function isUnderlyingSupported(address _underlying) public view returns (bool) {
+        return underlyingToDPoolMap[_underlying] != address(0);
+    }
+
+    function getAllSupportedUnderlyings() public view returns (address[] memory) {
+        return supportedUnderlyings;
+    }
+
+    /*** INTERNAL FUNCTIONS ***/
+
+    function _mintInternal(address _underlying, uint _amount) internal {
         require(_amount > 0, "DTOKEN: mint must be greater than 0");
         require(isUnderlyingSupported(_underlying), "DTOKEN: mint underlying is not supported");
 
@@ -65,20 +114,11 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard {
         // check mining manager to register mint rewards
 
         // mint dToken
-        uint mintAmount = _convertToDToken(_underlying, _amount);
+        uint mintAmount = _scaleTokenAmount(_underlying, _amount, address(this));
         _mint(msg.sender, mintAmount);
     }
 
-    // redeem _amount of dToken into _underlying
-    // _underlying = address of underlying token
-    // _amount = amount of dToken to redeem
-    function redeem(
-        address _underlying,
-        uint _amount
-    )
-        external
-        nonReentrant
-    {
+    function _redeemInternal(address _underlying, uint _amount) internal {
         require(_amount > 0, "DTOKEN: redeem must be greater than 0");
         require(isUnderlyingSupported(_underlying), "DTOKEN: redeem underlying is not supported");
 
@@ -92,30 +132,24 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard {
         // check mining manager to register mint rewards
 
         // burn dToken
-        uint burnAmount = _convertToDToken(_underlying, _amount);
+        uint burnAmount = _scaleTokenAmount(_underlying, _amount, address(this));
         _burn(msg.sender, burnAmount);
     }
-
-    function isUnderlyingSupported(address _underlying) public view returns (bool) {
-        return underlyingToDPoolMap[_underlying] != address(0);
-    }
-
-    function getAllSupportedUnderlyings() public view returns (address[] memory) {
-        return supportedUnderlyings;
-    }
-
-    /*** INTERNAL FUNCTIONS ***/
 
     // aprove underlying token to pool
     function _approveUnderlyingToPool(address _underlying, address _pool) internal {
         IERC20(_underlying).safeApprove(_pool, uint(-1));
     }
 
-    function _convertToDToken(address _underlying, uint _underlyingAmount) internal returns (uint) {
-        uint underlyingDecimalPlace = uint(ERC20Detailed(_underlying).decimals());
-        uint dTokenAmount;
-        // expect underlying to have less or equal decimals than dToken
-        dTokenAmount = uint(10**(uint(18).sub(underlyingDecimalPlace))).mul(_underlyingAmount);
-        return dTokenAmount;
+    function _scaleTokenAmount(address _from, uint _fromAmount, address _to) internal view returns (uint) {
+        uint fromTokenDecimalPlace = uint(ERC20Detailed(_from).decimals());
+        uint toTokenDecimalPlace = uint(ERC20Detailed(_to).decimals());
+        uint toTokenAmount;
+        if (fromTokenDecimalPlace > toTokenDecimalPlace) {
+            toTokenAmount = _fromAmount.div(uint(10**(fromTokenDecimalPlace).sub(toTokenDecimalPlace))); // expect precision loss
+        } else {
+            toTokenAmount = uint(10**(toTokenDecimalPlace).sub(fromTokenDecimalPlace)).mul(_fromAmount);
+        }
+        return toTokenAmount;
     }
 }

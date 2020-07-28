@@ -2,32 +2,25 @@
   "contracts": {},
   "solidityLibs": {},
   "proxies": {
-    "Delta Protocol/ERC20": [
-      {
-        "address": "0xA20630E657ae61a99aDcb284A96995858B3Fd5CA",
-        "kind": "NonProxy",
-        "bytecodeHash": "875f41436e55f7c7ad15c0f465233f770251ff068b0bcd46435f4d71508a6b55"
-      }
-    ],
     "Delta Protocol/dUSDCp": [
       {
-        "address": "0xA70F950C578CAd3E3a7141e3727dC196e88dbd28",
+        "address": "0x085233DDaDbB037983EcF1E2192ff8da1AB7c1f2",
         "kind": "NonProxy",
-        "bytecodeHash": "d7b124970a3a8eb45e44910e26577a6ad211122c9620be793154389de9da7e56"
+        "bytecodeHash": "6589bfc69734cbfc4cb90c68a193b33454bf9dee606bb09b56aa4bdbeaaec2f6"
       }
     ],
     "Delta Protocol/dUSDTp": [
       {
-        "address": "0x68AE86007dFf2d3c3813574Df30e2b12036d93C0",
+        "address": "0x39a28f24728cDDCfeC7C69e8cc0B467D7336b734",
         "kind": "NonProxy",
-        "bytecodeHash": "ed8553038274ad2dffe8a7cf5c97d72f4b049d669203f21a735065aad406892e"
+        "bytecodeHash": "9739f947064403ff26554bdd73bc7f53db6bba5fc028ff2b94e8e63dd778b504"
       }
     ],
     "Delta Protocol/dUSD": [
       {
-        "address": "0x1d4327CbC29Fa2F39982ff0cb3e09c513Af473F2",
+        "address": "0xCE61dA65F2718c6095481aB8c7f049481b297b17",
         "kind": "NonProxy",
-        "bytecodeHash": "966a868e2ff16cfab661eb843c6dc74ffa683bd8b40d385e0c34961724aa426f"
+        "bytecodeHash": "2467d93ab17814bc0e8c50f0b58ad5efe711b3dc30caee8719ecf177a1014e18"
       }
     ]
   },

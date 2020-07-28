@@ -94,6 +94,7 @@ contract dPool is ERC20, ERC20Detailed, ReentrancyGuard {
         _withdrawFromProvider(_amount);
 
         // Transfer underlying to withdrawer, decrease pool value in underlying
+        // Collect Withdraw Fee
         IERC20(underlying).safeTransfer(msg.sender, _amount);
 
         // Burn dPool token for withdrawer, decrease totalSupply
@@ -101,7 +102,7 @@ contract dPool is ERC20, ERC20Detailed, ReentrancyGuard {
     }
 
     // collects interest from provider and distribute to earnings contract
-    function collectInterest() external returns (uint) {
+    function collectInterest() public returns (uint) {
         uint earnings = calcEarningInUnderlying();
         require(earnings > 0, "DPOOL: not enough interest to collect");
         // Withdraw earning from provider
@@ -111,7 +112,7 @@ contract dPool is ERC20, ERC20Detailed, ReentrancyGuard {
     }
 
     // collects token reward from provider and distribute to rewards contract
-    function collectReward() external returns (uint) {
+    function collectReward() public returns (uint) {
         // TODO
     }
 
