@@ -1,4 +1,6 @@
 const { ropstenProjectId, accountPrivateKey } = require('../secrets.json')
+const { proxies } = require('../.openzeppelin/ropsten.json')
+
 const Web3 = require('web3')
 const { setupLoader } = require('@openzeppelin/contract-loader')
 
@@ -10,12 +12,15 @@ async function main() {
   web3.eth.defaultAccount = account.address;
   const loader = setupLoader({ provider: web3 }).web3
 
-  const dUSDAddress = '0x33551cE572363102d522cfFEE0fB84d564B5b507'
+  // load addresses and contract from oz deployed project
+  const dUSDAddress = proxies['Delta Protocol/dUSD'][proxies['Delta Protocol/dUSD'].length - 1]['address']
   const dUSD = loader.fromArtifact('dUSD', dUSDAddress)
 
   const USDCAddress = '0x0D9C8723B343A8368BebE0B5E89273fF8D712e3C'
   const USDC = loader.fromArtifact('ERC20', USDCAddress)
 
+  console.log('\n')
+  
   console.log('=========REDEEM TO USDC=========')
   console.log('Using account: ' + account.address)
 
@@ -34,6 +39,8 @@ async function main() {
   console.log('USDC balance after mint: ' + USDCBalanceAfter)
   const dUSDBalanceAfter = await dUSD.methods.balanceOf(account.address).call() / 1e18 // dUSD is 18 decimal place
   console.log('dUSD balance after mint: ' + dUSDBalanceAfter)
+
+  console.log('\n')
 }
 
 main()

@@ -12,6 +12,11 @@
         "address": "0x6a474ba655401D91b43fbF7Aa82589e21aaD9F3b",
         "kind": "NonProxy",
         "bytecodeHash": "15fa4520620019e3eca44db9f6bc17bddd0ec465072cf281e061643bebb34acc"
+      },
+      {
+        "address": "0xE9A8b9A96E6bC629B19305a6251ebFC0E69Bb3d6",
+        "kind": "NonProxy",
+        "bytecodeHash": "3e66a66a5404f4bafd91fd5beca3612cdb7fa4d84dd968d7627806f1acb4c1ad"
       }
     ],
     "Delta Protocol/dUSDTp": [
@@ -24,6 +29,11 @@
         "address": "0xd3E15E16ed8e0337D13587Ec791b88c3e7E62d3d",
         "kind": "NonProxy",
         "bytecodeHash": "31bf92c64be0a88057eb27797fefc4fb7fa758cd009059df2c6349e4643e1c98"
+      },
+      {
+        "address": "0xAcfB5be533836380Bdb8e42783998C6382E22527",
+        "kind": "NonProxy",
+        "bytecodeHash": "fc68e93a5f50e1070d90045dccf8921838522f5236499250e8e504e7d86f0a5f"
       }
     ],
     "Delta Protocol/dUSD": [
@@ -36,6 +46,11 @@
         "address": "0x33551cE572363102d522cfFEE0fB84d564B5b507",
         "kind": "NonProxy",
         "bytecodeHash": "184283fbb1a0668769f4345c32da364519351e31180e467093be55580922b536"
+      },
+      {
+        "address": "0x2fdea53f3689C3310453A69c10226FaC2e6bC172",
+        "kind": "NonProxy",
+        "bytecodeHash": "d55564088c991b24d43ffc0d32d8d0365386347e6057415348cab5697a4912ca"
       }
     ]
   },

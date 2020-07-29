@@ -1,4 +1,6 @@
 const { ropstenProjectId, accountPrivateKey } = require('../secrets.json')
+const { proxies } = require('../.openzeppelin/ropsten.json')
+
 const Web3 = require('web3')
 const { setupLoader } = require('@openzeppelin/contract-loader')
 
@@ -10,11 +12,17 @@ async function main() {
   web3.eth.defaultAccount = account.address;
   const loader = setupLoader({ provider: web3 }).web3
 
-  const dUSDCpAddress = '0x6a474ba655401D91b43fbF7Aa82589e21aaD9F3b'
+  // load addresses and contract from oz deployed project
+  const dUSDCpAddress = proxies['Delta Protocol/dUSDCp'][proxies['Delta Protocol/dUSDCp'].length - 1]['address']
   const dUSDCp = loader.fromArtifact('dPool', dUSDCpAddress)
 
-  const dUSDTpAddress = '0xd3E15E16ed8e0337D13587Ec791b88c3e7E62d3d'
+  const dUSDTpAddress = proxies['Delta Protocol/dUSDTp'][proxies['Delta Protocol/dUSDCp'].length - 1]['address']
   const dUSDTp = loader.fromArtifact('dPool', dUSDTpAddress)
+
+  const dUSDAddress = proxies['Delta Protocol/dUSD'][proxies['Delta Protocol/dUSD'].length - 1]['address']
+  const dUSD = loader.fromArtifact('dUSD', dUSDAddress)
+
+  console.log('\n')
 
   // USDC Pool
   console.log('=========USDC Pool Stats=========')
@@ -40,6 +48,15 @@ async function main() {
   // get interest accured
   const USDTInterestEarned = await dUSDTp.methods.calcEarningInUnderlying().call() // don't scale decimal as the number can be very small
   console.log('Total USDT interest earned * 1e6 in dUSDTp is: ' + USDTInterestEarned)
+
+
+  // dUSD
+  console.log('=========dUSD STATS=========')
+  // get total supply
+  const dUSDTotalSupply = await dUSD.methods.totalSupply().call() / 1e18 // dUSD is 18 decimal place
+  console.log('Total dUSD supply is: ' + dUSDTotalSupply)
+
+  console.log('\n')
 }
 
 

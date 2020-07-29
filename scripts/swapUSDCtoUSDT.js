@@ -16,29 +16,36 @@ async function main() {
   const dUSDAddress = proxies['Delta Protocol/dUSD'][proxies['Delta Protocol/dUSD'].length - 1]['address']
   const dUSD = loader.fromArtifact('dUSD', dUSDAddress)
 
+  const USDCAddress = '0x0D9C8723B343A8368BebE0B5E89273fF8D712e3C'
+  const USDC = loader.fromArtifact('ERC20', USDCAddress)
+
   const USDTAddress = '0x516de3a7A567d81737e3a46ec4FF9cFD1fcb0136'
   const USDT = loader.fromArtifact('ERC20', USDTAddress)
 
   console.log('\n')
 
-  console.log('=========REDEEM TO USDT=========')
+  console.log('=========SWAP USDC TO USDT=========')
   console.log('Using account: ' + account.address)
 
   // balance before
+  const USDCBalanceBefore = await USDC.methods.balanceOf(account.address).call() / 1e6 // USDC is 6 decimal place
+  console.log('USDC balance before swap: ' + USDCBalanceBefore)
   const USDTBalanceBefore = await USDT.methods.balanceOf(account.address).call() / 1e6 // USDT is 6 decimal place
-  console.log('USDT balance before mint: ' + USDTBalanceBefore)
-  const dUSDBalanceBefore = await dUSD.methods.balanceOf(account.address).call() / 1e18 // dUSD is 18 decimal place
-  console.log('dUSD balance before mint: ' + dUSDBalanceBefore)
+  console.log('USDT balance before swap: ' + USDTBalanceBefore)
 
-  // redeem to 1 USDT
-  console.log('Redeeming...')
-  await dUSD.methods.redeem(USDTAddress, '1000000').send({ from: account.address, gas: 500000 })
+  const amountToSwap = '1000000'
+  // approve dUSD with 1 USDC
+  console.log('Approving USDC...')
+  await USDC.methods.approve(dUSDAddress, amountToSwap).send({ from: account.address })
+  // swap from 1 USDC to 1 USDT
+  console.log('Swapping...')
+  await dUSD.methods.swap(USDCAddress, amountToSwap, USDTAddress).send({ from: account.address, gas: 700000 })
 
   // balance after
+  const USDCBalanceAfter = await USDC.methods.balanceOf(account.address).call() / 1e6 // USDC is 6 decimal place
+  console.log('USDC balance after swap: ' + USDCBalanceAfter)
   const USDTBalanceAfter = await USDT.methods.balanceOf(account.address).call() / 1e6 // USDT is 6 decimal place
-  console.log('USDT balance after mint: ' + USDTBalanceAfter)
-  const dUSDBalanceAfter = await dUSD.methods.balanceOf(account.address).call() / 1e18 // dUSD is 18 decimal place
-  console.log('dUSD balance after mint: ' + dUSDBalanceAfter)
+  console.log('USDT balance after swap: ' + USDTBalanceAfter)
 
   console.log('\n')
 }

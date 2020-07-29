@@ -16,9 +16,6 @@ import "../providers/Compound.sol";
  * @dev dPool take an underlying and deposit into providers of best return
         dPool are pool of providers.
         dPool are used as collateral to mint dTokens.
-
-        total pool value = total supply + interest earned
-        interest earned = total pool value - total supply
  */
 contract dPool is ERC20, ERC20Detailed, ReentrancyGuard {
     using SafeERC20 for IERC20;
@@ -27,9 +24,8 @@ contract dPool is ERC20, ERC20Detailed, ReentrancyGuard {
 
      // underlying asset address
     address public underlying;
-    // total balance of underlying in this pool (total deposit + interest accrued)
+    // total balance of underlying in this pool (total deposit + interest accrued + fee collected)
     // total deposits = totalSupply
-    // pool value in underlying could be greater than totalSupply since underlying in pool accrues interest
 
     // compound pool address of underlying
     address public compound;
@@ -101,10 +97,10 @@ contract dPool is ERC20, ERC20Detailed, ReentrancyGuard {
         _burn(msg.sender, _amount);
     }
 
-    // collects interest from provider and distribute to earnings contract
-    function collectInterest() public returns (uint) {
+    // collects LP interest and pool fee earnings and distribute to earnings contract
+    function collectEarning() public returns (uint) {
         uint earnings = calcEarningInUnderlying();
-        require(earnings > 0, "DPOOL: not enough interest to collect");
+        require(earnings > 0, "DPOOL: not enough earning to collect");
         // Withdraw earning from provider
         _withdrawFromProvider(earnings);
         // Transfer earning to earning contract, decrease pool in underlying
@@ -144,7 +140,7 @@ contract dPool is ERC20, ERC20Detailed, ReentrancyGuard {
                .add(balanceInUnderlying());
     }
 
-    // Interest earned = pool value - total supply
+    // earning = interest + fee = pool value - total supply
     function calcEarningInUnderlying() public view returns(uint256) {
         return calcPoolValueInUnderlying().sub(_totalSupply);
     }

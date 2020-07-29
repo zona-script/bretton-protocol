@@ -1,4 +1,6 @@
 const { ropstenProjectId, accountPrivateKey } = require('../secrets.json')
+const { proxies } = require('../.openzeppelin/ropsten.json')
+
 const Web3 = require('web3')
 const { setupLoader } = require('@openzeppelin/contract-loader')
 
@@ -10,11 +12,14 @@ async function main() {
   web3.eth.defaultAccount = account.address;
   const loader = setupLoader({ provider: web3 }).web3
 
-  const dUSDAddress = '0x33551cE572363102d522cfFEE0fB84d564B5b507'
+  // load addresses and contract from oz deployed project
+  const dUSDAddress = proxies['Delta Protocol/dUSD'][proxies['Delta Protocol/dUSD'].length - 1]['address']
   const dUSD = loader.fromArtifact('dUSD', dUSDAddress)
 
   const USDTAddress = '0x516de3a7A567d81737e3a46ec4FF9cFD1fcb0136'
   const USDT = loader.fromArtifact('ERC20', USDTAddress)
+
+  console.log('\n')
 
   console.log('=========MINT WITH USDT=========')
   console.log('Using account: ' + account.address)
@@ -25,7 +30,7 @@ async function main() {
   const dUSDBalanceBefore = await dUSD.methods.balanceOf(account.address).call() / 1e18 // dUSD is 18 decimal place
   console.log('dUSD balance before mint: ' + dUSDBalanceBefore)
 
-  const amountToMint = '100000000' // 1 USDT
+  const amountToMint = '1000000' // 1 USDT
   // approve dUSD with 1 USDT
   console.log('Approving USDT...')
   await USDT.methods.approve(dUSDAddress, amountToMint).send({ from: account.address })
@@ -38,6 +43,8 @@ async function main() {
   console.log('USDT balance after mint: ' + USDTBalanceAfter)
   const dUSDBalanceAfter = await dUSD.methods.balanceOf(account.address).call() / 1e18 // dUSD is 18 decimal place
   console.log('dUSD balance after mint: ' + dUSDBalanceAfter)
+
+  console.log('\n')
 }
 
 main()

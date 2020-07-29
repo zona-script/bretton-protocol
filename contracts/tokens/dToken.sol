@@ -145,10 +145,13 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard {
         uint fromTokenDecimalPlace = uint(ERC20Detailed(_from).decimals());
         uint toTokenDecimalPlace = uint(ERC20Detailed(_to).decimals());
         uint toTokenAmount;
+        uint scaleFactor;
         if (fromTokenDecimalPlace > toTokenDecimalPlace) {
-            toTokenAmount = _fromAmount.div(uint(10**(fromTokenDecimalPlace).sub(toTokenDecimalPlace))); // expect precision loss
+            scaleFactor = fromTokenDecimalPlace.sub(toTokenDecimalPlace);
+            toTokenAmount = _fromAmount.div(uint(10**scaleFactor)); // expect precision loss
         } else {
-            toTokenAmount = uint(10**(toTokenDecimalPlace).sub(fromTokenDecimalPlace)).mul(_fromAmount);
+            scaleFactor = toTokenDecimalPlace.sub(fromTokenDecimalPlace);
+            toTokenAmount = _fromAmount.mul(uint(10**(scaleFactor)));
         }
         return toTokenAmount;
     }
