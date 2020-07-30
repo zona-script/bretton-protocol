@@ -8,10 +8,10 @@ import "../externals/IERC20.sol";
 import "../externals/ERC20.sol";
 import "../externals/ERC20Detailed.sol";
 
-import "../providers/Compound.sol";
+import "../providers/CompoundInterface.sol";
 
 // Fake implementation of compound's cToken for testing
-contract CompoundFake is ERC20, ERC20Detailed, Compound {
+contract CompoundFake is ERC20, ERC20Detailed, CompoundInterface {
     using SafeERC20 for IERC20;
     using Address for address;
     using SafeMath for uint256;

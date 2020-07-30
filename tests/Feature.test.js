@@ -9,7 +9,7 @@ const dPool = contract.fromArtifact('dPool')
 const dToken = contract.fromArtifact('dToken')
 
 describe('Features', function () {
-  const [ admin, user, earnContract ] = accounts
+  const [ admin, user, stakingPool, rewardToken ] = accounts
   beforeEach(async () => {
     // deploy underlying tokens and mint for user
     this.underlyingOne = await ERC20Fake.new(
@@ -50,16 +50,18 @@ describe('Features', function () {
       'DPO',
       '6',
       this.underlyingOne.address,
+      rewardToken,
       this.compoundOne.address,
-      earnContract
+      stakingPool
     )
     this.dPoolTwo = await dPool.new(
       'dPoolTwo',
       'DPT',
       '18',
       this.underlyingTwo.address,
+      rewardToken,
       this.compoundTwo.address,
-      earnContract
+      stakingPool
     )
 
     // deploy dTokens
@@ -122,13 +124,13 @@ describe('Features', function () {
     expect(await this.dPoolTwo.calcEarningInUnderlying()).to.be.bignumber.equal(new BN('300000000000000000000')) // 400 of underlying two
 
     // redeem
-    // should still have left over compound cToken dPool from accured interest
+    // should sent compound cToken earning to staking pool
     await this.dToken.redeem(this.underlyingOne.address, new BN('100000000'), { from: user }) // redeem into 100 of underlying one
-    expect(await this.dPoolOne.calcEarningInUnderlying()).to.be.bignumber.equal(new BN('100000000')) // 100 of underlying one
-    expect(await this.dPoolOne.calcPoolValueInUnderlying()).to.be.bignumber.equal(new BN('100000000')) // 100 of underlying one
+    expect(await this.underlyingOne.balanceOf(stakingPool)).to.be.bignumber.equal(new BN('100000000')) // 100 of underlying one
+    expect(await this.dPoolOne.calcPoolValueInUnderlying()).to.be.bignumber.equal(new BN('0'))
     await this.dToken.redeem(this.underlyingTwo.address, new BN('100000000000000000000'), { from: user })  // redeem into 100 of underlying two
-    expect(await this.dPoolTwo.calcEarningInUnderlying()).to.be.bignumber.equal(new BN('300000000000000000000')) // 300 of underlying two
-    expect(await this.dPoolTwo.calcPoolValueInUnderlying()).to.be.bignumber.equal(new BN('300000000000000000000')) // 300 of underlying two
+    expect(await this.underlyingTwo.balanceOf(stakingPool)).to.be.bignumber.equal(new BN('300000000000000000000')) // 300 of underlying two
+    expect(await this.dPoolTwo.calcPoolValueInUnderlying()).to.be.bignumber.equal(new BN('0')) // 300 of underlying two
   })
 
   it('collect earnings from dPool', async () => {
@@ -140,11 +142,11 @@ describe('Features', function () {
     await this.compoundOne.accrueInterest('2') // increase compound token one exchange rate by 2x
     await this.compoundTwo.accrueInterest('4') // increase compound token two exchange rate by 4x
 
-    // collect interest should transfer earnings to earn contract
-    await this.dPoolOne.collectEarning()
-    await this.dPoolTwo.collectEarning()
-    expect(await this.underlyingOne.balanceOf.call(earnContract)).to.be.bignumber.equal(new BN('10000000')) // 10
-    expect(await this.underlyingTwo.balanceOf.call(earnContract)).to.be.bignumber.equal(new BN('30000000000000000000')) // 30
+    // dispenseEarning should transfer earnings to staking contract
+    await this.dPoolOne.dispenseEarning()
+    await this.dPoolTwo.dispenseEarning()
+    expect(await this.underlyingOne.balanceOf.call(stakingPool)).to.be.bignumber.equal(new BN('10000000')) // 10
+    expect(await this.underlyingTwo.balanceOf.call(stakingPool)).to.be.bignumber.equal(new BN('30000000000000000000')) // 30
     expect(await this.dPoolOne.calcEarningInUnderlying()).to.be.bignumber.equal(new BN('0')) // 0 of underlying one
     expect(await this.dPoolOne.calcPoolValueInUnderlying()).to.be.bignumber.equal(new BN('10000000')) // 10 of underlying one
     expect(await this.dPoolTwo.calcEarningInUnderlying()).to.be.bignumber.equal(new BN('0')) // 0 of underlying two
@@ -158,11 +160,11 @@ describe('Features', function () {
     await this.compoundOne.accrueInterest('2') // increase compound token one exchange rate by 2x
     await this.compoundTwo.accrueInterest('2') // increase compound token two exchange rate by 2x
 
-    // collect interest should transfer earnings to earn contract
-    await this.dPoolOne.collectEarning() // interest accrued on total of 20 underlying one
-    await this.dPoolTwo.collectEarning() // interest accrued on total of 20 underlying two
-    expect(await this.underlyingOne.balanceOf.call(earnContract)).to.be.bignumber.equal(new BN('30000000')) // 10 first time interest + 20 second time interest
-    expect(await this.underlyingTwo.balanceOf.call(earnContract)).to.be.bignumber.equal(new BN('50000000000000000000'))  // 30 first time interest + 20 second time interest
+    // dispenseEarning should transfer earnings to staking contract
+    await this.dPoolOne.dispenseEarning() // interest accrued on total of 20 underlying one
+    await this.dPoolTwo.dispenseEarning() // interest accrued on total of 20 underlying two
+    expect(await this.underlyingOne.balanceOf.call(stakingPool)).to.be.bignumber.equal(new BN('30000000')) // 10 first time interest + 20 second time interest
+    expect(await this.underlyingTwo.balanceOf.call(stakingPool)).to.be.bignumber.equal(new BN('50000000000000000000'))  // 30 first time interest + 20 second time interest
     expect(await this.dPoolOne.calcEarningInUnderlying()).to.be.bignumber.equal(new BN('0')) // 0 of underlying one
     expect(await this.dPoolOne.calcPoolValueInUnderlying()).to.be.bignumber.equal(new BN('20000000')) // 20 of underlying one
     expect(await this.dPoolTwo.calcEarningInUnderlying()).to.be.bignumber.equal(new BN('0')) // 0 of underlying two
@@ -182,7 +184,8 @@ describe('Features', function () {
   it.skip('collect provider token rewards from multiple dPools', async () => {
   })
 
-  it.skip('deposit delta token into staking contract and collect earnings', async () => {
+  it.skip('deposit staking token into staking contract and collect earnings', async () => {
+
   })
 
   it.skip('mine delta token from minting dToken', async () => {
