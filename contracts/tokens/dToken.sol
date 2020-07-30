@@ -1,27 +1,29 @@
 pragma solidity 0.5.16;
 
 import "../externals/SafeMath.sol";
-import "../externals/Address.sol";
 import "../externals/SafeERC20.sol";
 import "../externals/ReentrancyGuard.sol";
+import "../externals/Ownable.sol";
 import "../externals/IERC20.sol";
 import "../externals/ERC20.sol";
 import "../externals/ERC20Detailed.sol";
 
 import "../interfaces/dPoolInterface.sol";
+import "../interfaces/MineInterface.sol";
 
 /**
  * @title dToken
  * @dev dToken are collateralized assets pegged to a specific value.
         Collaterals are dPool tokens
  */
-contract dToken is ERC20, ERC20Detailed, ReentrancyGuard {
+contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
     using SafeERC20 for IERC20;
-    using Address for address;
     using SafeMath for uint256;
 
     mapping(address => address) public underlyingToDPoolMap;
     address[] public supportedUnderlyings;
+
+    MineInterface public mine;
 
     constructor (
         string memory _name,
@@ -38,6 +40,8 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard {
             supportedUnderlyings.push(_underlyings[i]);
             _approveUnderlyingToPool(_underlyings[i], _dPools[i]);
         }
+
+        mine = MineInterface(address(0)); // initialize to address 0
     }
 
     /*** External Functions ***/
@@ -111,11 +115,14 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard {
         IERC20(_underlying).safeTransferFrom(msg.sender, address(this), _amount);
         pool.deposit(_amount);
 
-        // check mining manager to register mint rewards
-
         // mint dToken
         uint mintAmount = _scaleTokenAmount(_underlying, _amount, address(this));
         _mint(msg.sender, mintAmount);
+
+        // check mine to update mining rewards
+        if (address(mine) != address(0)) {
+            mine.updateReward();
+        }
     }
 
     function _redeemInternal(address _underlying, uint _amount) internal {
@@ -129,11 +136,14 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard {
         pool.withdraw(_amount);
         IERC20(_underlying).safeTransfer(msg.sender, _amount);
 
-        // check mining manager to register mint rewards
-
         // burn dToken
         uint burnAmount = _scaleTokenAmount(_underlying, _amount, address(this));
         _burn(msg.sender, burnAmount);
+
+        // check mine to update mining rewards
+        if (address(mine) != address(0)) {
+            mine.updateReward();
+        }
     }
 
     // aprove underlying token to pool
@@ -154,5 +164,14 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard {
             toTokenAmount = _fromAmount.mul(uint(10**(scaleFactor)));
         }
         return toTokenAmount;
+    }
+
+    /*** ADMIN ***/
+
+    function setMine(MineInterface _mine)
+        external
+        onlyOwner
+    {
+        mine = _mine;
     }
 }

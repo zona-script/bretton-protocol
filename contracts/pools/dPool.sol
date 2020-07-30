@@ -1,7 +1,6 @@
 pragma solidity 0.5.16;
 
 import "../externals/SafeMath.sol";
-import "../externals/Address.sol";
 import "../externals/SafeERC20.sol";
 import "../externals/ReentrancyGuard.sol";
 import "../externals/Ownable.sol";
@@ -19,7 +18,6 @@ import "../providers/CompoundInterface.sol";
  */
 contract dPool is ERC20, ERC20Detailed, ReentrancyGuard {
     using SafeERC20 for IERC20;
-    using Address for address;
     using SafeMath for uint256;
 
      // underlying asset address
@@ -111,22 +109,36 @@ contract dPool is ERC20, ERC20Detailed, ReentrancyGuard {
 
     // collects LP interest and pool fee earnings and distribute to earnings contract
     function dispenseEarning() public returns (uint) {
-        uint256 earnings = calcEarningInUnderlying();
+        if (stakingPool == address(0)) {
+           // dont dispense earning if stakingPool is not set
+           return 0;
+        }
+
+        uint256 earnings = calcUnclaimedEarningInUnderlying();
         if (earnings > 0) {
             // Withdraw earning from provider
             _withdrawFromProvider(earnings);
             // Transfer earning to staking contract, decrease pool in underlying
             IERC20(underlyingToken).safeTransfer(stakingPool, earnings);
         }
+
+        return earnings;
     }
 
     // collects token reward from provider and distribute to rewards contract
     function dispenseReward() public returns (uint) {
-        uint256 rewards = IERC20(rewardToken).balanceOf(address(this));
+        if (stakingPool == address(0)) {
+            // dont dispense rewards if stakingPool is not set
+           return 0;
+        }
+
+        uint256 rewards = calcUnclaimedProviderReward();
         if (rewards > 0) {
             // Transfer LP rewards to staking contract
             IERC20(rewardToken).safeTransfer(stakingPool, rewards);
         }
+
+        return rewards;
     }
 
     /*** VIEW FUNCTIONS ***/
@@ -158,8 +170,12 @@ contract dPool is ERC20, ERC20Detailed, ReentrancyGuard {
     }
 
     // earning = interest + fee = pool value - total supply
-    function calcEarningInUnderlying() public view returns(uint256) {
+    function calcUnclaimedEarningInUnderlying() public view returns(uint256) {
         return calcPoolValueInUnderlying().sub(_totalSupply);
+    }
+
+    function calcUnclaimedProviderReward() public view returns(uint256) {
+        return IERC20(rewardToken).balanceOf(address(this));
     }
 
     /*** INTERNAL FUNCTIONS ***/

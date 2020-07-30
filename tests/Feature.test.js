@@ -5,7 +5,9 @@ const { expect } = require('chai')
 // Load compiled artifacts
 const ERC20Fake = contract.fromArtifact('ERC20Fake')
 const CompoundFake = contract.fromArtifact('CompoundFake')
+const StakingPool = contract.fromArtifact('StakingPool')
 const dPool = contract.fromArtifact('dPool')
+const Mine = contract.fromArtifact('Mine')
 const dToken = contract.fromArtifact('dToken')
 
 describe('Features', function () {
@@ -25,6 +27,7 @@ describe('Features', function () {
     )
     await this.underlyingTwo.mint(user, '100000000000000000000') // 100
 
+
     // deploy cTokens, and seed with some underlyings
     this.compoundOne = await CompoundFake.new(
       'compoundOne',
@@ -42,6 +45,23 @@ describe('Features', function () {
       '10000000000000000000', // exchange rate - 10
     )
     await this.underlyingTwo.mint(this.compoundTwo.address, '1000000000000000000000') // 1000
+
+
+    // deploy staking token and mint for user
+    this.stakingToken = await ERC20Fake.new(
+      'stakingToken',
+      'STKT',
+      '18'
+    )
+    await this.stakingToken.mint(user, '100000000000000000000') // 100
+    // deploy staking pool
+    this.StakingPool = await StakingPool.new(
+      'stakingPool',
+      'STKP',
+      '18',
+      this.stakingToken.address,
+      { from: admin }
+    )
 
 
     // deploy dPools
@@ -64,18 +84,33 @@ describe('Features', function () {
       stakingPool
     )
 
+
+    // register dPools in staking pool
+    await this.StakingPool.registerEarningPool(this.dPoolOne.address, { from: admin })
+    await this.StakingPool.registerEarningPool(this.dPoolTwo.address, { from: admin })
+
+
     // deploy dTokens
     this.dToken = await dToken.new(
       'dToken',
       'DTK',
       '18',
       [this.underlyingOne.address, this.underlyingTwo.address],
-      [this.dPoolOne.address, this.dPoolTwo.address]
+      [this.dPoolOne.address, this.dPoolTwo.address],
+      { from: admin }
     )
-
     // user approve underlying to dToken
     await this.underlyingOne.approve(this.dToken.address, '-1', { from: user }) // inifinite
     await this.underlyingTwo.approve(this.dToken.address, '-1', { from: user }) // inifinite
+
+
+    // deploy mining token
+    this.miningToken = await ERC20Fake.new(
+      'DELTA Protocol Token',
+      'DELTA',
+      '18', // different decimal place as dToken
+      { from: admin }
+    )
   })
 
   it('mint and redeem dToken using multiple underlyings', async () => {
@@ -120,8 +155,8 @@ describe('Features', function () {
     // accrueInterest
     await this.compoundOne.accrueInterest('2') // increase compound token one exchange rate by 2x
     await this.compoundTwo.accrueInterest('4') // increase compound token two exchange rate by 4x
-    expect(await this.dPoolOne.calcEarningInUnderlying()).to.be.bignumber.equal(new BN('100000000')) // 200 of underlying one
-    expect(await this.dPoolTwo.calcEarningInUnderlying()).to.be.bignumber.equal(new BN('300000000000000000000')) // 400 of underlying two
+    expect(await this.dPoolOne.calcUnclaimedEarningInUnderlying()).to.be.bignumber.equal(new BN('100000000')) // 200 of underlying one
+    expect(await this.dPoolTwo.calcUnclaimedEarningInUnderlying()).to.be.bignumber.equal(new BN('300000000000000000000')) // 400 of underlying two
 
     // redeem
     // should sent compound cToken earning to staking pool
@@ -147,9 +182,9 @@ describe('Features', function () {
     await this.dPoolTwo.dispenseEarning()
     expect(await this.underlyingOne.balanceOf.call(stakingPool)).to.be.bignumber.equal(new BN('10000000')) // 10
     expect(await this.underlyingTwo.balanceOf.call(stakingPool)).to.be.bignumber.equal(new BN('30000000000000000000')) // 30
-    expect(await this.dPoolOne.calcEarningInUnderlying()).to.be.bignumber.equal(new BN('0')) // 0 of underlying one
+    expect(await this.dPoolOne.calcUnclaimedEarningInUnderlying()).to.be.bignumber.equal(new BN('0')) // 0 of underlying one
     expect(await this.dPoolOne.calcPoolValueInUnderlying()).to.be.bignumber.equal(new BN('10000000')) // 10 of underlying one
-    expect(await this.dPoolTwo.calcEarningInUnderlying()).to.be.bignumber.equal(new BN('0')) // 0 of underlying two
+    expect(await this.dPoolTwo.calcUnclaimedEarningInUnderlying()).to.be.bignumber.equal(new BN('0')) // 0 of underlying two
     expect(await this.dPoolTwo.calcPoolValueInUnderlying()).to.be.bignumber.equal(new BN('10000000000000000000')) // 10 of underlying two
 
     // mint some more
@@ -165,9 +200,9 @@ describe('Features', function () {
     await this.dPoolTwo.dispenseEarning() // interest accrued on total of 20 underlying two
     expect(await this.underlyingOne.balanceOf.call(stakingPool)).to.be.bignumber.equal(new BN('30000000')) // 10 first time interest + 20 second time interest
     expect(await this.underlyingTwo.balanceOf.call(stakingPool)).to.be.bignumber.equal(new BN('50000000000000000000'))  // 30 first time interest + 20 second time interest
-    expect(await this.dPoolOne.calcEarningInUnderlying()).to.be.bignumber.equal(new BN('0')) // 0 of underlying one
+    expect(await this.dPoolOne.calcUnclaimedEarningInUnderlying()).to.be.bignumber.equal(new BN('0')) // 0 of underlying one
     expect(await this.dPoolOne.calcPoolValueInUnderlying()).to.be.bignumber.equal(new BN('20000000')) // 20 of underlying one
-    expect(await this.dPoolTwo.calcEarningInUnderlying()).to.be.bignumber.equal(new BN('0')) // 0 of underlying two
+    expect(await this.dPoolTwo.calcUnclaimedEarningInUnderlying()).to.be.bignumber.equal(new BN('0')) // 0 of underlying two
     expect(await this.dPoolTwo.calcPoolValueInUnderlying()).to.be.bignumber.equal(new BN('20000000000000000000')) // 20 of underlying two
   })
 
@@ -181,13 +216,35 @@ describe('Features', function () {
     expect(await this.underlyingTwo.balanceOf.call(user)).to.be.bignumber.equal(new BN('5000000000000000000'))  // 5 from swap
   })
 
+  it('mine delta token from minting dToken', async () => {
+    const rewardPerBlock = new BN('10000000000000000000') // 10 reward per block
+    // deploy mine
+    this.mine = await Mine.new(
+      this.miningToken.address,
+      this.dToken.address,
+      rewardPerBlock // rewardPerBlock rate, 10 mining token distributed per block
+    )
+    // record the block of which mining calculation should start
+    const miningStartBlock = await time.latestBlock()
+    // mint miningToken for mine
+    this.miningToken.mint(this.mine.address, '10000000000000000000000') // 10000
+    // register mine in dToken
+    await this.dToken.setMine(this.mine.address, { from: admin })
+
+    // mint some dToken
+    await this.dToken.mint(this.underlyingTwo.address, new BN('10000000000000000000'), { from: user }) // mint 10 dTokens
+
+    // record the block of which mining calculation should end
+    const miningEndBlock = await time.latestBlock()
+    const expectedMiningReward = (miningEndBlock.sub(miningStartBlock)).mul(rewardPerBlock)
+    // should have mined miningToken for minter, who has whole share of mine
+    expect(await this.mine.unclaimedRewards.call(user)).to.be.bignumber.equal(expectedMiningReward)
+  })
+
   it.skip('collect provider token rewards from multiple dPools', async () => {
   })
 
   it.skip('deposit staking token into staking contract and collect earnings', async () => {
 
-  })
-
-  it.skip('mine delta token from minting dToken', async () => {
   })
 })

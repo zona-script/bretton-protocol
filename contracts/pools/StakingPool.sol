@@ -94,8 +94,12 @@ contract StakingPool is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
     event RewardPaid(address indexed user, address indexed _rewardToken, uint256 reward);
 
     constructor (
+        string memory _name,
+        string memory _symbol,
+        uint8 _decimals,
         address _stakingToken
     )
+        ERC20Detailed(_name, _symbol, _decimals)
         public
     {
         stakingToken = _stakingToken;

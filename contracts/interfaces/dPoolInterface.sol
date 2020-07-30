@@ -8,5 +8,6 @@ interface dPoolInterface {
     function underlyingToken() external view returns (address);
     function rewardToken() external view returns (address);
     function calcPoolValueInUnderlying() external view returns (uint);
-    function calcEarningInUnderlying() external view returns(uint256);
+    function calcUnclaimedEarningInUnderlying() external view returns(uint256);
+    function calcUnclaimedProviderReward() external view returns(uint256);
 }

@@ -33,8 +33,8 @@ async function main() {
   const USDCPoolValue = await dUSDCp.methods.calcPoolValueInUnderlying().call() / 1e6 // USDC is 6 decimal place
   console.log('Total USDC value in dUSDCp is: ' + USDCPoolValue)
   // get interest accured
-  const USDCInterestEarned = await dUSDCp.methods.calcEarningInUnderlying().call() // don't scale decimal as the number can be very small
-  console.log('Total USDC interest earned * 1e6 in dUSDCp is: ' + USDCInterestEarned)
+  const USDCInterestEarned = await dUSDCp.methods.calcUnclaimedEarningInUnderlying().call() // don't scale decimal as the number can be very small
+  console.log('Total unclaimed USDC interest * 1e6 in dUSDCp is: ' + USDCInterestEarned)
 
 
   // USDT Pool
@@ -46,8 +46,8 @@ async function main() {
   const USDTPoolValue = await dUSDTp.methods.calcPoolValueInUnderlying().call() / 1e6 // USDT is 6 decimal place
   console.log('Total USDT value in dUSDTp is: ' + USDTPoolValue)
   // get interest accured
-  const USDTInterestEarned = await dUSDTp.methods.calcEarningInUnderlying().call() // don't scale decimal as the number can be very small
-  console.log('Total USDT interest earned * 1e6 in dUSDTp is: ' + USDTInterestEarned)
+  const USDTInterestEarned = await dUSDTp.methods.calcUnclaimedEarningInUnderlying().call() // don't scale decimal as the number can be very small
+  console.log('Total unclaimed USDT interest * 1e6 in dUSDTp is: ' + USDTInterestEarned)
 
 
   // dUSD
