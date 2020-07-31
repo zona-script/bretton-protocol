@@ -6,8 +6,7 @@ const { expect } = require('chai')
 const ERC20Fake = contract.fromArtifact('ERC20Fake')
 const CompoundFake = contract.fromArtifact('CompoundFake')
 const EarningPool = contract.fromArtifact('EarningPool')
-const Mine = contract.fromArtifact('Mine')
-const MiningRewardPool = contract.fromArtifact('MiningRewardPool')
+const ManagedRewardPool = contract.fromArtifact('ManagedRewardPool')
 const dToken = contract.fromArtifact('dToken')
 
 describe('Features', function () {
@@ -189,7 +188,7 @@ describe('Features', function () {
   it('mine delta token from minting dToken', async () => {
     const rewardPerBlock = new BN('10000000000000000000') // 10 reward per block
     // deploy mine
-    this.miningRewardPool = await MiningRewardPool.new(
+    this.miningRewardPool = await ManagedRewardPool.new(
       this.miningToken.address,
       rewardPerBlock, // rewardPerBlock rate, 10 mining token distributed per block
       { from: admin }

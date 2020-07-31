@@ -7,16 +7,16 @@ import "../externals/IERC20.sol";
 import "./abstract/RewardPool.sol";
 
 /*
- * @title  MiningRewardPool
+ * @title  ManagedRewardPool
  * @notice RewardPool with shares governed by a pool manager
  */
-contract MiningRewardPool is RewardPool {
+contract ManagedRewardPool is RewardPool {
     using SafeERC20 for IERC20;
 
     mapping (address => bool) public isManager;
 
     /**
-     * @dev MinigRewardPool constructor
+     * @dev ManagedRewardPool constructor
      * @param _rewardToken The rewardToken
      * @param _rewardsPerBlock Reward distribution rate
      */

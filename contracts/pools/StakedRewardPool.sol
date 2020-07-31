@@ -7,16 +7,16 @@ import "../externals/IERC20.sol";
 import "./abstract/RewardPool.sol";
 
 /**
- * @title  StakingRewardPool
+ * @title  StakedRewardPool
  * @notice RewardPool that track shares based on staking of a stakingToken
  */
-contract StakingRewardPool is ReentrancyGuard, RewardPool {
+contract StakedRewardPool is ReentrancyGuard, RewardPool {
     using SafeERC20 for IERC20;
 
     IERC20 public stakingToken;
 
     /**
-     * @dev MinigRewardPool constructor
+     * @dev StakedRewardPool constructor
      * @param _stakingToken Token to be staked
      * @param _rewardToken The rewardToken
      * @param _rewardsPerBlock Reward distribution rate

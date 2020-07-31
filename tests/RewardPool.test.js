@@ -4,9 +4,8 @@ const { expect } = require('chai')
 
 // Load compiled artifacts
 const ERC20Fake = contract.fromArtifact('ERC20Fake')
-const Mine = contract.fromArtifact('Mine')
 
-describe('MiningPool', function () {
+describe('RewardPool', function () {
   const [ admin, user ] = accounts
   beforeEach(async () => {
 
@@ -26,7 +25,7 @@ describe('MiningPool', function () {
   })
 
   describe('updateReward', function () {
-    it.skip('should update rewards per share stored, lasted update block, and total rewards mined stored', async () => {
+    it.skip('should update rewards per share stored, lasted update block, and total rewards issued stored', async () => {
 
     })
   })
@@ -55,8 +54,8 @@ describe('MiningPool', function () {
     })
   })
 
-  describe('totalRewardsMined', function () {
-    it.skip('should get total rewards mined', async () => {
+  describe('totalRewardsIssued', function () {
+    it.skip('should get total rewards issued', async () => {
 
     })
   })
@@ -66,11 +65,11 @@ describe('MiningPool', function () {
 
     })
 
-    it.skip('only owner can withdraw unmined mining tokens', async () => {
+    it.skip('only owner can withdraw unissued reward tokens', async () => {
 
     })
 
-    it.skip('cannot withdraw tokens already mined but not claimed', async () => {
+    it.skip('cannot withdraw tokens already issued but not claimed', async () => {
 
     })
   })
