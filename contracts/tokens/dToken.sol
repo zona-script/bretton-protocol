@@ -41,7 +41,7 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
             _approveUnderlyingToPool(_underlyings[i], _dPools[i]);
         }
 
-        mine = MineInterface(address(0)); // initialize to address 0
+        mine = MineInterface(0); // initialize to address 0
     }
 
     /*** External Functions ***/

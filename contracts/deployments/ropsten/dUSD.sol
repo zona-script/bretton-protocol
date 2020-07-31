@@ -8,7 +8,7 @@ import "../../tokens/dToken.sol";
  */
 contract dUSD is dToken {
     constructor ()
-        dToken(
+        dToken (
             "Delta USD",
             "dUSD",
             18,
@@ -29,8 +29,8 @@ contract dUSD is dToken {
 
     function getInitialPools()  pure internal returns (address[] memory) {
         address[] memory pools = new address[](2);
-        pools[0] = address(0xE9A8b9A96E6bC629B19305a6251ebFC0E69Bb3d6); // USDC dPool
-        pools[1] = address(0xAcfB5be533836380Bdb8e42783998C6382E22527); // USDT dPool
+        pools[0] = address(0xCc4D908C2396321F57cbEE82844e313CE1F07252); // USDC dPool
+        pools[1] = address(0xe326C533ec1055badCB7D10baBFA0947aCe602E0); // USDT dPool
         return pools;
     }
 }

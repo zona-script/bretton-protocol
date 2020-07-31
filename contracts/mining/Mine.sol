@@ -43,7 +43,7 @@ contract Mine is ReentrancyGuard, Ownable {
         miningToken = _miningToken;
         sharesToken = _sharesToken;
         rewardsPerBlock = _rewardsPerBlock;
-        lastUpdateBlock = block.number; // mining rewards starts accumulate on the block mine was deployed
+        lastUpdateBlock = block.number; // mining rewards starts accumulate on the block Mine was deployed
     }
 
     /*** PUBLIC FUNCTIONS ***/
@@ -95,6 +95,14 @@ contract Mine is ReentrancyGuard, Ownable {
     {
         uint256 unclaimedRewardsPerShare = rewardsPerShare().sub(rewardsPerSharePaid[_account]);
         return unclaimedRewardsPerShare.mul(sharesToken.balanceOf(_account));
+    }
+
+    function totalRewardsMined()
+        public
+        view
+        returns (uint256)
+    {
+
     }
 
     /*** INTERNAL ***/

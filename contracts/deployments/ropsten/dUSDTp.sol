@@ -8,7 +8,7 @@ import "../../pools/dPool.sol";
  */
 contract dUSDTp is dPool {
     constructor ()
-        dPool(
+        dPool (
             "Delta USDT Pool",
             "dUSDTp",
             6,

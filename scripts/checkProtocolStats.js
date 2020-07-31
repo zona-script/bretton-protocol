@@ -22,7 +22,15 @@ async function main() {
   const dUSDAddress = proxies['Delta Protocol/dUSD'][proxies['Delta Protocol/dUSD'].length - 1]['address']
   const dUSD = loader.fromArtifact('dUSD', dUSDAddress)
 
+  const DELTMineAddress = proxies['Delta Protocol/DELTMine'][proxies['Delta Protocol/DELTMine'].length - 1]['address']
+  const deltMine = loader.fromArtifact('DELTMine', DELTMineAddress)
+
+
   console.log('\n')
+
+  /***************************************
+                EARNING POOLs
+  ****************************************/
 
   // USDC Pool
   console.log('=========USDC Pool Stats=========')
@@ -50,11 +58,25 @@ async function main() {
   console.log('Total unclaimed USDT interest * 1e6 in dUSDTp is: ' + USDTInterestEarned)
 
 
+  /***************************************
+                DTOKENS
+  ****************************************/
+
   // dUSD
   console.log('=========dUSD STATS=========')
   // get total supply
   const dUSDTotalSupply = await dUSD.methods.totalSupply().call() / 1e18 // dUSD is 18 decimal place
   console.log('Total dUSD supply is: ' + dUSDTotalSupply)
+
+  /***************************************
+                MINE
+  ****************************************/
+
+  console.log('=========DELT MINE STATS=========')
+  const rewardsPerBlock = await deltMine.methods.rewardsPerBlock().call() / 1e18 // 18 decimal place
+  console.log('Mine current rewardsPerBlock is: ' + rewardsPerBlock)
+  const rewardsPerShare = await deltMine.methods.rewardsPerShare().call()
+  console.log('Mine current rewardsPerShare is: ' + rewardsPerShare)
 
   console.log('\n')
 }
