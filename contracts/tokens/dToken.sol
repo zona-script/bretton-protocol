@@ -9,7 +9,7 @@ import "../externals/ERC20.sol";
 import "../externals/ERC20Detailed.sol";
 
 import "../interfaces/dPoolInterface.sol";
-import "../interfaces/MineInterface.sol";
+import "../interfaces/MiningRewardPoolInterface.sol";
 
 /**
  * @title dToken
@@ -23,7 +23,7 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
     mapping(address => address) public underlyingToDPoolMap;
     address[] public supportedUnderlyings;
 
-    MineInterface public mine;
+    MiningRewardPoolInterface public miningPool;
 
     constructor (
         string memory _name,
@@ -41,7 +41,7 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
             _approveUnderlyingToPool(_underlyings[i], _dPools[i]);
         }
 
-        mine = MineInterface(0); // initialize to address 0
+        miningPool = MiningRewardPoolInterface(0); // initialize to address 0
     }
 
     /*** External Functions ***/
@@ -119,9 +119,10 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
         uint mintAmount = _scaleTokenAmount(_underlying, _amount, address(this));
         _mint(msg.sender, mintAmount);
 
-        // check mine to update mining rewards
-        if (address(mine) != address(0)) {
-            mine.updateReward();
+        // check miningPool to update mining rewards
+        if (address(miningPool) != address(0)) {
+            miningPool.increaseShares(msg.sender, _amount);
+            miningPool.updateReward();
         }
     }
 
@@ -140,9 +141,10 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
         uint burnAmount = _scaleTokenAmount(_underlying, _amount, address(this));
         _burn(msg.sender, burnAmount);
 
-        // check mine to update mining rewards
-        if (address(mine) != address(0)) {
-            mine.updateReward();
+        // check miningPool to update mining rewards
+        if (address(miningPool) != address(0)) {
+            miningPool.decreaseShares(msg.sender, _amount);
+            miningPool.updateReward();
         }
     }
 
@@ -168,10 +170,10 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
 
     /*** ADMIN ***/
 
-    function setMine(MineInterface _mine)
+    function setMiningPool(MiningRewardPoolInterface _miningPool)
         external
         onlyOwner
     {
-        mine = _mine;
+        miningPool = _miningPool;
     }
 }

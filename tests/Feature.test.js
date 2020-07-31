@@ -5,9 +5,9 @@ const { expect } = require('chai')
 // Load compiled artifacts
 const ERC20Fake = contract.fromArtifact('ERC20Fake')
 const CompoundFake = contract.fromArtifact('CompoundFake')
-const StakingPool = contract.fromArtifact('StakingPool')
 const dPool = contract.fromArtifact('dPool')
 const Mine = contract.fromArtifact('Mine')
+const MiningRewardPool = contract.fromArtifact('MiningRewardPool')
 const dToken = contract.fromArtifact('dToken')
 
 describe('Features', function () {
@@ -46,24 +46,6 @@ describe('Features', function () {
     )
     await this.underlyingTwo.mint(this.compoundTwo.address, '1000000000000000000000') // 1000
 
-
-    // deploy staking token and mint for user
-    this.stakingToken = await ERC20Fake.new(
-      'stakingToken',
-      'STKT',
-      '18'
-    )
-    await this.stakingToken.mint(user, '100000000000000000000') // 100
-    // deploy staking pool
-    this.StakingPool = await StakingPool.new(
-      'stakingPool',
-      'STKP',
-      '18',
-      this.stakingToken.address,
-      { from: admin }
-    )
-
-
     // deploy dPools
     this.dPoolOne = await dPool.new(
       'dPoolOne',
@@ -83,12 +65,6 @@ describe('Features', function () {
       this.compoundTwo.address,
       stakingPool
     )
-
-
-    // register dPools in staking pool
-    await this.StakingPool.registerEarningPool(this.dPoolOne.address, { from: admin })
-    await this.StakingPool.registerEarningPool(this.dPoolTwo.address, { from: admin })
-
 
     // deploy dTokens
     this.dToken = await dToken.new(
@@ -219,17 +195,19 @@ describe('Features', function () {
   it('mine delta token from minting dToken', async () => {
     const rewardPerBlock = new BN('10000000000000000000') // 10 reward per block
     // deploy mine
-    this.mine = await Mine.new(
+    this.miningRewardPool = await MiningRewardPool.new(
       this.miningToken.address,
-      this.dToken.address,
-      rewardPerBlock // rewardPerBlock rate, 10 mining token distributed per block
+      rewardPerBlock, // rewardPerBlock rate, 10 mining token distributed per block
+      { from: admin }
     )
     // record the block of which mining calculation should start
     const miningStartBlock = await time.latestBlock()
     // mint miningToken for mine
-    this.miningToken.mint(this.mine.address, '10000000000000000000000') // 10000
+    this.miningToken.mint(this.miningRewardPool.address, '10000000000000000000000') // 10000
     // register mine in dToken
-    await this.dToken.setMine(this.mine.address, { from: admin })
+    await this.dToken.setMiningPool(this.miningRewardPool.address, { from: admin })
+    // promote dToken as sharesManager in pool
+    await this.miningRewardPool.promote(this.dToken.address, { from: admin })
 
     // mint some dToken
     await this.dToken.mint(this.underlyingTwo.address, new BN('10000000000000000000'), { from: user }) // mint 10 dTokens
@@ -238,7 +216,7 @@ describe('Features', function () {
     const miningEndBlock = await time.latestBlock()
     const expectedMiningReward = (miningEndBlock.sub(miningStartBlock)).mul(rewardPerBlock)
     // should have mined miningToken for minter, who has whole share of mine
-    expect(await this.mine.unclaimedRewards.call(user)).to.be.bignumber.equal(expectedMiningReward)
+    expect(await this.miningRewardPool.unclaimedRewards.call(user)).to.be.bignumber.equal(expectedMiningReward)
   })
 
   it.skip('collect provider token rewards from multiple dPools', async () => {
