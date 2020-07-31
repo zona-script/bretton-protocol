@@ -8,13 +8,13 @@ import "../externals/IERC20.sol";
 import "../externals/ERC20.sol";
 import "../externals/ERC20Detailed.sol";
 
-import "../interfaces/dPoolInterface.sol";
+import "../interfaces/EarningPoolInterface.sol";
 import "../interfaces/MiningRewardPoolInterface.sol";
 
 /**
  * @title dToken
  * @dev dToken are collateralized assets pegged to a specific value.
-        Collaterals are dPool tokens
+        Collaterals are earningPool shares
  */
 contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
     using SafeERC20 for IERC20;

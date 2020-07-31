@@ -136,7 +136,7 @@ contract RewardPool is ReentrancyGuard, Ownable, Pool {
 
     /*** ADMIN ***/
 
-    function withdrawUnissuedTokens(uint256 _amount)
+    function withdrawUnissuedRewards(uint256 _amount)
         external
         onlyOwner
     {

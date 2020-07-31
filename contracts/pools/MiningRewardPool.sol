@@ -8,12 +8,12 @@ import "./abstract/RewardPool.sol";
 
 /*
  * @title  MiningRewardPool
- * @notice RewardPool with shares governed by a shares manager
+ * @notice RewardPool with shares governed by a pool manager
  */
 contract MiningRewardPool is RewardPool {
     using SafeERC20 for IERC20;
 
-    mapping (address => bool) public isSharesManager;
+    mapping (address => bool) public isManager;
 
     /**
      * @dev MinigRewardPool constructor
@@ -33,12 +33,12 @@ contract MiningRewardPool is RewardPool {
 
     }
 
-    modifier onlySharesManager() {
-        require(isSharesManager[msg.sender], "MINING_REWARD_POOL: caller is not shares manager");
+    modifier onlyManager() {
+        require(isManager[msg.sender], "MINING_REWARD_POOL: caller is not a pool manager");
         _;
     }
 
-    /*** SHARES MANAGER ***/
+    /*** MANAGER ***/
 
     /**
      * @dev Increase account shares
@@ -47,7 +47,7 @@ contract MiningRewardPool is RewardPool {
      */
     function increaseShares(address _account, uint256 _amount)
         external
-        onlySharesManager
+        onlyManager
     {
         _increaseShares(_account, _amount);
     }
@@ -59,7 +59,7 @@ contract MiningRewardPool is RewardPool {
      */
     function decreaseShares(address _account, uint256 _amount)
         external
-        onlySharesManager
+        onlyManager
     {
         _decreaseShares(_account, _amount);
     }
@@ -67,24 +67,24 @@ contract MiningRewardPool is RewardPool {
     /*** ADMIN ***/
 
     /**
-     * @dev Promote a shares manager
+     * @dev Promote a manager
      * @param _address Address to promote
      */
     function promote(address _address)
         external
         onlyOwner
     {
-        isSharesManager[_address] = true;
+        isManager[_address] = true;
     }
 
     /**
-     * @dev Demote a shares manager
+     * @dev Demote a manager
      * @param _address Address to demote
      */
     function demote(address _address)
         external
         onlyOwner
     {
-        isSharesManager[_address] = false;
+        isManager[_address] = false;
     }
 }

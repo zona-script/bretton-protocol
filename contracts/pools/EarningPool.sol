@@ -10,13 +10,15 @@ import "../externals/ERC20Detailed.sol";
 
 import "../providers/CompoundInterface.sol";
 
+import "./abstract/Pool.sol";
+
 /**
- * @title dPool
- * @dev dPool take an underlying and deposit into providers of best return
-        dPool are pool of providers.
-        dPool are used as collateral to mint dTokens.
+ * @title EarningPool
+ * @dev EarningPool take an underlying and deposit into providers of best return
+        EarningPool are pool of providers.
+        EarningPool are used as collateral to mint dTokens.
  */
-contract dPool is ERC20, ERC20Detailed, ReentrancyGuard {
+contract EarningPool is ReentrancyGuard, Pool {
     using SafeERC20 for IERC20;
     using SafeMath for uint256;
 
@@ -39,15 +41,12 @@ contract dPool is ERC20, ERC20Detailed, ReentrancyGuard {
     Lender public provider;
 
     constructor (
-        string memory _name,
-        string memory _symbol,
-        uint8 _decimals,
         address _underlyingToken,
         address _rewardToken,
         address _compound,
         address _stakingPool
     )
-        ERC20Detailed(_name, _symbol, _decimals)
+        Pool ()
         public
     {
         underlyingToken = _underlyingToken;
@@ -61,13 +60,13 @@ contract dPool is ERC20, ERC20Detailed, ReentrancyGuard {
 
     /*** USER FUNCTIONS ***/
 
-    // Deposit underlying and mint dPool token
+    // Deposit underlying and mint EarningPool token
     // _amount = amount of underlying to deposit
     function deposit(uint256 _amount)
         external
         nonReentrant
     {
-        require(_amount > 0, "DPOOL: deposit must be greater than 0");
+        require(_amount > 0, "EARNING_POOL: deposit must be greater than 0");
 
         // Transfer underlying into this pool, increase pool value in underlying
         IERC20(underlyingToken).safeTransferFrom(msg.sender, address(this), _amount);
@@ -75,22 +74,22 @@ contract dPool is ERC20, ERC20Detailed, ReentrancyGuard {
         // Supply underlying to provider
         _supplyToProvider(_amount);
 
-        // Mint dPool token for depositer, increase totalSupply
-        _mint(msg.sender, _amount);
+        // increase EarningPool shares for depositer, increase totalShares
+        _increaseShares(msg.sender, _amount);
 
         // dispense rewards to stakingPool
         dispenseEarning();
         /* dispenseReward(); */
     }
 
-    // Withdraw underlying out of this pool and burn dPool token
+    // Withdraw underlying out of this pool and burn earningPool token
     // _amount = amount of underlying to withdraw
     function withdraw(uint256 _amount)
         external
         nonReentrant
     {
-        require(_amount > 0, "DPOOL: withdraw must be greater than 0");
-        require(_amount <= balanceOf(msg.sender), "DPOOL: withdraw insufficient balance");
+        require(_amount > 0, "EARNING_POOL: withdraw must be greater than 0");
+        require(_amount <= sharesOf(msg.sender), "EARNING_POOL: withdraw insufficient shares");
 
         // withdraw some from provider into pool
         _withdrawFromProvider(_amount);
@@ -99,8 +98,8 @@ contract dPool is ERC20, ERC20Detailed, ReentrancyGuard {
         // Collect Withdraw Fee
         IERC20(underlyingToken).safeTransfer(msg.sender, _amount);
 
-        // Burn dPool token for withdrawer, decrease totalSupply
-        _burn(msg.sender, _amount);
+        // decrase earningPool shares for withdrawer, decrease totalShares
+        _decreaseShares(msg.sender, _amount);
 
         // dispense rewards to stakingPool
         dispenseEarning();
@@ -171,7 +170,7 @@ contract dPool is ERC20, ERC20Detailed, ReentrancyGuard {
 
     // earning = interest + fee = pool value - total supply
     function calcUnclaimedEarningInUnderlying() public view returns(uint256) {
-        return calcPoolValueInUnderlying().sub(_totalSupply);
+        return calcPoolValueInUnderlying().sub(totalShares());
     }
 
     function calcUnclaimedProviderReward() public view returns(uint256) {
