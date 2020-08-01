@@ -14,13 +14,13 @@ import "../interfaces/ManagedRewardPoolInterface.sol";
 /**
  * @title dToken
  * @dev dToken are collateralized assets pegged to a specific value.
-        Collaterals are earningPool shares
+ *      Collaterals are EarningPool shares
  */
 contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
     using SafeERC20 for IERC20;
     using SafeMath for uint256;
 
-    mapping(address => address) public underlyingToDPoolMap;
+    mapping(address => address) public underlyingToEarningPoolMap;
     address[] public supportedUnderlyings;
 
     ManagedRewardPoolInterface public miningPool;
@@ -30,21 +30,21 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
         string memory _symbol,
         uint8 _decimals,
         address[] memory _underlyings,
-        address[] memory _dPools
+        address[] memory _earningPools
     )
         ERC20Detailed(_name, _symbol, _decimals)
         public
     {
         for (uint i=0; i<_underlyings.length; i++) {
-            underlyingToDPoolMap[_underlyings[i]] = _dPools[i];
+            underlyingToEarningPoolMap[_underlyings[i]] = _earningPools[i];
             supportedUnderlyings.push(_underlyings[i]);
-            _approveUnderlyingToPool(_underlyings[i], _dPools[i]);
+            _approveUnderlyingToPool(_underlyings[i], _earningPools[i]);
         }
 
         miningPool = ManagedRewardPoolInterface(0); // initialize to address 0
     }
 
-    /*** External Functions ***/
+    /*** PUBLIC ***/
 
     // mint dToken using _amount of _underlying
     // _underlying = address of underlying token
@@ -53,7 +53,7 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
         address _underlying,
         uint _amount
     )
-        public
+        external
         nonReentrant
     {
         _mintInternal(_underlying, _amount);
@@ -66,7 +66,7 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
         address _underlying,
         uint _amount
     )
-        public
+        external
         nonReentrant
     {
         _redeemInternal(_underlying, _amount);
@@ -83,7 +83,7 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
     {
         // check if there is sufficient underlyingTo to swap
         // currently there are no exchange rate between underlyings as only stable coins are supported
-        dPoolInterface pool = dPoolInterface(underlyingToDPoolMap[_underlyingTo]);
+        EarningPoolInterface pool = EarningPoolInterface(underlyingToEarningPoolMap[_underlyingTo]);
         uint amountTo = _scaleTokenAmount(_underlyingFrom, _amountFrom, _underlyingTo);
         require(pool.calcPoolValueInUnderlying() >= amountTo, "DTOKEN: insufficient underlyingTo for swap");
 
@@ -94,24 +94,33 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
         _redeemInternal(_underlyingTo, amountTo);
     }
 
+    /*** VIEW ***/
+
     function isUnderlyingSupported(address _underlying) public view returns (bool) {
-        return underlyingToDPoolMap[_underlying] != address(0);
+        return underlyingToEarningPoolMap[_underlying] != address(0);
     }
 
     function getAllSupportedUnderlyings() public view returns (address[] memory) {
         return supportedUnderlyings;
     }
 
-    /*** INTERNAL FUNCTIONS ***/
+    /*** ADMIN ***/
+
+    function setMiningPool(ManagedRewardPoolInterface _miningPool)
+        external
+        onlyOwner
+    {
+        miningPool = _miningPool;
+    }
+
+    /*** INTERNAL ***/
 
     function _mintInternal(address _underlying, uint _amount) internal {
         require(_amount > 0, "DTOKEN: mint must be greater than 0");
         require(isUnderlyingSupported(_underlying), "DTOKEN: mint underlying is not supported");
 
-        // check risk manager
-
-        // transfer underlying into dToken and deposit into dPool
-        dPoolInterface pool = dPoolInterface(underlyingToDPoolMap[_underlying]);
+        // transfer underlying into dToken and deposit into earning pool
+        EarningPoolInterface pool = EarningPoolInterface(underlyingToEarningPoolMap[_underlying]);
         IERC20(_underlying).safeTransferFrom(msg.sender, address(this), _amount);
         pool.deposit(_amount);
 
@@ -130,10 +139,8 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
         require(_amount > 0, "DTOKEN: redeem must be greater than 0");
         require(isUnderlyingSupported(_underlying), "DTOKEN: redeem underlying is not supported");
 
-        // check risk manager
-
-        // withdraw underlying from dPool and transfer to user
-        dPoolInterface pool = dPoolInterface(underlyingToDPoolMap[_underlying]);
+        // withdraw underlying from earning pool and transfer to user
+        EarningPoolInterface pool = EarningPoolInterface(underlyingToEarningPoolMap[_underlying]);
         pool.withdraw(_amount);
         IERC20(_underlying).safeTransfer(msg.sender, _amount);
 
@@ -166,14 +173,5 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
             toTokenAmount = _fromAmount.mul(uint(10**(scaleFactor)));
         }
         return toTokenAmount;
-    }
-
-    /*** ADMIN ***/
-
-    function setMiningPool(ManagedRewardPoolInterface _miningPool)
-        external
-        onlyOwner
-    {
-        miningPool = _miningPool;
     }
 }

@@ -1,6 +1,6 @@
 pragma solidity 0.5.16;
 
-interface dPoolInterface {
+interface EarningPoolInterface {
     function deposit(uint256 _amount) external;
     function withdraw(uint256 _amount) external;
     function dispenseEarning() external returns (uint);
