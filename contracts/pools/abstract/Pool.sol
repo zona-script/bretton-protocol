@@ -21,6 +21,8 @@ contract Pool {
     constructor() internal {
     }
 
+    /*** VIEW ***/
+
     /**
      * @dev Get the total number of shares in pool
      * @return uint256 total shares
@@ -45,6 +47,8 @@ contract Pool {
     {
         return _shares[_account];
     }
+
+    /*** INTERNAL ***/
 
     /**
      * @dev Add a given amount of shares to a given account

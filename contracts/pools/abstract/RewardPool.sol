@@ -34,6 +34,8 @@ contract RewardPool is ReentrancyGuard, Ownable, Pool {
     // Block of which rewardsPerShareStored was updated last
     uint256 public lastUpdateBlock;
 
+    event RewardPaid(address indexed user, uint256 reward);
+
     /**
      * @dev RewardPool constructor
      * @param _rewardToken The rewardToken
@@ -66,6 +68,9 @@ contract RewardPool is ReentrancyGuard, Ownable, Pool {
         uint256 rewardsToClaim = unclaimedRewards(_account);
         rewardsPerSharePaid[_account] = rewardsPerShare();
         rewardToken.safeTransfer(_account, rewardsToClaim);
+
+        emit RewardPaid(_account, rewardsToClaim);
+
         return rewardsToClaim;
     }
 
@@ -136,11 +141,15 @@ contract RewardPool is ReentrancyGuard, Ownable, Pool {
 
     /*** ADMIN ***/
 
-    function withdrawUnissuedRewards(uint256 _amount)
+    /**
+     * @dev Withdraw unissued rewards from pool
+     */
+    function withdrawUnissuedRewards()
         external
         onlyOwner
     {
-        rewardToken.safeTransfer(owner(), _amount);
+        uint256 unissuedRewards = rewardToken.balanceOf(address(this)).sub(totalRewardsIssued());
+        rewardToken.safeTransfer(owner(), unissuedRewards);
     }
 
     /**

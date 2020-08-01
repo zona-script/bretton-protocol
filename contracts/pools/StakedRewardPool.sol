@@ -15,6 +15,9 @@ contract StakedRewardPool is ReentrancyGuard, RewardPool {
 
     IERC20 public stakingToken;
 
+    event Staked(address indexed user, uint256 amount, address payer);
+    event Withdrawn(address indexed user, uint256 amount);
+
     /**
      * @dev StakedRewardPool constructor
      * @param _stakingToken Token to be staked
@@ -46,6 +49,8 @@ contract StakedRewardPool is ReentrancyGuard, RewardPool {
     {
         stakingToken.safeTransferFrom(msg.sender, address(this), _amount);
         _increaseShares(_beneficiary, _amount);
+
+        emit Staked(_beneficiary, _amount, msg.sender);
     }
 
     /**
@@ -58,5 +63,7 @@ contract StakedRewardPool is ReentrancyGuard, RewardPool {
     {
         stakingToken.safeTransfer(msg.sender, _amount);
         _decreaseShares(msg.sender, _amount);
+
+        emit Withdrawn(msg.sender, _amount);
     }
 }
