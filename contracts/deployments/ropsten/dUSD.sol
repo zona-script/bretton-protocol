@@ -13,7 +13,8 @@ contract dUSD is dToken {
             "dUSD",
             18,
             getInitialUnderlyings(),
-            getInitialPools()
+            getInitialPools(),
+            address(0) // managed reward pool
         )
         public
     {

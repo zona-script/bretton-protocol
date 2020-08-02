@@ -88,6 +88,17 @@ describe('Features', function () {
       this.StakedRewardPool.address
     )
 
+
+    // deploy managed reward pool
+    this.managedRewardPool = await ManagedRewardPool.new(
+      this.DELTToken.address,
+      new BN('10000000000000000000'), // rewardPerBlock rate, 10 mining token distributed per block
+      { from: admin }
+    )
+    // mint DELT for ManagedRewardPool
+    this.DELTToken.mint(this.managedRewardPool.address, '10000000000000000000000') // 10000
+
+
     // deploy dTokens
     this.dToken = await dToken.new(
       'dToken',
@@ -95,11 +106,14 @@ describe('Features', function () {
       '18',
       [this.underlyingOne.address, this.underlyingTwo.address],
       [this.EarningPoolOne.address, this.EarningPoolTwo.address],
+      this.managedRewardPool.address,
       { from: admin }
     )
     // user approve underlying to dToken
     await this.underlyingOne.approve(this.dToken.address, '-1', { from: user }) // inifinite
     await this.underlyingTwo.approve(this.dToken.address, '-1', { from: user }) // inifinite
+    // promote dToken as sharesManager in pool
+    await this.managedRewardPool.promote(this.dToken.address, { from: admin })
   })
 
   it('mint and redeem dToken using multiple underlyings', async () => {
@@ -206,29 +220,17 @@ describe('Features', function () {
   })
 
   it('mine delta token from minting dToken', async () => {
-    const rewardPerBlock = new BN('10000000000000000000') // 10 reward per block
-    // deploy mine
-    this.managedRewardPool = await ManagedRewardPool.new(
-      this.DELTToken.address,
-      rewardPerBlock, // rewardPerBlock rate, 10 mining token distributed per block
-      { from: admin }
-    )
     // record the block of which mining calculation should start
-    const miningStartBlock = await time.latestBlock()
-    // mint DELT for ManagedRewardPool
-    this.DELTToken.mint(this.managedRewardPool.address, '10000000000000000000000') // 10000
-    // register ManagedRewardPool in dToken
-    await this.dToken.setMiningPool(this.managedRewardPool.address, { from: admin })
-    // promote dToken as sharesManager in pool
-    await this.managedRewardPool.promote(this.dToken.address, { from: admin })
+    const miningStartBlock = await await this.managedRewardPool.lastUpdateBlock.call()
 
     // mint some dToken
     await this.dToken.mint(this.underlyingTwo.address, new BN('10000000000000000000'), { from: user }) // mint 10 dTokens
 
     // record the block of which mining calculation should end
     const miningEndBlock = await time.latestBlock()
-    const expectedMiningReward = (miningEndBlock.sub(miningStartBlock)).mul(rewardPerBlock)
-    // should have mined DELTToken for minter, who has whole share of mine
+    const rewardsPerBlock = await this.managedRewardPool.rewardsPerBlock.call()
+    const expectedMiningReward = (miningEndBlock.sub(miningStartBlock)).mul(rewardsPerBlock)
+    // should have mined DELTToken for minter, who has whole share of pool
     expect(await this.managedRewardPool.unclaimedRewards.call(user)).to.be.bignumber.equal(expectedMiningReward)
   })
 

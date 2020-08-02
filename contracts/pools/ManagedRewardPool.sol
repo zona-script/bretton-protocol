@@ -50,6 +50,7 @@ contract ManagedRewardPool is RewardPool {
         onlyManager
     {
         _increaseShares(_account, _amount);
+        updateReward();
     }
 
     /**
@@ -62,6 +63,7 @@ contract ManagedRewardPool is RewardPool {
         onlyManager
     {
         _decreaseShares(_account, _amount);
+        updateReward();
     }
 
     /*** ADMIN ***/

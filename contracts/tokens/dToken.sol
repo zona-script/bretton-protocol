@@ -25,12 +25,22 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
 
     ManagedRewardPoolInterface public miningPool;
 
+    /**
+     * @dev dToken constructor
+     * @param _name Name of dToken
+     * @param _symbol Symbol of dToken
+     * @param _decimals Decimal place of dToken
+     * @param _underlyings List of underlyings to be used for minting dToken
+     * @param _earningPools List of earning pools to supply underlying token to
+     * @param _miningPool A managed reward pool
+     */
     constructor (
         string memory _name,
         string memory _symbol,
         uint8 _decimals,
         address[] memory _underlyings,
-        address[] memory _earningPools
+        address[] memory _earningPools,
+        address _miningPool
     )
         ERC20Detailed(_name, _symbol, _decimals)
         public
@@ -38,17 +48,19 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
         for (uint i=0; i<_underlyings.length; i++) {
             underlyingToEarningPoolMap[_underlyings[i]] = _earningPools[i];
             supportedUnderlyings.push(_underlyings[i]);
-            _approveUnderlyingToPool(_underlyings[i], _earningPools[i]);
+            _approveUnderlyingToEarningPool(_underlyings[i], _earningPools[i]);
         }
 
-        miningPool = ManagedRewardPoolInterface(0); // initialize to address 0
+        miningPool = ManagedRewardPoolInterface(_miningPool);
     }
 
     /*** PUBLIC ***/
 
-    // mint dToken using _amount of _underlying
-    // _underlying = address of underlying token
-    // _amount = amount of underlying deposited for minting dToken
+    /**
+     * @dev Mint dToken using underlying
+     * @param _underlying Token supplied for minting
+     * @param _amount Amount of _underlying
+     */
     function mint(
         address _underlying,
         uint _amount
@@ -59,9 +71,11 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
         _mintInternal(_underlying, _amount);
     }
 
-    // redeem _amount of dToken into _underlying
-    // _underlying = address of underlying token
-    // _amount = amount of underlying to redeem
+    /**
+     * @dev Redeem dToken to underlying
+     * @param _underlying Token withdrawn for redeeming
+     * @param _amount Amount of _underlying
+     */
     function redeem(
         address _underlying,
         uint _amount
@@ -72,7 +86,12 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
         _redeemInternal(_underlying, _amount);
     }
 
-    // swap _amountFrom of _underlyingFrom to _underlyingTo
+    /**
+     * @dev Swap underlyings
+     * @param _underlyingFrom Token to swap from
+     * @param _amountFrom Amount of _underlyingFrom
+     * @param _underlyingTo Token to swap to
+     */
     function swap(
         address _underlyingFrom,
         uint _amountFrom,
@@ -96,21 +115,20 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
 
     /*** VIEW ***/
 
+    /**
+     * @dev Check if an underlying is supported
+     * @param _underlying Address of underlying token
+     */
     function isUnderlyingSupported(address _underlying) public view returns (bool) {
         return underlyingToEarningPoolMap[_underlying] != address(0);
     }
 
+    /**
+     * @dev Get all supported underlyings
+     * @return address[] List of address of supported underlying token
+     */
     function getAllSupportedUnderlyings() public view returns (address[] memory) {
         return supportedUnderlyings;
-    }
-
-    /*** ADMIN ***/
-
-    function setMiningPool(ManagedRewardPoolInterface _miningPool)
-        external
-        onlyOwner
-    {
-        miningPool = _miningPool;
     }
 
     /*** INTERNAL ***/
@@ -155,11 +173,21 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
         }
     }
 
-    // aprove underlying token to pool
-    function _approveUnderlyingToPool(address _underlying, address _pool) internal {
+    /**
+     * @dev Approve underlyings to earning pool
+     * @param _underlying Address of underlying token
+     * @param _pool Address of earning pool
+     */
+    function _approveUnderlyingToEarningPool(address _underlying, address _pool) internal {
         IERC20(_underlying).safeApprove(_pool, uint(-1));
     }
 
+    /**
+     * @dev Scale token amount from one decimal precision to another
+     * @param _from Address of token to convert from
+     * @param _fromAmount Amount of _from token
+     * @param _to Address of token to convert to
+     */
     function _scaleTokenAmount(address _from, uint _fromAmount, address _to) internal view returns (uint) {
         uint fromTokenDecimalPlace = uint(ERC20Detailed(_from).decimals());
         uint toTokenDecimalPlace = uint(ERC20Detailed(_to).decimals());
@@ -173,5 +201,18 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
             toTokenAmount = _fromAmount.mul(uint(10**(scaleFactor)));
         }
         return toTokenAmount;
+    }
+
+    /*** ADMIN ***/
+
+    /**
+     * @dev Set the miningRewardPool of this dToken
+     * @param _miningPool Address of miningPool
+     */
+    function setMiningPool(address _miningPool)
+        external
+        onlyOwner
+    {
+        miningPool = ManagedRewardPoolInterface(_miningPool);
     }
 }

@@ -62,7 +62,7 @@ contract RewardPool is ReentrancyGuard, Ownable, Pool {
      * @return uint256 amount claimed
      */
     function claim(address _account)
-        external
+        public
         returns (uint256)
     {
         uint256 rewardsToClaim = unclaimedRewards(_account);
@@ -78,7 +78,7 @@ contract RewardPool is ReentrancyGuard, Ownable, Pool {
      * @dev Update rewards per share stored and last update block
      */
     function updateReward()
-        external
+        public
     {
         rewardsPerShareStored = rewardsPerShare();
         totalRewardsIssuedStored = totalRewardsIssued();
@@ -89,7 +89,7 @@ contract RewardPool is ReentrancyGuard, Ownable, Pool {
 
     /**
      * @dev Calculate latest rewardsPerShare
-     *      rewards per share =
+     *      rewards per share = last updates rewards per share + rewards per block * num of block since last update / total shares
      * @return uint256 rewardsPerShare
      */
     function rewardsPerShare()
