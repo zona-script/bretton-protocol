@@ -17,7 +17,7 @@ import "./abstract/Pool.sol";
  * @dev Pool that tracks shares of an underlying token, of which are deposited into COMPOUND.
         Earnings from provider is sent to a RewardPool
  */
-contract EarningPool is ReentrancyGuard, Pool {
+contract EarningPool is ReentrancyGuard, Pool, Ownable {
     using SafeERC20 for IERC20;
     using SafeMath for uint256;
 
@@ -32,6 +32,10 @@ contract EarningPool is ReentrancyGuard, Pool {
     // Address of rewardPool where earning and rewards are dispensed to
     address public rewardPool;
 
+    // Fee factor mantissa, 1e18 = 100%
+    uint256 public withdrawFeeFactorMantissa;
+
+    uint256 public totalFeesCollectedInUnderlying;
 
     event Deposited(address indexed user, uint256 amount, address payer);
     event Withdrawn(address indexed user, uint256 amount);
@@ -57,6 +61,7 @@ contract EarningPool is ReentrancyGuard, Pool {
         rewardToken = _rewardToken;
         compound = _compound;
         rewardPool = _rewardPool;
+        withdrawFeeFactorMantissa = 0; // initialize fee to zero
 
         _approveUnderlyingToProvider();
     }
@@ -74,7 +79,7 @@ contract EarningPool is ReentrancyGuard, Pool {
         _deposit(msg.sender, _amount);
     }
 
-    function depositFor(address _beneficiary, uint256 _amount)
+    function depositTo(address _beneficiary, uint256 _amount)
         external
         nonReentrant
     {
@@ -179,11 +184,11 @@ contract EarningPool is ReentrancyGuard, Pool {
 
     /**
      * @dev Calculate outstanding interest earning of underlying token in this pool
-     *      Earning = total pool underlying value - total deposit
+     *      Earning = total pool underlying value - total deposit + total withdraw fee
      * @return uint256 Underlying token balance
      */
     function calcUnclaimedEarningInUnderlying() public view returns(uint256) {
-        return calcPoolValueInUnderlying().sub(totalShares());
+        return calcPoolValueInUnderlying().sub(totalShares()).add(totalFeesCollectedInUnderlying);
     }
 
     /**
@@ -192,6 +197,15 @@ contract EarningPool is ReentrancyGuard, Pool {
      */
     function calcUnclaimedProviderReward() public view returns(uint256) {
         return IERC20(rewardToken).balanceOf(address(this));
+    }
+
+    /*** ADMIN ***/
+
+    function setWithdrawFeeFactor(uint256 _withdrawFeeFactorManitssa)
+        public
+        onlyOwner
+    {
+        withdrawFeeFactorMantissa = _withdrawFeeFactorManitssa;
     }
 
     /*** INTERNAL ***/
@@ -223,16 +237,20 @@ contract EarningPool is ReentrancyGuard, Pool {
         require(_amount > 0, "EARNING_POOL: withdraw must be greater than 0");
         require(_amount <= sharesOf(msg.sender), "EARNING_POOL: withdraw insufficient shares");
 
+        // Collect withdraw fee
+        uint256 withdrawFee = _amount.mul(withdrawFeeFactorMantissa).div(1e18);
+        totalFeesCollectedInUnderlying = totalFeesCollectedInUnderlying.add(withdrawFee);
+        uint256 withdrawAmountLessFee = _amount.sub(withdrawFee);
         // withdraw some from provider into pool
-        _withdrawFromProvider(_amount);
+        _withdrawFromProvider(withdrawAmountLessFee);
 
         // Transfer underlying to withdrawer
-        IERC20(underlyingToken).safeTransfer(msg.sender, _amount);
+        IERC20(underlyingToken).safeTransfer(msg.sender, withdrawAmountLessFee);
 
         // decrase earningPool shares for withdrawer
         _decreaseShares(msg.sender, _amount);
 
-        emit Withdrawn(msg.sender, _amount);
+        emit Withdrawn(msg.sender, withdrawAmountLessFee);
 
         // dispense outstanding rewards to rewardPool
         dispenseEarning();
