@@ -9,7 +9,7 @@ import "../externals/ERC20.sol";
 import "../externals/ERC20Detailed.sol";
 
 import "../interfaces/EarningPoolInterface.sol";
-import "../interfaces/ManagedRewardPoolInterface.sol";
+import "../interfaces/MiningRewardPoolInterface.sol";
 
 /**
  * @title dToken
@@ -23,7 +23,7 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
     mapping(address => address) public underlyingToEarningPoolMap;
     address[] public supportedUnderlyings;
 
-    ManagedRewardPoolInterface public miningPool;
+    MiningRewardPoolInterface public miningPool;
 
     /**
      * @dev dToken constructor
@@ -32,15 +32,13 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
      * @param _decimals Decimal place of dToken
      * @param _underlyings List of underlyings to be used for minting dToken
      * @param _earningPools List of earning pools to supply underlying token to
-     * @param _miningPool A managed reward pool
      */
     constructor (
         string memory _name,
         string memory _symbol,
         uint8 _decimals,
         address[] memory _underlyings,
-        address[] memory _earningPools,
-        address _miningPool
+        address[] memory _earningPools
     )
         ERC20Detailed(_name, _symbol, _decimals)
         public
@@ -51,7 +49,7 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
             _approveUnderlyingToEarningPool(_underlyings[i], _earningPools[i]);
         }
 
-        miningPool = ManagedRewardPoolInterface(_miningPool);
+        miningPool = MiningRewardPoolInterface(0); // initialize to address 0
     }
 
     /*** PUBLIC ***/
@@ -148,7 +146,6 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
 
         // check miningPool to update mining rewards
         if (address(miningPool) != address(0)) {
-            miningPool.increaseShares(msg.sender, _amount);
             miningPool.updateReward();
         }
     }
@@ -168,7 +165,6 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
 
         // check miningPool to update mining rewards
         if (address(miningPool) != address(0)) {
-            miningPool.decreaseShares(msg.sender, _amount);
             miningPool.updateReward();
         }
     }
@@ -213,6 +209,6 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
         external
         onlyOwner
     {
-        miningPool = ManagedRewardPoolInterface(_miningPool);
+        miningPool = MiningRewardPoolInterface(_miningPool);
     }
 }

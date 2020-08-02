@@ -7,22 +7,24 @@ import "../externals/IERC20.sol";
 import "./abstract/RewardPool.sol";
 
 /*
- * @title  ManagedRewardPool
- * @notice RewardPool with shares governed by a pool manager
+ * @title  MiningRewardPool
+ * @notice RewardPool with shares tracking the balance of another token
  */
-contract ManagedRewardPool is RewardPool {
+contract MiningRewardPool is RewardPool {
     using SafeERC20 for IERC20;
 
-    mapping (address => bool) public isManager;
+    // Address of an ERC20 token used to track for shares
+    IERC20 sharesToken;
 
     /**
-     * @dev ManagedRewardPool constructor
+     * @dev MiningRewardPool constructor
      * @param _rewardToken The rewardToken
      * @param _rewardsPerBlock Reward distribution rate
      */
     constructor(
         address _rewardToken,
-        uint256 _rewardsPerBlock
+        uint256 _rewardsPerBlock,
+        address _sharesToken
     )
         RewardPool (
             _rewardToken,
@@ -30,63 +32,33 @@ contract ManagedRewardPool is RewardPool {
         )
         public
     {
-
+        sharesToken = IERC20(_sharesToken);
     }
 
-    modifier onlyManager() {
-        require(isManager[msg.sender], "MINING_REWARD_POOL: caller is not a pool manager");
-        _;
-    }
-
-    /*** MANAGER ***/
+    /*** PUBLIC ***/
 
     /**
-     * @dev Increase account shares
-     * @param _account Account to increase share for
-     * @param _amount Units of shares
+     * @dev Get the totalSupply of sharesToken. Overrides Pool function
+     * @return uint256 total shares
      */
-    function increaseShares(address _account, uint256 _amount)
-        external
-        onlyManager
+    function totalShares()
+        public
+        view
+        returns (uint256)
     {
-        _increaseShares(_account, _amount);
-        updateReward();
+        return sharesToken.totalSupply();
     }
 
     /**
-     * @dev Decrease account shares
-     * @param _account Account to decrease share for
-     * @param _amount Units of shares
+     * @dev Get the balanceOf of a given account of sharesToken. Overrides Pool function
+     * @param _account User for which to retrieve balance
+     * @return uint256 shares
      */
-    function decreaseShares(address _account, uint256 _amount)
-        external
-        onlyManager
+    function sharesOf(address _account)
+        public
+        view
+        returns (uint256)
     {
-        _decreaseShares(_account, _amount);
-        updateReward();
-    }
-
-    /*** ADMIN ***/
-
-    /**
-     * @dev Promote a manager
-     * @param _address Address to promote
-     */
-    function promote(address _address)
-        external
-        onlyOwner
-    {
-        isManager[_address] = true;
-    }
-
-    /**
-     * @dev Demote a manager
-     * @param _address Address to demote
-     */
-    function demote(address _address)
-        external
-        onlyOwner
-    {
-        isManager[_address] = false;
+        return sharesToken.balanceOf(_account);
     }
 }
