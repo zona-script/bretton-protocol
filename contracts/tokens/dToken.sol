@@ -129,6 +129,19 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
         return supportedUnderlyings;
     }
 
+    /*** ADMIN ***/
+
+    /**
+     * @dev Set the miningRewardPool of this dToken
+     * @param _miningPool Address of miningPool
+     */
+    function setMiningPool(address _miningPool)
+        external
+        onlyOwner
+    {
+        miningPool = MiningRewardPoolInterface(_miningPool);
+    }
+    
     /*** INTERNAL ***/
 
     function _mintInternal(address _underlying, uint _amount) internal {
@@ -197,18 +210,5 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
             toTokenAmount = _fromAmount.mul(uint(10**(scaleFactor)));
         }
         return toTokenAmount;
-    }
-
-    /*** ADMIN ***/
-
-    /**
-     * @dev Set the miningRewardPool of this dToken
-     * @param _miningPool Address of miningPool
-     */
-    function setMiningPool(address _miningPool)
-        external
-        onlyOwner
-    {
-        miningPool = MiningRewardPoolInterface(_miningPool);
     }
 }

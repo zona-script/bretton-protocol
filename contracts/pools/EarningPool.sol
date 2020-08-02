@@ -61,7 +61,7 @@ contract EarningPool is ReentrancyGuard, Pool {
         _approveUnderlyingToProvider();
     }
 
-    /*** USER FUNCTIONS ***/
+    /*** USER ***/
 
     /**
      * @dev Deposit underlying into pool
@@ -136,7 +136,7 @@ contract EarningPool is ReentrancyGuard, Pool {
         return rewards;
     }
 
-    /*** VIEW FUNCTIONS ***/
+    /*** VIEW ***/
 
     /**
      * @dev Get balance of underlying token in this pool
@@ -194,7 +194,7 @@ contract EarningPool is ReentrancyGuard, Pool {
         return IERC20(rewardToken).balanceOf(address(this));
     }
 
-    /*** INTERNAL FUNCTIONS ***/
+    /*** INTERNAL ***/
 
     function _deposit(address _beneficiary, uint256 _amount)
         internal

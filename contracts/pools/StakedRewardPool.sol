@@ -38,6 +38,8 @@ contract StakedRewardPool is ReentrancyGuard, RewardPool {
         stakingToken = IERC20(_stakingToken);
     }
 
+    /*** PUBLIC ***/
+    
     /**
      * @dev Deposits a given amount of StakingToken from sender, increase beneficiary shares
      * @param _beneficiary Account to stake for

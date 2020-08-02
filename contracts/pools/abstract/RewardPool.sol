@@ -76,6 +76,7 @@ contract RewardPool is ReentrancyGuard, Ownable, Pool {
 
     /**
      * @dev Update rewards per share stored and last update block
+     *      Called on every shares change
      */
     function updateReward()
         public
@@ -88,8 +89,21 @@ contract RewardPool is ReentrancyGuard, Ownable, Pool {
     /*** VIEW ***/
 
     /**
+     * @dev Calculate rewards available in pool to be issued
+     *      rewards available to issue = max(pool reward balance - total rewards issued, 0)
+     * @return uint256 rewardsAvailableToIssue
+     */
+    function rewardsAvailableToIssue()
+        public
+        view
+        returns (uint256)
+    {
+        return rewardToken.balanceOf(address(this)) > totalRewardsIssued() ? rewardToken.balanceOf(address(this)).sub(totalRewardsIssued()) : 0;
+    }
+
+    /**
      * @dev Calculate latest rewardsPerShare
-     *      rewards per share = last updates rewards per share + rewards per block * num of block since last update / total shares
+     *      rewards per share = last updates rewards per share + min(rewards per block * num of block since last update, balance of reward left in pool) / total shares
      * @return uint256 rewardsPerShare
      */
     function rewardsPerShare()
@@ -97,16 +111,19 @@ contract RewardPool is ReentrancyGuard, Ownable, Pool {
         view
         returns (uint256)
     {
-        uint256 blockDelta = block.number - lastUpdateBlock;
-        uint256 newRewardsToDistribute = rewardsPerBlock.mul(blockDelta);
-
         // Check against initial case when pool does not have any shares
         if (totalShares() == 0) {
             return 0;
         }
 
-        uint256 newRewardToDistributePerShare = newRewardsToDistribute.div(totalShares());
-        return rewardsPerShareStored.add(newRewardToDistributePerShare);
+        uint256 blockDelta = block.number - lastUpdateBlock;
+        uint256 rewardsShouldIssue = rewardsPerBlock.mul(blockDelta);
+        uint256 rewardsAvailable = rewardsAvailableToIssue();
+        // rewards to distributed = min(rewardsShouldIssue, rewardsAvailable)
+        uint256 newRewardsToIssue = rewardsShouldIssue > rewardsAvailable ? rewardsAvailable : rewardsShouldIssue;
+
+        uint256 newRewardToIssuePerShare = newRewardsToIssue.div(totalShares());
+        return rewardsPerShareStored.add(newRewardToIssuePerShare);
     }
 
     /**
@@ -126,7 +143,7 @@ contract RewardPool is ReentrancyGuard, Ownable, Pool {
 
     /**
      * @dev Calculates the total amount of rewards issued so far
-     *      total rewards issued = current rewardsPerBlock
+     *      total rewards issued = rewards issued stored + current rewardsPerBlock * block delta
      * @return uint256 total rewards issued
      */
     function totalRewardsIssued()
@@ -134,7 +151,8 @@ contract RewardPool is ReentrancyGuard, Ownable, Pool {
         view
         returns (uint256)
     {
-
+        uint256 blockDelta = block.number - lastUpdateBlock;
+        return totalRewardsIssuedStored.add(rewardsPerBlock.mul(blockDelta));
     }
 
     /*** INTERNAL ***/
@@ -148,8 +166,7 @@ contract RewardPool is ReentrancyGuard, Ownable, Pool {
         external
         onlyOwner
     {
-        uint256 unissuedRewards = rewardToken.balanceOf(address(this)).sub(totalRewardsIssued());
-        rewardToken.safeTransfer(owner(), unissuedRewards);
+        rewardToken.safeTransfer(owner(), rewardsAvailableToIssue());
     }
 
     /**
