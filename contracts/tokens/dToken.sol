@@ -222,7 +222,7 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
 
         // check miningPool to update mining rewards
         if (address(miningPool) != address(0)) {
-            miningPool.updateReward();
+            miningPool.updateReward(_beneficiary);
         }
     }
 
@@ -241,7 +241,7 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
 
         // check miningPool to update mining rewards
         if (address(miningPool) != address(0)) {
-            miningPool.updateReward();
+            miningPool.updateReward(msg.sender);
         }
     }
 

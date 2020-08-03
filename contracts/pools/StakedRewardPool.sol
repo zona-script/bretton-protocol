@@ -39,7 +39,7 @@ contract StakedRewardPool is ReentrancyGuard, RewardPool {
     }
 
     /*** PUBLIC ***/
-    
+
     /**
      * @dev Deposits a given amount of StakingToken from sender, increase beneficiary shares
      * @param _beneficiary Account to stake for
@@ -51,7 +51,7 @@ contract StakedRewardPool is ReentrancyGuard, RewardPool {
     {
         stakingToken.safeTransferFrom(msg.sender, address(this), _amount);
         _increaseShares(_beneficiary, _amount);
-        updateReward();
+        updateReward(_beneficiary);
 
         emit Staked(_beneficiary, _amount, msg.sender);
     }
@@ -66,7 +66,7 @@ contract StakedRewardPool is ReentrancyGuard, RewardPool {
     {
         stakingToken.safeTransfer(msg.sender, _amount);
         _decreaseShares(msg.sender, _amount);
-        updateReward();
+        updateReward(msg.sender);
 
         emit Withdrawn(msg.sender, _amount);
     }

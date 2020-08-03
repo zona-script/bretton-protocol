@@ -36,6 +36,8 @@ contract MiningRewardPool is RewardPool {
     }
 
     /*** PUBLIC ***/
+    
+    /*** VIEW ***/
 
     /**
      * @dev Get the totalSupply of sharesToken. Overrides Pool function

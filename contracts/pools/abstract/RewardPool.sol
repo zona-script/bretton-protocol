@@ -28,8 +28,8 @@ contract RewardPool is ReentrancyGuard, Ownable, Pool {
     // The rewardsPerShare already paided out to a given user
     mapping(address => uint256) public rewardsPerSharePaid;
 
-    // The total rewards issued based on last update
-    uint256 public totalRewardsIssuedStored;
+    // The rewards unclaimed for an account based on last update
+    mapping(address => uint256) public rewardUnclaimedStored;
 
     // Block of which rewardsPerShareStored was updated last
     uint256 public lastUpdateBlock;
@@ -57,53 +57,52 @@ contract RewardPool is ReentrancyGuard, Ownable, Pool {
     /*** PUBLIC FUNCTIONS ***/
 
     /**
+     * @dev Update rewards per share stored and last update block
+     *      MUST be called on every shares change
+     */
+    function updateReward(address _account)
+        public
+    {
+        uint256 newRewardPerShare = rewardsPerShare();
+
+        if (newRewardPerShare > 0) {
+            rewardsPerShareStored = newRewardPerShare;
+            lastUpdateBlock = block.number;
+
+            // Record unclaimed rewards for account and mark as paid
+            rewardUnclaimedStored[_account] = unclaimedRewards(_account);
+            rewardsPerSharePaid[_account] = newRewardPerShare;
+        }
+    }
+
+    /**
      * @dev Claim outstanding rewards for a given account
      * @param _account User for which to claim rewards for
      * @return uint256 amount claimed
      */
     function claim(address _account)
-        public
+        internal
         returns (uint256)
     {
-        uint256 rewardsToClaim = unclaimedRewards(_account);
-        rewardsPerSharePaid[_account] = rewardsPerShare();
-        rewardToken.safeTransfer(_account, rewardsToClaim);
+        updateReward(_account);
+        uint256 rewardsToClaim = rewardUnclaimedStored[_account];
 
-        emit RewardPaid(_account, rewardsToClaim);
+        if (rewardsToClaim > 0 && rewardsToClaim <= rewardToken.balanceOf(address(this))) {
+            rewardToken.safeTransfer(_account, rewardsToClaim);
 
-        return rewardsToClaim;
-    }
+            emit RewardPaid(_account, rewardsToClaim);
 
-    /**
-     * @dev Update rewards per share stored and last update block
-     *      Called on every shares change
-     */
-    function updateReward()
-        public
-    {
-        rewardsPerShareStored = rewardsPerShare();
-        totalRewardsIssuedStored = totalRewardsIssued();
-        lastUpdateBlock = block.number;
+            return rewardsToClaim;
+        }
+
+        return 0;
     }
 
     /*** VIEW ***/
 
     /**
-     * @dev Calculate rewards available in pool to be issued
-     *      rewards available to issue = max(pool reward balance - total rewards issued, 0)
-     * @return uint256 rewardsAvailableToIssue
-     */
-    function rewardsAvailableToIssue()
-        public
-        view
-        returns (uint256)
-    {
-        return rewardToken.balanceOf(address(this)) > totalRewardsIssued() ? rewardToken.balanceOf(address(this)).sub(totalRewardsIssued()) : 0;
-    }
-
-    /**
      * @dev Calculate latest rewardsPerShare
-     *      rewards per share = last updates rewards per share + min(rewards per block * num of block since last update, balance of reward left in pool) / total shares
+     *      rewards per share = last updates rewards per share + rewards per block * num of block since last update / total shares
      * @return uint256 rewardsPerShare
      */
     function rewardsPerShare()
@@ -111,26 +110,22 @@ contract RewardPool is ReentrancyGuard, Ownable, Pool {
         view
         returns (uint256)
     {
-        // Check against initial case when pool does not have any shares
+        // If there is no shares, avoid div(0)
         if (totalShares() == 0) {
-            return 0;
+            return rewardsPerShareStored;
         }
 
         uint256 blockDelta = block.number - lastUpdateBlock;
-        uint256 rewardsShouldIssue = rewardsPerBlock.mul(blockDelta);
-        uint256 rewardsAvailable = rewardsAvailableToIssue();
-        // rewards to distributed = min(rewardsShouldIssue, rewardsAvailable)
-        uint256 newRewardsToIssue = rewardsShouldIssue > rewardsAvailable ? rewardsAvailable : rewardsShouldIssue;
-
-        uint256 newRewardToIssuePerShare = newRewardsToIssue.div(totalShares());
-        return rewardsPerShareStored.add(newRewardToIssuePerShare);
+        uint256 newRewardsToDistribute = rewardsPerBlock.mul(blockDelta);
+        uint256 newRewardToDistributePerShare = newRewardsToDistribute.div(totalShares());
+        return rewardsPerShareStored.add(newRewardToDistributePerShare);
     }
 
     /**
      * @dev Calculates the amount of unclaimed rewards for a given account
      *      unclaimed = (rewards per share - rewards per share already paid to user) * shares of user
      * @param _account User for which calculate unclaimed rewards for
-     * @return uint256 unclaimed rewards
+     * @return uint256 Unclaimed rewards
      */
     function unclaimedRewards(address _account)
         public
@@ -138,21 +133,8 @@ contract RewardPool is ReentrancyGuard, Ownable, Pool {
         returns (uint256)
     {
         uint256 unclaimedRewardsPerShare = rewardsPerShare().sub(rewardsPerSharePaid[_account]);
-        return unclaimedRewardsPerShare.mul(sharesOf(_account));
-    }
-
-    /**
-     * @dev Calculates the total amount of rewards issued so far
-     *      total rewards issued = rewards issued stored + current rewardsPerBlock * block delta
-     * @return uint256 total rewards issued
-     */
-    function totalRewardsIssued()
-        public
-        view
-        returns (uint256)
-    {
-        uint256 blockDelta = block.number - lastUpdateBlock;
-        return totalRewardsIssuedStored.add(rewardsPerBlock.mul(blockDelta));
+        uint256 userNewReward = unclaimedRewardsPerShare.mul(sharesOf(_account));
+        return rewardUnclaimedStored[_account].add(userNewReward);
     }
 
     /*** INTERNAL ***/
@@ -162,11 +144,11 @@ contract RewardPool is ReentrancyGuard, Ownable, Pool {
     /**
      * @dev Withdraw unissued rewards from pool
      */
-    function withdrawUnissuedRewards()
+    function withdrawRemainingRewards()
         external
         onlyOwner
     {
-        rewardToken.safeTransfer(owner(), rewardsAvailableToIssue());
+        rewardToken.safeTransfer(owner(), rewardToken.balanceOf(address(this)));
     }
 
     /**
