@@ -70,23 +70,6 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
     }
 
     /**
-     * @dev Mint dToken to a recipient
-     * @param _underlying Token supplied for minting
-     * @param _amount Amount of _underlying
-     * @param _recipient Account to receive minted tokens
-     */
-    function mintTo(
-        address _underlying,
-        uint _amount,
-        address _recipient
-    )
-        external
-        nonReentrant
-    {
-        _mintInternal(_underlying, _amount, _recipient);
-    }
-
-    /**
      * @dev Redeem dToken to underlying
      * @param _underlying Token withdrawn for redeeming
      * @param _amount Amount of _underlying
@@ -99,23 +82,6 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
         nonReentrant
     {
         _redeemInternal(_underlying, _amount, msg.sender);
-    }
-
-    /**
-     * @dev Redeem dToken to recipient
-     * @param _underlying Token withdrawn for redeeming
-     * @param _amount Amount of _underlying
-     * @param _recipient Account to receive redeemed tokens
-     */
-    function redeemTo(
-        address _recipient,
-        address _underlying,
-        uint _amount
-    )
-        external
-        nonReentrant
-    {
-        _redeemInternal(_underlying, _amount, _recipient);
     }
 
     /**
@@ -146,32 +112,18 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
     }
 
     /**
-     * @dev Swap underlyings to recipient
-     * @param _underlyingFrom Token to swap from
-     * @param _amountFrom Amount of _underlyingFrom
-     * @param _underlyingTo Token to swap to
-     * @param _recipient Account to receive swapped tokens
+     * @dev Overrides parent ERC20 transfer function to update reward for sender and recipient
+     * @param _recipient Address to recieve transfer
+     * @param _amount Amount to transfer
+     * @return bool Is transfer successful
      */
-    function swapTo(
-        address _underlyingFrom,
-        uint _amountFrom,
-        address _underlyingTo,
-        address _recipient
-    )
-        external
-        nonReentrant
+    function transfer(address _recipient, uint256 _amount)
+        public
+        returns (bool)
     {
-        // check if there is sufficient underlyingTo to swap
-        // currently there are no exchange rate between underlyings as only stable coins are supported
-        EarningPoolInterface pool = EarningPoolInterface(underlyingToEarningPoolMap[_underlyingTo]);
-        uint amountTo = _scaleTokenAmount(_underlyingFrom, _amountFrom, _underlyingTo);
-        require(pool.calcPoolValueInUnderlying() >= amountTo, "DTOKEN: insufficient underlyingTo for swap");
-
-        // mint with _underlyingFrom
-        _mintInternal(_underlyingFrom, _amountFrom, msg.sender);
-
-        // redeem to _underlyingTo
-        _redeemInternal(_underlyingTo, amountTo, _recipient);
+        miningPool.updateReward(msg.sender);
+        miningPool.updateReward(_recipient);
+        return super.transfer(_recipient, _amount);
     }
 
     /*** VIEW ***/
