@@ -124,8 +124,8 @@ describe('Features', function () {
     // mint DELT for ManagedRewardPool
     this.DELTToken.mint(this.managedRewardPool.address, '10000000000000000000000') // 10000
     // register managedRewardPool in dToken
-    this.dToken.setMiningPool(this.managedRewardPool.address, { from: admin })
-    // promot dToken as manager for miningPool
+    this.dToken.setRewardPool(this.managedRewardPool.address, { from: admin })
+    // promot dToken as manager for managedRewardPool
     this.managedRewardPool.promote(this.dToken.address, { from: admin })
   })
 

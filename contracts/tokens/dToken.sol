@@ -23,7 +23,7 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
     mapping(address => address) public underlyingToEarningPoolMap;
     address[] public supportedUnderlyings;
 
-    ManagedRewardPoolInterface public miningPool;
+    ManagedRewardPoolInterface public managedRewardPool;
 
     /**
      * @dev dToken constructor
@@ -49,7 +49,7 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
             _approveUnderlyingToEarningPool(_underlyings[i], _earningPools[i]);
         }
 
-        miningPool = ManagedRewardPoolInterface(0); // initialize to address 0
+        managedRewardPool = ManagedRewardPoolInterface(0); // initialize to address 0
     }
 
     /*** PUBLIC ***/
@@ -121,8 +121,8 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
         public
         returns (bool)
     {
-        miningPool.burnShares(msg.sender, _amount);
-        miningPool.mintShares(_recipient, _amount);
+        managedRewardPool.burnShares(msg.sender, _amount);
+        managedRewardPool.mintShares(_recipient, _amount);
         return super.transfer(_recipient, _amount);
     }
 
@@ -147,14 +147,14 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
     /*** ADMIN ***/
 
     /**
-     * @dev Set the miningRewardPool of this dToken
-     * @param _miningPool Address of miningPool
+     * @dev Set the managedRewardPool of this dToken
+     * @param _managedRewardPool Address of reward pool
      */
-    function setMiningPool(address _miningPool)
+    function setRewardPool(address _managedRewardPool)
         external
         onlyOwner
     {
-        miningPool = ManagedRewardPoolInterface(_miningPool);
+        managedRewardPool = ManagedRewardPoolInterface(_managedRewardPool);
     }
 
     /*** INTERNAL ***/
@@ -172,9 +172,9 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
         uint mintAmount = _scaleTokenAmount(_underlying, _amount, address(this));
         _mint(_beneficiary, mintAmount);
 
-        // mint shares in miningPool
-        if (address(miningPool) != address(0)) {
-            miningPool.mintShares(_beneficiary, _amount);
+        // mint shares in managedRewardPool
+        if (address(managedRewardPool) != address(0)) {
+            managedRewardPool.mintShares(_beneficiary, _amount);
         }
     }
 
@@ -191,9 +191,9 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
         uint burnAmount = _scaleTokenAmount(_underlying, _amount, address(this));
         _burn(msg.sender, burnAmount);
 
-        // burn shares from miningPool
-        if (address(miningPool) != address(0)) {
-            miningPool.burnShares(msg.sender, _amount);
+        // burn shares from managedRewardPool
+        if (address(managedRewardPool) != address(0)) {
+            managedRewardPool.burnShares(msg.sender, _amount);
         }
     }
 
