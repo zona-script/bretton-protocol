@@ -10,14 +10,9 @@ contract ManagedRewardPool is RewardPool {
 
     mapping(address => bool) public isManager;
 
-    event Promoted(address indexed user);
-    event Demoted(address indexed user);
+    event Promoted(address indexed manager);
+    event Demoted(address indexed manager);
 
-    /**
-     * @dev ManagedRewardPool constructor
-     * @param _rewardToken The rewardToken
-     * @param _rewardsPerBlock Reward distribution rate
-     */
     constructor(
         string memory _name,
         string memory _symbol,
