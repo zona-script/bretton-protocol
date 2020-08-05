@@ -1,16 +1,15 @@
 const { accounts, contract, web3 } = require('@openzeppelin/test-environment')
-const { BN, expectEvent, expectRevert, time } = require('@openzeppelin/test-helpers')
+const { BN, expectEvent, expectRevert } = require('@openzeppelin/test-helpers')
 const { expect } = require('chai')
 
 // Load compiled artifacts
 const ERC20Fake = contract.fromArtifact('ERC20Fake')
 const RewardPoolFake = contract.fromArtifact('RewardPoolFake')
 
-describe('RewardPool', function () {
+describe.only('RewardPool', function () {
   const [ admin, user, user2, user3 ] = accounts
 
   let rewardToken, rewardPool
-  const rewardsPerBlock = new BN('100000000000000000000') // 100 per block, reward token is 18 decimal place
   beforeEach(async () => {
       // deploy reward token
       rewardToken = await ERC20Fake.new(
@@ -26,15 +25,9 @@ describe('RewardPool', function () {
         'FRP',
         '18',
         rewardToken.address,
-        rewardsPerBlock,
+        new BN('100000000000000000000'), // 100 per block, reward token is 18 decimal place,
         { from: admin }
       )
-  })
-
-  describe('init', function () {
-    it.skip("should set all initial state", async () => {
-
-    })
   })
 
   describe('calculate reward earnings', function () {
@@ -188,45 +181,169 @@ describe('RewardPool', function () {
     })
   })
 
-  describe('claim', function () {
-    describe('when there are unclaimed rewards', function () {
-      it.skip('should withdraw rewards', async () => {
+  describe('claim rewards', function () {
+    describe('when user has unclaimed rewards', function () {
+      beforeEach(async () => {
+        // mint reward tokens to pool
+        await rewardToken.mint(rewardPool.address, new BN('10000000000000000000000')) //10000
 
+        // increase user shares
+        await rewardPool.increaseShares(user, new BN('1000000000000000000')) // 1
+
+        // mine a block
+        await rewardPool.increaseBlockNumber('1')
       })
 
-      describe('when there no new rewards left', function () {
-        it.skip('should not be able to withdraw rewards', async () => {
+      it('should withdraw rewards', async () => {
+        const userRewardBalanceBefore = await rewardToken.balanceOf.call(user)
 
+        const receipt = await rewardPool.claim(user)
+
+        const userRewardBalanceAfter = await rewardToken.balanceOf.call(user)
+        expectEvent(receipt, 'RewardPaid', {
+          user: user,
+          amount: new BN('100000000000000000000')
+        });
+        expect(userRewardBalanceAfter.sub(userRewardBalanceBefore)).to.be.bignumber.equal(new BN('100000000000000000000')) // 100
+        expect(await rewardPool.totalRewardsClaimed.call()).to.be.bignumber.equal(new BN('100000000000000000000')) // 100
+      })
+
+      describe('when all rewards are claimed', function () {
+        beforeEach(async () => {
+          // claim all outstanding rewards
+          await rewardPool.claim(user)
         })
-      })
 
-      describe('when there new rewards accrued', function () {
-        it.skip('should be able to withdraw new rewards', async () => {
+        it('should not be able to withdraw more rewards', async () => {
+          const userRewardBalanceBefore = await rewardToken.balanceOf.call(user)
 
+          const receipt = await rewardPool.claim(user)
+
+          const userRewardBalanceAfter = await rewardToken.balanceOf.call(user)
+          expect(userRewardBalanceAfter).to.be.bignumber.equal(userRewardBalanceBefore)
+        })
+
+        describe('when there are new rewards accrued', function () {
+          beforeEach(async () => {
+            // mine a block
+            await rewardPool.increaseBlockNumber('1')
+          })
+
+          it('should be able to withdraw new rewards', async () => {
+            const userRewardBalanceBefore = await rewardToken.balanceOf.call(user)
+
+            const receipt = await rewardPool.claim(user)
+
+            const userRewardBalanceAfter = await rewardToken.balanceOf.call(user)
+            expectEvent(receipt, 'RewardPaid', {
+              user: user,
+              amount: new BN('100000000000000000000')
+            });
+            expect(userRewardBalanceAfter.sub(userRewardBalanceBefore)).to.be.bignumber.equal(new BN('100000000000000000000')) // 100
+            expect(await rewardPool.totalRewardsClaimed.call()).to.be.bignumber.equal(new BN('200000000000000000000')) // 200
+          })
         })
       })
     })
 
-    describe('when there are no unclaimed rewards', function () {
-      it.skip('should not be able to withdraw rewards', async () => {
+    describe('when user has no shares', function () {
+      beforeEach(async () => {
+        // mint reward tokens to pool
+        await rewardToken.mint(rewardPool.address, new BN('10000000000000000000000')) //10000
 
+        // mine a block
+        await rewardPool.increaseBlockNumber('1')
+      })
+
+      it('should not be able to withdraw rewards', async () => {
+        const userRewardBalanceBefore = await rewardToken.balanceOf.call(user)
+
+        const receipt = await rewardPool.claim(user)
+
+        const userRewardBalanceAfter = await rewardToken.balanceOf.call(user)
+        expect(userRewardBalanceAfter).to.be.bignumber.equal(userRewardBalanceBefore)
+        expect(await rewardPool.totalRewardsClaimed.call()).to.be.bignumber.equal(new BN('0'))
+      })
+    })
+
+    describe('when user has shares but there are no rewards in pool', function () {
+      beforeEach(async () => {
+        // increase user shares
+        await rewardPool.increaseShares(user, new BN('1000000000000000000')) // 1
+
+        // mine a block
+        await rewardPool.increaseBlockNumber('1')
+      })
+
+      it('should not be able to withdraw rewards', async () => {
+        const userRewardBalanceBefore = await rewardToken.balanceOf.call(user)
+
+        const receipt = await rewardPool.claim(user)
+
+        const userRewardBalanceAfter = await rewardToken.balanceOf.call(user)
+        expect(userRewardBalanceAfter).to.be.bignumber.equal(userRewardBalanceBefore)
+        expect(await rewardPool.totalRewardsClaimed.call()).to.be.bignumber.equal(new BN('0'))
       })
     })
   })
 
   describe('setRewardsPerBlock', function () {
-    it.skip('only owner can set rewards per block', async () => {
+    it('only owner can set rewards per block', async () => {
+      await expectRevert(
+        rewardPool.setRewardsPerBlock(new BN('10'), { from: user }),
+        'Ownable: caller is not the owner'
+      )
 
+      const newRewardsPerBlock = new BN('10')
+      await rewardPool.setRewardsPerBlock(newRewardsPerBlock, { from: admin })
+      expect(await rewardPool.rewardsPerBlock.call()).to.be.bignumber.equal(newRewardsPerBlock)
     })
 
-    it.skip('should not already issued rewards', async () => {
+    it('should affect all unclaimed rewards', async () => {
+      // mint reward tokens to pool
+      await rewardToken.mint(rewardPool.address, new BN('10000000000000000000000')) //10000
 
+      // increase user shares
+      await rewardPool.increaseShares(user, new BN('1000000000000000000')) // 1
+
+      // mine a block
+      await rewardPool.increaseBlockNumber('1')
+
+      // user should have 100 rewards
+      expect(await rewardPool.unclaimedRewards.call(user)).to.be.bignumber.equal(new BN('100000000000000000000'))
+
+      // set new rewards per block
+      const newRewardsPerBlock = new BN('10000000000000000000')
+      await rewardPool.setRewardsPerBlock(newRewardsPerBlock, { from: admin })
+
+      // user should now have 10 rewards
+      expect(await rewardPool.unclaimedRewards.call(user)).to.be.bignumber.equal(new BN('10000000000000000000'))
+
+      // mine a block
+      await rewardPool.increaseBlockNumber('1')
+
+      // user should still have 20 rewards
+      expect(await rewardPool.unclaimedRewards.call(user)).to.be.bignumber.equal(new BN('20000000000000000000'))
     })
   })
 
   describe('withdrawRemainingRewards', function () {
-    it.skip('only owner can withdraw remaining reward tokens', async () => {
+    beforeEach(async () => {
+      // mint reward tokens to pool
+      await rewardToken.mint(rewardPool.address, new BN('10000000000000000000000')) //10000
+    })
 
+    it('only owner can withdraw remaining reward tokens', async () => {
+      await expectRevert(
+        rewardPool.withdrawRemainingRewards({ from: user }),
+        'Ownable: caller is not the owner'
+      )
+
+      await rewardPool.withdrawRemainingRewards({ from: admin })
+      const adminRewardBalanceAfter = await rewardToken.balanceOf.call(admin)
+      const poolRewardBalanceAfter = await rewardToken.balanceOf.call(rewardPool.address)
+      expect(adminRewardBalanceAfter).to.be.bignumber.equal(new BN('10000000000000000000000'))
+      expect(poolRewardBalanceAfter).to.be.bignumber.equal(new BN('0'))
     })
   })
 })

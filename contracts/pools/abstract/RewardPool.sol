@@ -35,7 +35,7 @@ contract RewardPool is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
 
     uint256 public totalRewardsClaimed;
 
-    event RewardPaid(address indexed user, uint256 reward);
+    event RewardPaid(address indexed user, uint256 amount);
 
     /**
      * @dev RewardPool constructor
@@ -58,8 +58,6 @@ contract RewardPool is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
         lastUpdateBlock = getBlockNumber();
     }
 
-    /*** PUBLIC FUNCTIONS ***/
-
     /**
      * @dev Update reward for a given address before executing function
      */
@@ -77,6 +75,8 @@ contract RewardPool is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
         _;
     }
 
+    /*** PUBLIC FUNCTIONS ***/
+
     /**
      * @dev Claim outstanding rewards for a given account
      * First updates outstanding reward allocation and then transfers.
@@ -84,7 +84,7 @@ contract RewardPool is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
      * @return uint256 amount claimed
      */
     function claim(address _account)
-        internal
+        public
         updateReward(_account)
         returns (uint256)
     {
