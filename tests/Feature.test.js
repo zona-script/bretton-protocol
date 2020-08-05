@@ -6,7 +6,7 @@ const { expect } = require('chai')
 const ERC20Fake = contract.fromArtifact('ERC20Fake')
 const CompoundFake = contract.fromArtifact('CompoundFake')
 const EarningPool = contract.fromArtifact('EarningPool')
-const MiningRewardPool = contract.fromArtifact('MiningRewardPool')
+const ManagedRewardPool = contract.fromArtifact('ManagedRewardPool')
 const StakedRewardPool = contract.fromArtifact('StakedRewardPool')
 const dToken = contract.fromArtifact('dToken')
 
@@ -67,6 +67,9 @@ describe('Features', function () {
 
     // deploy StakedRewardPool
     this.StakedRewardPool = await StakedRewardPool.new(
+      'Staking Reward Pool',
+      'SRP',
+      '18',
       this.DELTToken.address,
       this.COMPRewardToken.address,
       '10000000000000000000', // rewardPerBlock rate, 10 mining token distributed per block
@@ -103,17 +106,21 @@ describe('Features', function () {
     await this.underlyingTwo.approve(this.dToken.address, '-1', { from: user }) // inifinite
 
 
-    // deploy mining reward pool
-    this.miningRewardPool = await MiningRewardPool.new(
+    // deploy managed reward pool
+    this.managedRewardPool = await ManagedRewardPool.new(
+      'Managed Reward Pool',
+      'MRP',
+      '18',
       this.DELTToken.address,
       new BN('10000000000000000000'), // rewardPerBlock rate, 10 mining token distributed per block
-      this.dToken.address,
       { from: admin }
     )
-    // mint DELT for MiningRewardPool
-    this.DELTToken.mint(this.miningRewardPool.address, '10000000000000000000000') // 10000
-    // register miningRewardPool in dToken
-    this.dToken.setMiningPool(this.miningRewardPool.address, { from: admin })
+    // mint DELT for ManagedRewardPool
+    this.DELTToken.mint(this.managedRewardPool.address, '10000000000000000000000') // 10000
+    // register managedRewardPool in dToken
+    this.dToken.setMiningPool(this.managedRewardPool.address, { from: admin })
+    // promot dToken as manager for miningPool
+    this.managedRewardPool.promote(this.dToken.address, { from: admin })
   })
 
   it('mint and redeem dToken using multiple underlyings', async () => {
@@ -221,17 +228,17 @@ describe('Features', function () {
 
   it('mine delta token from minting dToken', async () => {
     // record the block of which mining calculation should start
-    const miningStartBlock = await await this.miningRewardPool.lastUpdateBlock.call()
+    const miningStartBlock = await await this.managedRewardPool.lastUpdateBlock.call()
 
     // mint some dToken
     await this.dToken.mint(this.underlyingTwo.address, new BN('10000000000000000000'), { from: user }) // mint 10 dTokens
 
     // record the block of which mining calculation should end
     const miningEndBlock = await time.latestBlock()
-    const rewardsPerBlock = await this.miningRewardPool.rewardsPerBlock.call()
+    const rewardsPerBlock = await this.managedRewardPool.rewardsPerBlock.call()
     const expectedMiningReward = (miningEndBlock.sub(miningStartBlock)).mul(rewardsPerBlock)
     // should have mined DELTToken for minter, who has whole share of pool
-    expect(await this.miningRewardPool.unclaimedRewards.call(user)).to.be.bignumber.equal(expectedMiningReward)
+    expect(await this.managedRewardPool.unclaimedRewards.call(user)).to.be.bignumber.equal(expectedMiningReward)
   })
 
   it.skip('collect provider token rewards from multiple dPools', async () => {

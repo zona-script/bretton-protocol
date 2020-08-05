@@ -9,7 +9,7 @@ import "../externals/ERC20.sol";
 import "../externals/ERC20Detailed.sol";
 
 import "../interfaces/EarningPoolInterface.sol";
-import "../interfaces/MiningRewardPoolInterface.sol";
+import "../interfaces/ManagedRewardPoolInterface.sol";
 
 /**
  * @title dToken
@@ -23,7 +23,7 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
     mapping(address => address) public underlyingToEarningPoolMap;
     address[] public supportedUnderlyings;
 
-    MiningRewardPoolInterface public miningPool;
+    ManagedRewardPoolInterface public miningPool;
 
     /**
      * @dev dToken constructor
@@ -49,7 +49,7 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
             _approveUnderlyingToEarningPool(_underlyings[i], _earningPools[i]);
         }
 
-        miningPool = MiningRewardPoolInterface(0); // initialize to address 0
+        miningPool = ManagedRewardPoolInterface(0); // initialize to address 0
     }
 
     /*** PUBLIC ***/
@@ -121,8 +121,8 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
         public
         returns (bool)
     {
-        miningPool.updateReward(msg.sender);
-        miningPool.updateReward(_recipient);
+        miningPool.burnShares(msg.sender, _amount);
+        miningPool.mintShares(_recipient, _amount);
         return super.transfer(_recipient, _amount);
     }
 
@@ -154,7 +154,7 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
         external
         onlyOwner
     {
-        miningPool = MiningRewardPoolInterface(_miningPool);
+        miningPool = ManagedRewardPoolInterface(_miningPool);
     }
 
     /*** INTERNAL ***/
@@ -168,14 +168,14 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
         IERC20(_underlying).safeTransferFrom(msg.sender, address(this), _amount);
         pool.deposit(_amount);
 
-        // check miningPool to update mining rewards
-        if (address(miningPool) != address(0)) {
-            miningPool.updateReward(_beneficiary);
-        }
-
         // mint dToken
         uint mintAmount = _scaleTokenAmount(_underlying, _amount, address(this));
         _mint(_beneficiary, mintAmount);
+
+        // mint shares in miningPool
+        if (address(miningPool) != address(0)) {
+            miningPool.mintShares(_beneficiary, _amount);
+        }
     }
 
     function _redeemInternal(address _underlying, uint _amount, address _beneficiary) internal {
@@ -187,14 +187,14 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
         pool.withdraw(_amount);
         IERC20(_underlying).safeTransfer(_beneficiary, _amount);
 
-        // check miningPool to update mining rewards
-        if (address(miningPool) != address(0)) {
-            miningPool.updateReward(msg.sender);
-        }
-        
         // burn dToken
         uint burnAmount = _scaleTokenAmount(_underlying, _amount, address(this));
         _burn(msg.sender, burnAmount);
+
+        // burn shares from miningPool
+        if (address(miningPool) != address(0)) {
+            miningPool.burnShares(msg.sender, _amount);
+        }
     }
 
     /**

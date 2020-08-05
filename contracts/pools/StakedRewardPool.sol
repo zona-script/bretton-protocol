@@ -25,11 +25,17 @@ contract StakedRewardPool is ReentrancyGuard, RewardPool {
      * @param _rewardsPerBlock Reward distribution rate
      */
     constructor(
+        string memory _name,
+        string memory _symbol,
+        uint8 _decimals,
         address _stakingToken,
         address _rewardToken,
         uint256 _rewardsPerBlock
     )
         RewardPool (
+            _name,
+            _symbol,
+            _decimals,
             _rewardToken,
             _rewardsPerBlock
         )
@@ -50,8 +56,7 @@ contract StakedRewardPool is ReentrancyGuard, RewardPool {
         nonReentrant
     {
         stakingToken.safeTransferFrom(msg.sender, address(this), _amount);
-        _increaseShares(_beneficiary, _amount);
-        updateReward(_beneficiary);
+        _mintShares(_beneficiary, _amount);
 
         emit Staked(_beneficiary, _amount, msg.sender);
     }
@@ -65,8 +70,7 @@ contract StakedRewardPool is ReentrancyGuard, RewardPool {
         nonReentrant
     {
         stakingToken.safeTransfer(msg.sender, _amount);
-        _decreaseShares(msg.sender, _amount);
-        updateReward(msg.sender);
+        _burnShares(msg.sender, _amount);
 
         emit Withdrawn(msg.sender, _amount);
     }

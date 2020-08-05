@@ -22,6 +22,9 @@ describe('RewardPool', function () {
 
       // deploy reward pool
       rewardPool = await RewardPoolFake.new(
+        'Fake Reward Pool',
+        'FRP',
+        '18',
         rewardToken.address,
         rewardsPerBlock,
         { from: admin }
@@ -48,7 +51,6 @@ describe('RewardPool', function () {
       describe('as a single share holder', async () => {
         beforeEach(async () => {
           // increase user shares
-          await rewardPool.updateReward(user)
           await rewardPool.increaseShares(user, new BN('1000000000000000000')) // 1
         })
 
@@ -72,11 +74,9 @@ describe('RewardPool', function () {
           describe('as more people enters pool', async () => {
             beforeEach(async () => {
               // increase user2 shares
-              await rewardPool.updateReward(user2)
               await rewardPool.increaseShares(user2, new BN('1000000000000000000')) // 1
 
               // increase user3 shares
-              await rewardPool.updateReward(user3)
               await rewardPool.increaseShares(user3, new BN('8000000000000000000')) // 8
             })
 
@@ -106,15 +106,12 @@ describe('RewardPool', function () {
             describe('after increase share holdings', async () => {
               beforeEach(async () => {
                 // increase user1 shares
-                await rewardPool.updateReward(user)
                 await rewardPool.increaseShares(user, new BN('2000000000000000000')) // 2
 
                 // increase user2 shares
-                await rewardPool.updateReward(user2)
                 await rewardPool.increaseShares(user2, new BN('1000000000000000000')) // 1
 
                 // increase user3 shares
-                await rewardPool.updateReward(user3)
                 await rewardPool.increaseShares(user3, new BN('1000000000000000000')) // 1
               })
 
@@ -136,7 +133,6 @@ describe('RewardPool', function () {
         await rewardToken.mint(rewardPool.address, totalRewardsInPool)
 
         // increase user shares
-        await rewardPool.updateReward(user)
         await rewardPool.increaseShares(user, new BN('1000000000000000000')) // 1
       })
 
@@ -162,11 +158,9 @@ describe('RewardPool', function () {
     describe('when entering a new pool without any rewards balance', function () {
       beforeEach(async () => {
         // increase user shares
-        await rewardPool.updateReward(user)
         await rewardPool.increaseShares(user, new BN('1000000000000000000')) // 1
 
         // increase user2 shares
-        await rewardPool.updateReward(user2)
         await rewardPool.increaseShares(user2, new BN('1000000000000000000')) // 1
 
         // try to accrue some rewards

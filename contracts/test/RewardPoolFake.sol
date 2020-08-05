@@ -7,10 +7,16 @@ contract RewardPoolFake is RewardPool {
     uint256 fakeBlockNumber = 0;
 
     constructor(
+        string memory _name,
+        string memory _symbol,
+        uint8 _decimals,
         address _rewardToken,
         uint256 _rewardsPerBlock
     )
         RewardPool (
+            _name,
+            _symbol,
+            _decimals,
             _rewardToken,
             _rewardsPerBlock
         )
@@ -19,11 +25,11 @@ contract RewardPoolFake is RewardPool {
     }
 
     function increaseShares(address _account, uint256 _amount) public {
-        _increaseShares(_account, _amount);
+        _mintShares(_account, _amount);
     }
 
     function decreaseShares(address _account, uint256 _amount) public {
-        _decreaseShares(_account, _amount);
+        _burnShares(_account, _amount);
     }
 
     function increaseBlockNumber(uint256 _blockNumber) public {

@@ -5,14 +5,14 @@ import "../../externals/SafeERC20.sol";
 import "../../externals/ReentrancyGuard.sol";
 import "../../externals/Ownable.sol";
 import "../../externals/IERC20.sol";
-
-import "./Pool.sol";
+import "../../externals/ERC20.sol";
+import "../../externals/ERC20Detailed.sol";
 
 /**
  * @title  RewardPool
  * @notice Abstract pool to evenly distribute a rewardTokens to pool shareholders at a fixed per block rate
  */
-contract RewardPool is ReentrancyGuard, Ownable, Pool {
+contract RewardPool is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
     using SafeERC20 for IERC20;
     using SafeMath for uint256;
 
@@ -43,10 +43,13 @@ contract RewardPool is ReentrancyGuard, Ownable, Pool {
      * @param _rewardsPerBlock Reward distribution rate
      */
     constructor (
+        string memory _name,
+        string memory _symbol,
+        uint8 _decimals,
         address _rewardToken,
         uint256 _rewardsPerBlock
     )
-        Pool ()
+        ERC20Detailed(_name, _symbol, _decimals)
         internal
     {
         rewardToken = IERC20(_rewardToken);
@@ -58,12 +61,9 @@ contract RewardPool is ReentrancyGuard, Ownable, Pool {
     /*** PUBLIC FUNCTIONS ***/
 
     /**
-     * @dev Update rewards per share stored and last update block
-     *      MUST be called on every shares change
+     * @dev Update reward for a given address before executing function
      */
-    function updateReward(address _account)
-        public
-    {
+    modifier updateReward(address _account) {
         uint256 newRewardPerShare = rewardsPerShare();
 
         if (newRewardPerShare > 0) {
@@ -74,6 +74,7 @@ contract RewardPool is ReentrancyGuard, Ownable, Pool {
             rewardUnclaimedStored[_account] = unclaimedRewards(_account);
             rewardsPerSharePaid[_account] = newRewardPerShare;
         }
+        _;
     }
 
     /**
@@ -84,9 +85,9 @@ contract RewardPool is ReentrancyGuard, Ownable, Pool {
      */
     function claim(address _account)
         internal
+        updateReward(_account)
         returns (uint256)
     {
-        updateReward(_account);
         uint256 rewardsToClaim = rewardUnclaimedStored[_account];
 
         if (rewardsToClaim > 0 && rewardsToClaim <= rewardToken.balanceOf(address(this))) {
@@ -134,7 +135,7 @@ contract RewardPool is ReentrancyGuard, Ownable, Pool {
         returns (uint256)
     {
         // If there is no shares, avoid div(0)
-        uint256 totalShares = totalShares();
+        uint256 totalShares = totalSupply();
         if (totalShares == 0) {
             return rewardsPerShareStored;
         }
@@ -158,7 +159,7 @@ contract RewardPool is ReentrancyGuard, Ownable, Pool {
         returns (uint256)
     {
         uint256 unclaimedRewardsPerShare = rewardsPerShare().sub(rewardsPerSharePaid[_account]);
-        uint256 userNewReward = unclaimedRewardsPerShare.mul(sharesOf(_account)).div(1e18);
+        uint256 userNewReward = unclaimedRewardsPerShare.mul(balanceOf(_account)).div(1e18);
         return rewardUnclaimedStored[_account].add(userNewReward);
     }
 
@@ -207,5 +208,31 @@ contract RewardPool is ReentrancyGuard, Ownable, Pool {
         onlyOwner
     {
         rewardsPerBlock = _newRewardsPerBlock;
+    }
+
+    /*** INTERNAL ***/
+
+    /**
+     * @dev Add a given amount of shares to a given account
+     * @param _account Account to increase shares for
+     * @param _amount Units of shares
+     */
+    function _mintShares(address _account, uint256 _amount)
+        internal
+        updateReward(_account)
+    {
+        _mint(_account, _amount);
+    }
+
+    /**
+     * @dev Remove a given amount of shares from a given account
+     * @param _account Account to decrease shares for
+     * @param _amount Units of shares
+     */
+    function _burnShares(address _account, uint256 _amount)
+        internal
+        updateReward(_account)
+    {
+        _burn(_account, _amount);
     }
 }
