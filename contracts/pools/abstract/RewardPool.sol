@@ -16,7 +16,6 @@ contract RewardPool is ReentrancyGuard, Ownable, Pool {
     using SafeERC20 for IERC20;
     using SafeMath for uint256;
 
-    // NOTE: We assume rewardToken and pool shares have the same decimal precision
     IERC20 public rewardToken;
 
     // Amount of rewardToken to distribute to all shareholders per block
@@ -32,7 +31,9 @@ contract RewardPool is ReentrancyGuard, Ownable, Pool {
     mapping(address => uint256) public rewardUnclaimedStored;
 
     // Block of which rewardsPerShareStored was updated last
-    uint256 public lastUpdateBlock;
+    uint256 public lastUpdateBlock = 0;
+
+    uint256 public totalRewardsClaimed;
 
     event RewardPaid(address indexed user, uint256 reward);
 
@@ -51,7 +52,7 @@ contract RewardPool is ReentrancyGuard, Ownable, Pool {
         rewardToken = IERC20(_rewardToken);
         rewardsPerBlock = _rewardsPerBlock;
         // mining rewards starts accumulate on the block miningPool was deployed
-        lastUpdateBlock = block.number;
+        lastUpdateBlock = getBlockNumber();
     }
 
     /*** PUBLIC FUNCTIONS ***/
@@ -67,7 +68,7 @@ contract RewardPool is ReentrancyGuard, Ownable, Pool {
 
         if (newRewardPerShare > 0) {
             rewardsPerShareStored = newRewardPerShare;
-            lastUpdateBlock = block.number;
+            lastUpdateBlock = getBlockNumber();
 
             // Record unclaimed rewards for account and mark as paid
             rewardUnclaimedStored[_account] = unclaimedRewards(_account);
@@ -77,6 +78,7 @@ contract RewardPool is ReentrancyGuard, Ownable, Pool {
 
     /**
      * @dev Claim outstanding rewards for a given account
+     * First updates outstanding reward allocation and then transfers.
      * @param _account User for which to claim rewards for
      * @return uint256 amount claimed
      */
@@ -88,7 +90,11 @@ contract RewardPool is ReentrancyGuard, Ownable, Pool {
         uint256 rewardsToClaim = rewardUnclaimedStored[_account];
 
         if (rewardsToClaim > 0 && rewardsToClaim <= rewardToken.balanceOf(address(this))) {
+            rewardUnclaimedStored[_account] = 0;
             rewardToken.safeTransfer(_account, rewardsToClaim);
+
+            // increment total claimed
+            totalRewardsClaimed = totalRewardsClaimed.add(rewardsToClaim);
 
             emit RewardPaid(_account, rewardsToClaim);
 
@@ -101,6 +107,23 @@ contract RewardPool is ReentrancyGuard, Ownable, Pool {
     /*** VIEW ***/
 
     /**
+     * @dev Calculate rewards available in pool to be issued
+     *      rewardsAvailable = max(current balance - total claimed, 0)
+     * @return uint256 Amount of rewards available
+     */
+    function rewardsAvailableToIssue()
+        public
+        view
+        returns (uint256)
+    {
+        if (rewardToken.balanceOf(address(this)) >= totalRewardsClaimed) {
+            return rewardToken.balanceOf(address(this)).sub(totalRewardsClaimed);
+        } else {
+            return 0;
+        }
+    }
+
+    /**
      * @dev Calculate latest rewardsPerShare
      *      rewards per share = last updates rewards per share + rewards per block * num of block since last update / total shares
      * @return uint256 rewardsPerShare
@@ -111,14 +134,16 @@ contract RewardPool is ReentrancyGuard, Ownable, Pool {
         returns (uint256)
     {
         // If there is no shares, avoid div(0)
-        if (totalShares() == 0) {
+        uint256 totalShares = totalShares();
+        if (totalShares == 0) {
             return rewardsPerShareStored;
         }
 
-        uint256 blockDelta = block.number - lastUpdateBlock;
-        uint256 newRewardsToDistribute = rewardsPerBlock.mul(blockDelta);
-        uint256 newRewardToDistributePerShare = newRewardsToDistribute.div(totalShares());
-        return rewardsPerShareStored.add(newRewardToDistributePerShare);
+        uint256 newRewardsToIssue = rewardsPerBlock.mul(blockSinceLastUpdate());
+        uint256 rewardsAvailable = rewardsAvailableToIssue();
+        uint256 actualRewardsToIssue = newRewardsToIssue > rewardsAvailable ? rewardsAvailable : newRewardsToIssue;
+        uint256 newRewardToIssuePerShare = actualRewardsToIssue.mul(1e18).div(totalShares);
+        return rewardsPerShareStored.add(newRewardToIssuePerShare);
     }
 
     /**
@@ -133,11 +158,33 @@ contract RewardPool is ReentrancyGuard, Ownable, Pool {
         returns (uint256)
     {
         uint256 unclaimedRewardsPerShare = rewardsPerShare().sub(rewardsPerSharePaid[_account]);
-        uint256 userNewReward = unclaimedRewardsPerShare.mul(sharesOf(_account));
+        uint256 userNewReward = unclaimedRewardsPerShare.mul(sharesOf(_account)).div(1e18);
         return rewardUnclaimedStored[_account].add(userNewReward);
     }
 
-    /*** INTERNAL ***/
+    /**
+     * @dev Wrapper for block.number for easy mocking in tests
+     * @return uint256 Block number
+     */
+    function getBlockNumber()
+        public
+        view
+        returns (uint256)
+    {
+        return block.number;
+    }
+
+    /**
+     * @dev Block since last update
+     * @return uint256 Block number
+     */
+    function blockSinceLastUpdate()
+        public
+        view
+        returns (uint256)
+    {
+        return getBlockNumber().sub(lastUpdateBlock);
+    }
 
     /*** ADMIN ***/
 

@@ -168,14 +168,14 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
         IERC20(_underlying).safeTransferFrom(msg.sender, address(this), _amount);
         pool.deposit(_amount);
 
-        // mint dToken
-        uint mintAmount = _scaleTokenAmount(_underlying, _amount, address(this));
-        _mint(_beneficiary, mintAmount);
-
         // check miningPool to update mining rewards
         if (address(miningPool) != address(0)) {
             miningPool.updateReward(_beneficiary);
         }
+
+        // mint dToken
+        uint mintAmount = _scaleTokenAmount(_underlying, _amount, address(this));
+        _mint(_beneficiary, mintAmount);
     }
 
     function _redeemInternal(address _underlying, uint _amount, address _beneficiary) internal {
@@ -187,14 +187,14 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
         pool.withdraw(_amount);
         IERC20(_underlying).safeTransfer(_beneficiary, _amount);
 
-        // burn dToken
-        uint burnAmount = _scaleTokenAmount(_underlying, _amount, address(this));
-        _burn(msg.sender, burnAmount);
-
         // check miningPool to update mining rewards
         if (address(miningPool) != address(0)) {
             miningPool.updateReward(msg.sender);
         }
+        
+        // burn dToken
+        uint burnAmount = _scaleTokenAmount(_underlying, _amount, address(this));
+        _burn(msg.sender, burnAmount);
     }
 
     /**
