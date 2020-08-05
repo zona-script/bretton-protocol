@@ -10,14 +10,12 @@ import "../externals/ERC20Detailed.sol";
 
 import "../providers/CompoundInterface.sol";
 
-import "./abstract/Pool.sol";
-
 /**
  * @title EarningPool
  * @dev Pool that tracks shares of an underlying token, of which are deposited into COMPOUND.
         Earnings from provider is sent to a RewardPool
  */
-contract EarningPool is ReentrancyGuard, Pool, Ownable {
+contract EarningPool is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
     using SafeERC20 for IERC20;
     using SafeMath for uint256;
 
@@ -49,12 +47,15 @@ contract EarningPool is ReentrancyGuard, Pool, Ownable {
      * @param _rewardPool Address of reward pool
      */
     constructor (
+        string memory _name,
+        string memory _symbol,
+        uint8 _decimals,
         address _underlyingToken,
         address _rewardToken,
         address _compound,
         address _rewardPool
     )
-        Pool ()
+        ERC20Detailed(_name, _symbol, _decimals)
         public
     {
         underlyingToken = _underlyingToken;
@@ -188,7 +189,7 @@ contract EarningPool is ReentrancyGuard, Pool, Ownable {
      * @return uint256 Underlying token balance
      */
     function calcUnclaimedEarningInUnderlying() public view returns(uint256) {
-        return calcPoolValueInUnderlying().sub(totalShares()).add(totalFeesCollectedInUnderlying);
+        return calcPoolValueInUnderlying().sub(totalSupply()).add(totalFeesCollectedInUnderlying);
     }
 
     /**
@@ -221,8 +222,8 @@ contract EarningPool is ReentrancyGuard, Pool, Ownable {
         // Supply underlying to provider
         _supplyToProvider(_amount);
 
-        // increase EarningPool shares for beneficiary
-        _increaseShares(_beneficiary, _amount);
+        // mint EarningPool tokens for beneficiary
+        _mint(_beneficiary, _amount);
 
         emit Deposited(_beneficiary, _amount, msg.sender);
 
@@ -235,7 +236,7 @@ contract EarningPool is ReentrancyGuard, Pool, Ownable {
         internal
     {
         require(_amount > 0, "EARNING_POOL: withdraw must be greater than 0");
-        require(_amount <= sharesOf(msg.sender), "EARNING_POOL: withdraw insufficient shares");
+        require(_amount <= balanceOf(msg.sender), "EARNING_POOL: withdraw insufficient shares");
 
         // Collect withdraw fee
         uint256 withdrawFee = _amount.mul(withdrawFeeFactorMantissa).div(1e18);
@@ -247,8 +248,8 @@ contract EarningPool is ReentrancyGuard, Pool, Ownable {
         // Transfer underlying to withdrawer
         IERC20(underlyingToken).safeTransfer(msg.sender, withdrawAmountLessFee);
 
-        // decrase earningPool shares for withdrawer
-        _decreaseShares(msg.sender, _amount);
+        // burn earningPool tokens for withdrawer
+        _burn(msg.sender, _amount);
 
         emit Withdrawn(msg.sender, withdrawAmountLessFee);
 

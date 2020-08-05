@@ -79,12 +79,18 @@ describe('Features', function () {
 
     // deploy EarningPools
     this.EarningPoolOne = await EarningPool.new(
+      'Earning Pool One',
+      'EPO',
+      '18',
       this.underlyingOne.address,
       this.COMPRewardToken.address,
       this.compoundOne.address,
       this.StakedRewardPool.address
     )
     this.EarningPoolTwo = await EarningPool.new(
+      'Earning Pool Two',
+      'EPT',
+      '18',
       this.underlyingTwo.address,
       this.COMPRewardToken.address,
       this.compoundTwo.address,
