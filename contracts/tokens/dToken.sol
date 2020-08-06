@@ -25,6 +25,10 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
 
     ManagedRewardPoolInterface public managedRewardPool;
 
+    event Minted(address indexed beneficiary, address indexed underlying, uint256 amount, address payer);
+    event Redeemed(address indexed beneficiary, address indexed underlying, uint256 amount, address payer);
+    event Swapped(address indexed beneficiary, address indexed swappedFrom, address indexed swappedTo, uint256 fromAmount, uint256 toAmount, address payer);
+
     /**
      * @dev dToken constructor
      * @param _name Name of dToken
@@ -56,41 +60,49 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
 
     /**
      * @dev Mint dToken using underlying
+     * @param _beneficiary Address of beneficiary
      * @param _underlying Token supplied for minting
      * @param _amount Amount of _underlying
      */
     function mint(
+        address _beneficiary,
         address _underlying,
         uint _amount
     )
         external
         nonReentrant
     {
-        _mintInternal(_underlying, _amount, msg.sender);
+        _mintInternal(_beneficiary, _underlying, _amount);
+        emit Minted(_beneficiary, _underlying, _amount, msg.sender);
     }
 
     /**
      * @dev Redeem dToken to underlying
+     * @param _beneficiary Address of beneficiary
      * @param _underlying Token withdrawn for redeeming
      * @param _amount Amount of _underlying
      */
     function redeem(
+        address _beneficiary,
         address _underlying,
         uint _amount
     )
         external
         nonReentrant
     {
-        _redeemInternal(_underlying, _amount, msg.sender);
+        _redeemInternal(_beneficiary, _underlying, _amount);
+        emit Redeemed(_beneficiary, _underlying, _amount, msg.sender);
     }
 
     /**
-     * @dev Swap underlyings
+     * @dev Swap from one underlying to another
+     * @param _beneficiary Address of beneficiary
      * @param _underlyingFrom Token to swap from
      * @param _amountFrom Amount of _underlyingFrom
      * @param _underlyingTo Token to swap to
      */
     function swap(
+        address _beneficiary,
         address _underlyingFrom,
         uint _amountFrom,
         address _underlyingTo
@@ -105,10 +117,12 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
         require(pool.calcPoolValueInUnderlying() >= amountTo, "DTOKEN: insufficient underlyingTo for swap");
 
         // mint with _underlyingFrom
-        _mintInternal(_underlyingFrom, _amountFrom, msg.sender);
+        _mintInternal(msg.sender, _underlyingFrom, _amountFrom);
 
         // redeem to _underlyingTo
-        _redeemInternal(_underlyingTo, amountTo, msg.sender);
+        _redeemInternal(_beneficiary, _underlyingTo, amountTo);
+
+        emit Swapped(_beneficiary, _underlyingFrom, _underlyingTo, _amountFrom, amountTo, msg.sender);
     }
 
     /**
@@ -150,7 +164,7 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
      * @dev Set the managedRewardPool of this dToken
      * @param _managedRewardPool Address of reward pool
      */
-    function setRewardPool(address _managedRewardPool)
+    function setRewardPoolAddress(address _managedRewardPool)
         external
         onlyOwner
     {
@@ -159,7 +173,7 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
 
     /*** INTERNAL ***/
 
-    function _mintInternal(address _underlying, uint _amount, address _beneficiary) internal {
+    function _mintInternal(address _beneficiary, address _underlying, uint _amount) internal {
         require(_amount > 0, "DTOKEN: mint must be greater than 0");
         require(isUnderlyingSupported(_underlying), "DTOKEN: mint underlying is not supported");
 
@@ -178,7 +192,7 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
         }
     }
 
-    function _redeemInternal(address _underlying, uint _amount, address _beneficiary) internal {
+    function _redeemInternal(address _beneficiary, address _underlying, uint _amount) internal {
         require(_amount > 0, "DTOKEN: redeem must be greater than 0");
         require(isUnderlyingSupported(_underlying), "DTOKEN: redeem underlying is not supported");
 
