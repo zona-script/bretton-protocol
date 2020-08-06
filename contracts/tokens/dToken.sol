@@ -166,7 +166,7 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
         // transfer underlying into dToken and deposit into earning pool
         EarningPoolInterface pool = EarningPoolInterface(underlyingToEarningPoolMap[_underlying]);
         IERC20(_underlying).safeTransferFrom(msg.sender, address(this), _amount);
-        pool.deposit(_amount);
+        pool.deposit(address(this), _amount);
 
         // mint dToken
         uint mintAmount = _scaleTokenAmount(_underlying, _amount, address(this));
@@ -184,7 +184,7 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
 
         // withdraw underlying from earning pool and transfer to user
         EarningPoolInterface pool = EarningPoolInterface(underlyingToEarningPoolMap[_underlying]);
-        pool.withdraw(_amount);
+        pool.withdraw(address(this), _amount);
         IERC20(_underlying).safeTransfer(_beneficiary, _amount);
 
         // burn dToken

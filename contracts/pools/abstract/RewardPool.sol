@@ -33,8 +33,6 @@ contract RewardPool is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
     // Block of which rewardsPerShareStored was updated last
     uint256 public lastUpdateBlock = 0;
 
-    uint256 public totalRewardsClaimed;
-
     event RewardPaid(address indexed user, uint256 amount);
 
     /**
@@ -94,9 +92,6 @@ contract RewardPool is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
             rewardUnclaimedStored[_account] = 0;
             rewardToken.safeTransfer(_account, rewardsToClaim);
 
-            // increment total claimed
-            totalRewardsClaimed = totalRewardsClaimed.add(rewardsToClaim);
-
             emit RewardPaid(_account, rewardsToClaim);
 
             return rewardsToClaim;
@@ -106,23 +101,6 @@ contract RewardPool is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
     }
 
     /*** VIEW ***/
-
-    /**
-     * @dev Calculate rewards available in pool to be issued
-     *      rewardsAvailable = max(current balance - total claimed, 0)
-     * @return uint256 Amount of rewards available
-     */
-    function rewardsAvailableToIssue()
-        public
-        view
-        returns (uint256)
-    {
-        if (rewardToken.balanceOf(address(this)) >= totalRewardsClaimed) {
-            return rewardToken.balanceOf(address(this)).sub(totalRewardsClaimed);
-        } else {
-            return 0;
-        }
-    }
 
     /**
      * @dev Calculate latest rewardsPerShare
@@ -141,7 +119,7 @@ contract RewardPool is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
         }
 
         uint256 newRewardsToIssue = rewardsPerBlock.mul(blockSinceLastUpdate());
-        uint256 rewardsAvailable = rewardsAvailableToIssue();
+        uint256 rewardsAvailable = rewardToken.balanceOf(address(this));
         uint256 actualRewardsToIssue = newRewardsToIssue > rewardsAvailable ? rewardsAvailable : newRewardsToIssue;
         uint256 newRewardToIssuePerShare = actualRewardsToIssue.mul(1e18).div(totalShares);
         return rewardsPerShareStored.add(newRewardToIssuePerShare);

@@ -1,8 +1,8 @@
 pragma solidity 0.5.16;
 
 interface EarningPoolInterface {
-    function deposit(uint256 _amount) external;
-    function withdraw(uint256 _amount) external;
+    function deposit(address _beneficiary, uint256 _amount) external;
+    function withdraw(address _beneficiary, uint256 _amount) external;
     function dispenseEarning() external returns (uint);
     function dispenseReward() external returns (uint);
     function underlyingToken() external view returns (address);

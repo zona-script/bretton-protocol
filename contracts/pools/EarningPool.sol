@@ -33,10 +33,8 @@ contract EarningPool is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
     // Fee factor mantissa, 1e18 = 100%
     uint256 public withdrawFeeFactorMantissa;
 
-    uint256 public totalFeesCollectedInUnderlying;
-
-    event Deposited(address indexed user, uint256 amount, address payer);
-    event Withdrawn(address indexed user, uint256 amount);
+    event Deposited(address indexed beneficiary, uint256 amount, address payer);
+    event Withdrawn(address indexed beneficiary, uint256 amount, address payer);
     event Dispensed(address indexed token, uint256 amount);
 
     /**
@@ -44,7 +42,6 @@ contract EarningPool is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
      * @param _underlyingToken The underlying token thats is earning interest from provider
      * @param _rewardToken Provider reward token
      * @param _compound Compound cToken address for underlying token
-     * @param _rewardPool Address of reward pool
      */
     constructor (
         string memory _name,
@@ -52,8 +49,7 @@ contract EarningPool is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
         uint8 _decimals,
         address _underlyingToken,
         address _rewardToken,
-        address _compound,
-        address _rewardPool
+        address _compound
     )
         ERC20Detailed(_name, _symbol, _decimals)
         public
@@ -61,8 +57,6 @@ contract EarningPool is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
         underlyingToken = _underlyingToken;
         rewardToken = _rewardToken;
         compound = _compound;
-        rewardPool = _rewardPool;
-        withdrawFeeFactorMantissa = 0; // initialize fee to zero
 
         _approveUnderlyingToProvider();
     }
@@ -71,16 +65,10 @@ contract EarningPool is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
 
     /**
      * @dev Deposit underlying into pool
+     * @param _beneficiary Address to benefit from the deposit
      * @param _amount Amount of underlying to deposit
      */
-    function deposit(uint256 _amount)
-        external
-        nonReentrant
-    {
-        _deposit(msg.sender, _amount);
-    }
-
-    function depositTo(address _beneficiary, uint256 _amount)
+    function deposit(address _beneficiary, uint256 _amount)
         external
         nonReentrant
     {
@@ -89,13 +77,14 @@ contract EarningPool is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
 
     /**
      * @dev Withdraw underlying from pool
+     * @param _beneficiary Address to benefit from the withdraw
      * @param _amount Amount of underlying to withdraw
      */
-    function withdraw(uint256 _amount)
+    function withdraw(address _beneficiary, uint256 _amount)
         external
         nonReentrant
     {
-        _withdraw(_amount);
+        _withdraw(_beneficiary, _amount);
     }
 
     /**
@@ -189,7 +178,7 @@ contract EarningPool is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
      * @return uint256 Underlying token balance
      */
     function calcUnclaimedEarningInUnderlying() public view returns(uint256) {
-        return calcPoolValueInUnderlying().sub(totalSupply()).add(totalFeesCollectedInUnderlying);
+        return calcPoolValueInUnderlying().sub(totalSupply());
     }
 
     /**
@@ -209,6 +198,13 @@ contract EarningPool is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
         withdrawFeeFactorMantissa = _withdrawFeeFactorManitssa;
     }
 
+    function setRewardPoolAddress(address _rewardPool)
+        public
+        onlyOwner
+    {
+        rewardPool = _rewardPool;
+    }
+
     /*** INTERNAL ***/
 
     function _deposit(address _beneficiary, uint256 _amount)
@@ -216,46 +212,38 @@ contract EarningPool is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
     {
         require(_amount > 0, "EARNING_POOL: deposit must be greater than 0");
 
-        // Transfer underlying into this pool, increase pool value in underlying
+        // Transfer underlying from payer into pool
         IERC20(underlyingToken).safeTransferFrom(msg.sender, address(this), _amount);
 
         // Supply underlying to provider
         _supplyToProvider(_amount);
 
-        // mint EarningPool tokens for beneficiary
+        // mint pool tokens for beneficiary
         _mint(_beneficiary, _amount);
 
         emit Deposited(_beneficiary, _amount, msg.sender);
-
-        // dispense outstanding rewards to rewardPool
-        dispenseEarning();
-        dispenseReward();
     }
 
-    function _withdraw(uint256 _amount)
+    function _withdraw(address _beneficiary, uint256 _amount)
         internal
     {
         require(_amount > 0, "EARNING_POOL: withdraw must be greater than 0");
         require(_amount <= balanceOf(msg.sender), "EARNING_POOL: withdraw insufficient shares");
 
+        // Withdraw underlying from provider
+        _withdrawFromProvider(_amount);
+
         // Collect withdraw fee
         uint256 withdrawFee = _amount.mul(withdrawFeeFactorMantissa).div(1e18);
-        totalFeesCollectedInUnderlying = totalFeesCollectedInUnderlying.add(withdrawFee);
         uint256 withdrawAmountLessFee = _amount.sub(withdrawFee);
-        // withdraw some from provider into pool
-        _withdrawFromProvider(withdrawAmountLessFee);
 
-        // Transfer underlying to withdrawer
-        IERC20(underlyingToken).safeTransfer(msg.sender, withdrawAmountLessFee);
+        // Transfer underlying to beneficiary
+        IERC20(underlyingToken).safeTransfer(_beneficiary, withdrawAmountLessFee);
 
-        // burn earningPool tokens for withdrawer
+        // burn pool token from payer
         _burn(msg.sender, _amount);
 
-        emit Withdrawn(msg.sender, withdrawAmountLessFee);
-
-        // dispense outstanding rewards to rewardPool
-        dispenseEarning();
-        dispenseReward();
+        emit Withdrawn(_beneficiary, withdrawAmountLessFee, msg.sender);
     }
 
     /**

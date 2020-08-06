@@ -51,7 +51,7 @@ contract CompoundFake is ERC20, ERC20Detailed, CompoundInterface {
         // Transfer underlying to withdrawer, decrease totalPoolBalance
         IERC20(underlying).safeTransfer(msg.sender, _amount);
 
-        // Burn dPool token for withdrawer
+        // Burn cToken for withdrawer
         uint exchangeRateScaled = exchangeRateMantissa.div(1e18); // scale down exchangeRateMantissa
         uint amountToBurn = _amount.div(exchangeRateScaled);
         _burn(msg.sender, amountToBurn);

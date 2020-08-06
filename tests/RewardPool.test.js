@@ -205,7 +205,6 @@ describe('RewardPool', function () {
           amount: new BN('100000000000000000000')
         });
         expect(userRewardBalanceAfter.sub(userRewardBalanceBefore)).to.be.bignumber.equal(new BN('100000000000000000000')) // 100
-        expect(await rewardPool.totalRewardsClaimed.call()).to.be.bignumber.equal(new BN('100000000000000000000')) // 100
       })
 
       describe('when all rewards are claimed', function () {
@@ -240,7 +239,6 @@ describe('RewardPool', function () {
               amount: new BN('100000000000000000000')
             });
             expect(userRewardBalanceAfter.sub(userRewardBalanceBefore)).to.be.bignumber.equal(new BN('100000000000000000000')) // 100
-            expect(await rewardPool.totalRewardsClaimed.call()).to.be.bignumber.equal(new BN('200000000000000000000')) // 200
           })
         })
       })
@@ -262,7 +260,6 @@ describe('RewardPool', function () {
 
         const userRewardBalanceAfter = await rewardToken.balanceOf.call(user)
         expect(userRewardBalanceAfter).to.be.bignumber.equal(userRewardBalanceBefore)
-        expect(await rewardPool.totalRewardsClaimed.call()).to.be.bignumber.equal(new BN('0'))
       })
     })
 
@@ -282,7 +279,6 @@ describe('RewardPool', function () {
 
         const userRewardBalanceAfter = await rewardToken.balanceOf.call(user)
         expect(userRewardBalanceAfter).to.be.bignumber.equal(userRewardBalanceBefore)
-        expect(await rewardPool.totalRewardsClaimed.call()).to.be.bignumber.equal(new BN('0'))
       })
     })
   })
@@ -344,6 +340,11 @@ describe('RewardPool', function () {
       const poolRewardBalanceAfter = await rewardToken.balanceOf.call(rewardPool.address)
       expect(adminRewardBalanceAfter).to.be.bignumber.equal(new BN('10000000000000000000000'))
       expect(poolRewardBalanceAfter).to.be.bignumber.equal(new BN('0'))
+    })
+  })
+
+  describe("using reward tokens with diff decimals as pool shares", () => {
+    it.skip("should not affect the pro rata payouts", async () => {
     })
   })
 })

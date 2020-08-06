@@ -84,18 +84,18 @@ describe('Features', function () {
       '18',
       this.underlyingOne.address,
       this.COMPRewardToken.address,
-      this.compoundOne.address,
-      this.StakedRewardPool.address
+      this.compoundOne.address
     )
+    await this.EarningPoolOne.setRewardPoolAddress(this.StakedRewardPool.address)
     this.EarningPoolTwo = await EarningPool.new(
       'Earning Pool Two',
       'EPT',
       '18',
       this.underlyingTwo.address,
       this.COMPRewardToken.address,
-      this.compoundTwo.address,
-      this.StakedRewardPool.address
+      this.compoundTwo.address
     )
+    await this.EarningPoolTwo.setRewardPoolAddress(this.StakedRewardPool.address)
 
 
     // deploy dTokens
@@ -175,13 +175,10 @@ describe('Features', function () {
     expect(await this.EarningPoolTwo.calcUnclaimedEarningInUnderlying()).to.be.bignumber.equal(new BN('300000000000000000000')) // 400 of underlying two
 
     // redeem
-    // should sent compound cToken earning to staking pool
     await this.dToken.redeem(this.underlyingOne.address, new BN('100000000'), { from: user }) // redeem into 100 of underlying one
-    expect(await this.underlyingOne.balanceOf(this.StakedRewardPool.address)).to.be.bignumber.equal(new BN('100000000')) // 100 of underlying one
-    expect(await this.EarningPoolOne.calcPoolValueInUnderlying()).to.be.bignumber.equal(new BN('0'))
+    expect(await this.EarningPoolOne.calcPoolValueInUnderlying()).to.be.bignumber.equal(new BN('100000000')) // 100 of underlying one left
     await this.dToken.redeem(this.underlyingTwo.address, new BN('100000000000000000000'), { from: user })  // redeem into 100 of underlying two
-    expect(await this.underlyingTwo.balanceOf(this.StakedRewardPool.address)).to.be.bignumber.equal(new BN('300000000000000000000')) // 300 of underlying two
-    expect(await this.EarningPoolTwo.calcPoolValueInUnderlying()).to.be.bignumber.equal(new BN('0')) // 300 of underlying two
+    expect(await this.EarningPoolTwo.calcPoolValueInUnderlying()).to.be.bignumber.equal(new BN('300000000000000000000')) // 300 of underlying two left
   })
 
   it('collect earnings from dPool', async () => {

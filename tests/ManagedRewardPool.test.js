@@ -6,7 +6,7 @@ const { expect } = require('chai')
 const ERC20Fake = contract.fromArtifact('ERC20Fake')
 const ManagedRewardPool = contract.fromArtifact('ManagedRewardPool')
 
-describe.only('ManagedRewardPool', function () {
+describe('ManagedRewardPool', function () {
   const [ admin, manager, user, rewardTokenAddress ] = accounts
 
   let rewardToken, managedRewardPool
