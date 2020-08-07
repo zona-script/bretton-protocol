@@ -12,7 +12,8 @@ contract dUSD is dToken {
             "Delta USD",
             "dUSD",
             18,
-            getInitialPools()
+            getInitialPools(),
+            address(0) // DELT reward pool
         )
         public
     {

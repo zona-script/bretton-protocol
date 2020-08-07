@@ -85,13 +85,12 @@ describe('dToken', function () {
         'DTK',
         '18',
         [],
+        managedRewardPool.address,
         { from: admin }
       )
 
       // add dToken as manager in mining pool
       await managedRewardPool.promote(dToken.address, { from: admin })
-      // add mining pool to token
-      await dToken.setRewardPoolAddress(managedRewardPool.address, { from: admin })
   })
 
   describe('init', function () {
@@ -392,41 +391,8 @@ describe('dToken', function () {
     })
   })
 
-  describe('setRewardPoolAddress', function () {
-    let newDToken
-    beforeEach(async () => {
-      newDToken = await DToken.new(
-        'new dToken',
-        'NDTK',
-        '18',
-        [],
-        { from: admin }
-      )
-    })
-
-    it('only owner can set reward pool address', async () => {
-      await expectRevert(
-        newDToken.setRewardPoolAddress(managedRewardPool.address, { from: user }),
-        'Ownable: caller is not the owner'
-      )
-
-      await newDToken.setRewardPoolAddress(managedRewardPool.address, { from: admin })
-
-      expect(await newDToken.managedRewardPool.call()).to.be.equal(managedRewardPool.address)
-    })
-
-    it('cannot reset reward pool address once its set', async () => {
-      await newDToken.setRewardPoolAddress(managedRewardPool.address, { from: admin })
-
-      await expectRevert(
-        newDToken.setRewardPoolAddress(managedRewardPool.address, { from: admin }),
-        'DTOKEN: cannot reset mining pool address'
-      )
-    })
-  })
-
   describe('addEarningPool', function () {
-    let newDToken, newEarningPool, newUnderlying, newCToken, newRewardToken
+    let newDToken, newEarningPool, newUnderlying, newCToken, newRewardToken, newRewardPool
     beforeEach(async () => {
       // deploy underlying token
       newUnderlying = await ERC20Fake.new(
@@ -461,13 +427,24 @@ describe('dToken', function () {
         { from: admin }
       )
 
+      // deploy reward pool
+      newRewardPool = await ManagedRewardPool.new(
+        rewardToken.address,
+        new BN('100000000000000000000'), // 100 per block, reward token is 18 decimal place,
+        { from: admin }
+      )
+
+      // deploy dToken
       newDToken = await DToken.new(
         'new dToken',
         'NDTK',
         '18',
         [],
+        newRewardPool.address,
         { from: admin }
       )
+      // add dToken as manager in reward pool
+      await newRewardPool.promote(newDToken.address, { from: admin })
     })
 
     it('only owner can add earning pool', async () => {

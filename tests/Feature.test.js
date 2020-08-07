@@ -89,19 +89,6 @@ describe('Features', function () {
     await this.EarningPoolTwo.setRewardPoolAddress(this.StakedRewardPool.address)
 
 
-    // deploy dTokens
-    this.dToken = await dToken.new(
-      'dToken',
-      'DTK',
-      '18',
-      [this.EarningPoolOne.address, this.EarningPoolTwo.address],
-      { from: admin }
-    )
-    // user approve underlying to dToken
-    await this.underlyingOne.approve(this.dToken.address, '-1', { from: user }) // inifinite
-    await this.underlyingTwo.approve(this.dToken.address, '-1', { from: user }) // inifinite
-
-
     // deploy managed reward pool
     this.managedRewardPool = await ManagedRewardPool.new(
       this.DELTToken.address,
@@ -110,8 +97,20 @@ describe('Features', function () {
     )
     // mint DELT for ManagedRewardPool
     this.DELTToken.mint(this.managedRewardPool.address, '10000000000000000000000') // 10000
-    // register managedRewardPool in dToken
-    this.dToken.setRewardPoolAddress(this.managedRewardPool.address, { from: admin })
+
+
+    // deploy dTokens
+    this.dToken = await dToken.new(
+      'dToken',
+      'DTK',
+      '18',
+      [this.EarningPoolOne.address, this.EarningPoolTwo.address],
+      this.managedRewardPool.address,
+      { from: admin }
+    )
+    // user approve underlying to dToken
+    await this.underlyingOne.approve(this.dToken.address, '-1', { from: user }) // inifinite
+    await this.underlyingTwo.approve(this.dToken.address, '-1', { from: user }) // inifinite
     // promot dToken as manager for managedRewardPool
     this.managedRewardPool.promote(this.dToken.address, { from: admin })
   })

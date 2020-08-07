@@ -41,16 +41,18 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
         string memory _name,
         string memory _symbol,
         uint8 _decimals,
-        address[] memory _earningPools
+        address[] memory _earningPools,
+        address _managedRewardPool
     )
         ERC20Detailed(_name, _symbol, _decimals)
         public
     {
+        require(_managedRewardPool != address(0), "DTOKEN: reward pool address cannot be zero");
+        managedRewardPool = ManagedRewardPoolInterface(_managedRewardPool);
+
         for (uint i=0; i<_earningPools.length; i++) {
             _addEarningPool(_earningPools[i]);
         }
-
-        managedRewardPool = ManagedRewardPoolInterface(0); // initialize to address 0
     }
 
     /*** PUBLIC ***/
@@ -173,18 +175,6 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
     /*** ADMIN ***/
 
     /**
-     * @dev Set the managedRewardPool of this dToken
-     * @param _managedRewardPool Address of reward pool
-     */
-    function setRewardPoolAddress(address _managedRewardPool)
-        external
-        onlyOwner
-    {
-        require(address(managedRewardPool) == address(0), "DTOKEN: cannot reset mining pool address");
-        managedRewardPool = ManagedRewardPoolInterface(_managedRewardPool);
-    }
-
-    /**
      * @dev Add earning pool to dToken
      * @param _earningPool Address of earning pool
      */
@@ -211,9 +201,7 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
         _mint(_beneficiary, mintAmount);
 
         // mint shares in managedRewardPool for _beneficiary
-        if (address(managedRewardPool) != address(0)) {
-            managedRewardPool.mintShares(_beneficiary, _amount);
-        }
+        managedRewardPool.mintShares(_beneficiary, _amount);
     }
 
     function _redeemInternal(address _beneficiary, address _underlying, uint _amount) internal {
@@ -225,9 +213,7 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
         _burn(msg.sender, burnAmount);
 
         // burn msg.sender shares from managedRewardPool
-        if (address(managedRewardPool) != address(0)) {
-            managedRewardPool.burnShares(msg.sender, _amount);
-        }
+        managedRewardPool.burnShares(msg.sender, _amount);
 
         // withdraw underlying from earning pool and transfer to _beneficiary
         EarningPoolInterface pool = EarningPoolInterface(underlyingToEarningPoolMap[_underlying]);
