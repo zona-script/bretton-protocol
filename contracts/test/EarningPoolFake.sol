@@ -23,13 +23,21 @@ contract EarningPoolFake is EarningPool {
         external
         nonReentrant
     {
+        // Transfer underlying from payer into pool
+        IERC20(underlyingToken).safeTransferFrom(msg.sender, address(this), _amount);
 
+        // increase pool shares for beneficiary
+        _increaseShares(_beneficiary, _amount);
     }
 
     function withdraw(address _beneficiary, uint256 _amount)
         external
         nonReentrant
     {
+        // Transfer underlying to beneficiary
+        IERC20(underlyingToken).safeTransfer(_beneficiary, _amount);
 
+        // decrease pool shares from payer
+        _decreaseShares(msg.sender, _amount);
     }
 }

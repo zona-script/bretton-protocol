@@ -25,32 +25,29 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
 
     ManagedRewardPoolInterface public managedRewardPool;
 
-    event Minted(address indexed beneficiary, address indexed underlying, uint256 amount, address payer);
-    event Redeemed(address indexed beneficiary, address indexed underlying, uint256 amount, address payer);
-    event Swapped(address indexed beneficiary, address indexed swappedFrom, address indexed swappedTo, uint256 fromAmount, uint256 toAmount, address payer);
+    event Minted(address indexed user, address indexed underlying, uint256 amount);
+    event Redeemed(address indexed user, address indexed underlying, uint256 amount);
+    event Swapped(address indexed user, address indexed underlyingFrom, uint256 amountFrom, address indexed underlyingTo, uint256 amountTo);
+    event EarningPoolAdded(address indexed earningPool, address indexed underlying);
 
     /**
      * @dev dToken constructor
      * @param _name Name of dToken
      * @param _symbol Symbol of dToken
      * @param _decimals Decimal place of dToken
-     * @param _underlyings List of underlyings to be used for minting dToken
      * @param _earningPools List of earning pools to supply underlying token to
      */
     constructor (
         string memory _name,
         string memory _symbol,
         uint8 _decimals,
-        address[] memory _underlyings,
         address[] memory _earningPools
     )
         ERC20Detailed(_name, _symbol, _decimals)
         public
     {
-        for (uint i=0; i<_underlyings.length; i++) {
-            underlyingToEarningPoolMap[_underlyings[i]] = _earningPools[i];
-            supportedUnderlyings.push(_underlyings[i]);
-            _approveUnderlyingToEarningPool(_underlyings[i], _earningPools[i]);
+        for (uint i=0; i<_earningPools.length; i++) {
+            _addEarningPool(_earningPools[i]);
         }
 
         managedRewardPool = ManagedRewardPoolInterface(0); // initialize to address 0
@@ -60,49 +57,43 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
 
     /**
      * @dev Mint dToken using underlying
-     * @param _beneficiary Address of beneficiary
      * @param _underlying Token supplied for minting
      * @param _amount Amount of _underlying
      */
     function mint(
-        address _beneficiary,
         address _underlying,
         uint _amount
     )
         external
         nonReentrant
     {
-        _mintInternal(_beneficiary, _underlying, _amount);
-        emit Minted(_beneficiary, _underlying, _amount, msg.sender);
+        _mintInternal(_underlying, _amount);
+        emit Minted(msg.sender, _underlying, _amount);
     }
 
     /**
      * @dev Redeem dToken to underlying
-     * @param _beneficiary Address of beneficiary
      * @param _underlying Token withdrawn for redeeming
      * @param _amount Amount of _underlying
      */
     function redeem(
-        address _beneficiary,
         address _underlying,
         uint _amount
     )
         external
         nonReentrant
     {
-        _redeemInternal(_beneficiary, _underlying, _amount);
-        emit Redeemed(_beneficiary, _underlying, _amount, msg.sender);
+        _redeemInternal(_underlying, _amount);
+        emit Redeemed(msg.sender, _underlying, _amount);
     }
 
     /**
      * @dev Swap from one underlying to another
-     * @param _beneficiary Address of beneficiary
      * @param _underlyingFrom Token to swap from
      * @param _amountFrom Amount of _underlyingFrom
      * @param _underlyingTo Token to swap to
      */
     function swap(
-        address _beneficiary,
         address _underlyingFrom,
         uint _amountFrom,
         address _underlyingTo
@@ -110,6 +101,9 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
         external
         nonReentrant
     {
+        require(isUnderlyingSupported(_underlyingFrom), "DTOKEN: swap underlyingFrom is not supported");
+        require(isUnderlyingSupported(_underlyingTo), "DTOKEN: swap underlyingTo is not supported");
+
         // check if there is sufficient underlyingTo to swap
         // currently there are no exchange rate between underlyings as only stable coins are supported
         EarningPoolInterface pool = EarningPoolInterface(underlyingToEarningPoolMap[_underlyingTo]);
@@ -117,12 +111,12 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
         require(pool.calcPoolValueInUnderlying() >= amountTo, "DTOKEN: insufficient underlyingTo for swap");
 
         // mint with _underlyingFrom
-        _mintInternal(msg.sender, _underlyingFrom, _amountFrom);
+        _mintInternal(_underlyingFrom, _amountFrom);
 
         // redeem to _underlyingTo
-        _redeemInternal(_beneficiary, _underlyingTo, amountTo);
+        _redeemInternal(_underlyingTo, amountTo);
 
-        emit Swapped(_beneficiary, _underlyingFrom, _underlyingTo, _amountFrom, amountTo, msg.sender);
+        emit Swapped(msg.sender, _underlyingFrom, _amountFrom, _underlyingTo, amountTo);
     }
 
     /**
@@ -151,6 +145,14 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
     }
 
     /**
+     * @dev Get corresponding earning pool address of underlying
+     * @param _underlying Address of underlying token
+     */
+    function getUnderlyingEarningPool(address _underlying) public view returns (address) {
+        return underlyingToEarningPoolMap[_underlying];
+    }
+
+    /**
      * @dev Get all supported underlyings
      * @return address[] List of address of supported underlying token
      */
@@ -168,12 +170,24 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
         external
         onlyOwner
     {
+        require(address(managedRewardPool) == address(0), "DTOKEN: cannot reset mining pool address");
         managedRewardPool = ManagedRewardPoolInterface(_managedRewardPool);
+    }
+
+    /**
+     * @dev Add earning pool to dToken
+     * @param _earningPool Address of earning pool
+     */
+    function addEarningPool(address _earningPool)
+        external
+        onlyOwner
+    {
+        _addEarningPool(_earningPool);
     }
 
     /*** INTERNAL ***/
 
-    function _mintInternal(address _beneficiary, address _underlying, uint _amount) internal {
+    function _mintInternal(address _underlying, uint _amount) internal {
         require(_amount > 0, "DTOKEN: mint must be greater than 0");
         require(isUnderlyingSupported(_underlying), "DTOKEN: mint underlying is not supported");
 
@@ -184,26 +198,26 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
 
         // mint dToken
         uint mintAmount = _scaleTokenAmount(_underlying, _amount, address(this));
-        _mint(_beneficiary, mintAmount);
+        _mint(msg.sender, mintAmount);
 
         // mint shares in managedRewardPool
         if (address(managedRewardPool) != address(0)) {
-            managedRewardPool.mintShares(_beneficiary, _amount);
+            managedRewardPool.mintShares(msg.sender, _amount);
         }
     }
 
-    function _redeemInternal(address _beneficiary, address _underlying, uint _amount) internal {
+    function _redeemInternal(address _underlying, uint _amount) internal {
         require(_amount > 0, "DTOKEN: redeem must be greater than 0");
         require(isUnderlyingSupported(_underlying), "DTOKEN: redeem underlying is not supported");
 
         // burn dToken
         uint burnAmount = _scaleTokenAmount(_underlying, _amount, address(this));
         _burn(msg.sender, burnAmount);
-        
+
         // withdraw underlying from earning pool and transfer to user
         EarningPoolInterface pool = EarningPoolInterface(underlyingToEarningPoolMap[_underlying]);
         pool.withdraw(address(this), _amount);
-        IERC20(_underlying).safeTransfer(_beneficiary, _amount);
+        IERC20(_underlying).safeTransfer(msg.sender, _amount);
 
         // burn shares from managedRewardPool
         if (address(managedRewardPool) != address(0)) {
@@ -239,5 +253,21 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
             toTokenAmount = _fromAmount.mul(uint(10**(scaleFactor)));
         }
         return toTokenAmount;
+    }
+
+    /**
+     * @dev Add earning pool to dToken
+     * @param _earningPool Address of earning pool
+     */
+    function _addEarningPool(address _earningPool)
+        internal
+    {
+        EarningPoolInterface pool = EarningPoolInterface(_earningPool);
+
+        underlyingToEarningPoolMap[pool.underlyingToken()] = _earningPool;
+        supportedUnderlyings.push(pool.underlyingToken());
+        _approveUnderlyingToEarningPool(pool.underlyingToken(), _earningPool);
+
+        emit EarningPoolAdded(_earningPool, pool.underlyingToken());
     }
 }
