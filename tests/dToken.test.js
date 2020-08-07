@@ -9,7 +9,7 @@ const EarningPoolFake = contract.fromArtifact('EarningPoolFake')
 const ManagedRewardPool = contract.fromArtifact('ManagedRewardPool')
 const DToken = contract.fromArtifact('dToken')
 
-describe.only('dToken', function () {
+describe('dToken', function () {
   const [ admin, user, recipient, fakeAddress ] = accounts
 
   let underlyingTokenOne, underlyingTokenTwo, rewardToken, managedRewardPool, earningPoolOne, earningPoolTwo

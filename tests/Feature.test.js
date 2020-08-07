@@ -94,7 +94,6 @@ describe('Features', function () {
       'dToken',
       'DTK',
       '18',
-      [this.underlyingOne.address, this.underlyingTwo.address],
       [this.EarningPoolOne.address, this.EarningPoolTwo.address],
       { from: admin }
     )

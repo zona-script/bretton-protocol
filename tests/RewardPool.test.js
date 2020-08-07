@@ -341,7 +341,96 @@ describe('RewardPool', function () {
   })
 
   describe("using reward tokens with diff decimals as pool shares", () => {
-    it.skip("should not affect the pro rata payouts", async () => {
+    let rewardToken6Decimal, rewardPool18Decimal
+    beforeEach(async () => {
+      // deploy reward token
+      rewardToken6Decimal = await ERC20Fake.new(
+        'Reward Token',
+        'RWD',
+        '6',
+        { from: admin }
+      )
+
+      // deploy reward pool
+      rewardPool18Decimal = await RewardPoolFake.new(
+        rewardToken6Decimal.address,
+        new BN('100000000'), // 100 per block, reward token is 6 decimal place,
+        { from: admin }
+      )
+    })
+
+    it("should not affect the pro rata payouts", async () => {
+      const totalRewardsInPool = new BN('10000000000')  // 10000
+
+      // mint reward tokens to pool
+      await rewardToken6Decimal.mint(rewardPool18Decimal.address, totalRewardsInPool)
+
+      // accrue some rewards
+      await rewardPool18Decimal.increaseBlockNumber('1')
+
+      // increase user shares
+      await rewardPool18Decimal.increaseShares(user, new BN('1000000000000000000')) // 1
+
+      // rewards per block = 100
+      // user rewards = 100 rewards per block * 1 block = 100 rewards
+      expect(await rewardPool18Decimal.unclaimedRewards.call(user)).to.be.bignumber.equal(new BN('100000000'))
+
+      // accrue some more rewards
+      await rewardPool18Decimal.increaseBlockNumber('1')
+
+      // user rewards = 100 rewards per block * 2 blocks = 200
+      expect(await rewardPool18Decimal.unclaimedRewards.call(user)).to.be.bignumber.equal(new BN('200000000'))
+
+      // user2 enters pool
+      await rewardPool18Decimal.increaseShares(user2, new BN('1000000000000000000')) // 1
+
+      // user3 enters pool
+      await rewardPool18Decimal.increaseShares(user3, new BN('8000000000000000000')) // 8
+
+      /*
+        ========
+        user 1 shares = 1
+        user 2 shares = 1
+        user 3 shares = 8
+        ========
+      */
+
+      // should not dilute user1 rewards
+      // user1 rewards = 100 rewards per block * 2 blocks = 200
+      expect(await rewardPool18Decimal.unclaimedRewards.call(user)).to.be.bignumber.equal(new BN('200000000'))
+      expect(await rewardPool18Decimal.unclaimedRewards.call(user2)).to.be.bignumber.equal('0')
+      expect(await rewardPool18Decimal.unclaimedRewards.call(user3)).to.be.bignumber.equal('0')
+
+      // accrue rewards
+      await rewardPool18Decimal.increaseBlockNumber('1')
+
+      // user1 rewards = 200 + 10 = 210
+      // user2 rewards = 0 + 10 = 10
+      // user3 rewards = 0 + 80 = 80
+      expect(await rewardPool18Decimal.unclaimedRewards.call(user)).to.be.bignumber.equal(new BN('210000000'))
+      expect(await rewardPool18Decimal.unclaimedRewards.call(user2)).to.be.bignumber.equal(new BN('10000000'))
+      expect(await rewardPool18Decimal.unclaimedRewards.call(user3)).to.be.bignumber.equal(new BN('80000000'))
+
+      // user 3 exit pool
+      await rewardPool18Decimal.decreaseShares(user3, new BN('8000000000000000000'))
+
+      /*
+        ========
+        user 1 shares = 1
+        user 2 shares = 1
+        user 3 shares = 0
+        ========
+      */
+
+      // accrue rewards
+      await rewardPool18Decimal.increaseBlockNumber('1')
+
+      // user1 rewards = 200 + 10 + 50 = 260
+      // user2 rewards = 0 + 10 + 50 = 60
+      // user3 rewards = 0 + 80 + 0 = 80
+      expect(await rewardPool18Decimal.unclaimedRewards.call(user)).to.be.bignumber.equal(new BN('260000000'))
+      expect(await rewardPool18Decimal.unclaimedRewards.call(user2)).to.be.bignumber.equal(new BN('60000000'))
+      expect(await rewardPool18Decimal.unclaimedRewards.call(user3)).to.be.bignumber.equal(new BN('80000000'))
     })
   })
 })
