@@ -231,9 +231,6 @@ describe('Features', function () {
     expect(await this.managedRewardPool.unclaimedRewards.call(user)).to.be.bignumber.equal(expectedMiningReward)
   })
 
-  it.skip('collect provider token rewards from multiple dPools', async () => {
-  })
-
   it.skip('deposit staking token into staking contract and collect earnings', async () => {
 
   })
