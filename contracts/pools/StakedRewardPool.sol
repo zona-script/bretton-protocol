@@ -25,17 +25,11 @@ contract StakedRewardPool is ReentrancyGuard, RewardPool {
      * @param _rewardsPerBlock Reward distribution rate
      */
     constructor(
-        string memory _name,
-        string memory _symbol,
-        uint8 _decimals,
         address _stakingToken,
         address _rewardToken,
         uint256 _rewardsPerBlock
     )
         RewardPool (
-            _name,
-            _symbol,
-            _decimals,
             _rewardToken,
             _rewardsPerBlock
         )

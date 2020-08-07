@@ -8,7 +8,7 @@ const EarningPoolFake = contract.fromArtifact('EarningPoolFake')
 const ManagedRewardPool = contract.fromArtifact('ManagedRewardPool')
 const DToken = contract.fromArtifact('dToken')
 
-describe.only('dToken', function () {
+describe('dToken', function () {
   const [ admin, manager, user, rewardTokenAddress, cTokenAddress ] = accounts
 
   let underlyingToken, managedRewardPool
@@ -23,9 +23,6 @@ describe.only('dToken', function () {
 
       // deploy earning pool
       earningPool = await EarningPoolFake.new(
-        'Managed Reward Pool',
-        'MRP',
-        '18',
         underlyingToken.address,
         rewardTokenAddress,
         cTokenAddress,
@@ -34,9 +31,6 @@ describe.only('dToken', function () {
 
       // deploy reward pool
       managedRewardPool = await ManagedRewardPool.new(
-        'Managed Reward Pool Fake',
-        'MRP',
-        '18',
         rewardTokenAddress,
         new BN('100000000000000000000'), // 100 per block, reward token is 18 decimal place,
         { from: admin }

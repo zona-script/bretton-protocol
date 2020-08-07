@@ -67,9 +67,6 @@ describe('Features', function () {
 
     // deploy StakedRewardPool
     this.StakedRewardPool = await StakedRewardPool.new(
-      'Staking Reward Pool',
-      'SRP',
-      '18',
       this.DELTToken.address,
       this.COMPRewardToken.address,
       '10000000000000000000', // rewardPerBlock rate, 10 mining token distributed per block
@@ -79,18 +76,12 @@ describe('Features', function () {
 
     // deploy EarningPools
     this.EarningPoolOne = await EarningPool.new(
-      'Earning Pool One',
-      'EPO',
-      '18',
       this.underlyingOne.address,
       this.COMPRewardToken.address,
       this.compoundOne.address
     )
     await this.EarningPoolOne.setRewardPoolAddress(this.StakedRewardPool.address)
     this.EarningPoolTwo = await EarningPool.new(
-      'Earning Pool Two',
-      'EPT',
-      '18',
       this.underlyingTwo.address,
       this.COMPRewardToken.address,
       this.compoundTwo.address
@@ -114,9 +105,6 @@ describe('Features', function () {
 
     // deploy managed reward pool
     this.managedRewardPool = await ManagedRewardPool.new(
-      'Managed Reward Pool',
-      'MRP',
-      '18',
       this.DELTToken.address,
       new BN('10000000000000000000'), // rewardPerBlock rate, 10 mining token distributed per block
       { from: admin }
@@ -124,7 +112,7 @@ describe('Features', function () {
     // mint DELT for ManagedRewardPool
     this.DELTToken.mint(this.managedRewardPool.address, '10000000000000000000000') // 10000
     // register managedRewardPool in dToken
-    this.dToken.setRewardPool(this.managedRewardPool.address, { from: admin })
+    this.dToken.setRewardPoolAddress(this.managedRewardPool.address, { from: admin })
     // promot dToken as manager for managedRewardPool
     this.managedRewardPool.promote(this.dToken.address, { from: admin })
   })
@@ -133,8 +121,8 @@ describe('Features', function () {
     /*** MINT ***/
 
     // mint dToken
-    await this.dToken.mint(this.underlyingOne.address, new BN('100000000'), { from: user }) // mint with 100 of underlying one
-    await this.dToken.mint(this.underlyingTwo.address, new BN('100000000000000000000'), { from: user }) // mint with 100 of underlying two
+    await this.dToken.mint(user, this.underlyingOne.address, new BN('100000000'), { from: user }) // mint with 100 of underlying one
+    await this.dToken.mint(user, this.underlyingTwo.address, new BN('100000000000000000000'), { from: user }) // mint with 100 of underlying two
 
     // should deposit 100 of underingOne and underlyingTwo into dPools
     expect(await this.underlyingOne.balanceOf.call(user)).to.be.bignumber.equal(new BN('0'))
@@ -149,8 +137,8 @@ describe('Features', function () {
     /*** REDEEM ***/
 
     // redeem dToken
-    await this.dToken.redeem(this.underlyingOne.address, new BN('100000000'), { from: user }) // redeem into 100 of underlying one
-    await this.dToken.redeem(this.underlyingTwo.address, new BN('100000000000000000000'), { from: user })  // redeem into 100 of underlying two
+    await this.dToken.redeem(user, this.underlyingOne.address, new BN('100000000'), { from: user }) // redeem into 100 of underlying one
+    await this.dToken.redeem(user, this.underlyingTwo.address, new BN('100000000000000000000'), { from: user })  // redeem into 100 of underlying two
 
     // should withdraw 100 underlyingTwo from dPool
     expect(await this.underlyingOne.balanceOf.call(user)).to.be.bignumber.equal(new BN('100000000'))
@@ -165,8 +153,8 @@ describe('Features', function () {
 
   it('accure interest earnings in multiple dPools', async () => {
     // mint
-    await this.dToken.mint(this.underlyingOne.address, new BN('100000000'), { from: user }) // mint with 100 of underlying one
-    await this.dToken.mint(this.underlyingTwo.address, new BN('100000000000000000000'), { from: user }) // mint with 100 of underlying two
+    await this.dToken.mint(user, this.underlyingOne.address, new BN('100000000'), { from: user }) // mint with 100 of underlying one
+    await this.dToken.mint(user, this.underlyingTwo.address, new BN('100000000000000000000'), { from: user }) // mint with 100 of underlying two
 
     // accrueInterest
     await this.compoundOne.accrueInterest('2') // increase compound token one exchange rate by 2x
@@ -175,16 +163,16 @@ describe('Features', function () {
     expect(await this.EarningPoolTwo.calcUnclaimedEarningInUnderlying()).to.be.bignumber.equal(new BN('300000000000000000000')) // 400 of underlying two
 
     // redeem
-    await this.dToken.redeem(this.underlyingOne.address, new BN('100000000'), { from: user }) // redeem into 100 of underlying one
+    await this.dToken.redeem(user, this.underlyingOne.address, new BN('100000000'), { from: user }) // redeem into 100 of underlying one
     expect(await this.EarningPoolOne.calcPoolValueInUnderlying()).to.be.bignumber.equal(new BN('100000000')) // 100 of underlying one left
-    await this.dToken.redeem(this.underlyingTwo.address, new BN('100000000000000000000'), { from: user })  // redeem into 100 of underlying two
+    await this.dToken.redeem(user, this.underlyingTwo.address, new BN('100000000000000000000'), { from: user })  // redeem into 100 of underlying two
     expect(await this.EarningPoolTwo.calcPoolValueInUnderlying()).to.be.bignumber.equal(new BN('300000000000000000000')) // 300 of underlying two left
   })
 
   it('collect earnings from dPool', async () => {
     // mint
-    await this.dToken.mint(this.underlyingOne.address, new BN('10000000'), { from: user }) // mint with 10 of underlying one
-    await this.dToken.mint(this.underlyingTwo.address, new BN('10000000000000000000'), { from: user }) // mint with 10 of underlying two
+    await this.dToken.mint(user, this.underlyingOne.address, new BN('10000000'), { from: user }) // mint with 10 of underlying one
+    await this.dToken.mint(user, this.underlyingTwo.address, new BN('10000000000000000000'), { from: user }) // mint with 10 of underlying two
 
     // accrueInterest
     await this.compoundOne.accrueInterest('2') // increase compound token one exchange rate by 2x
@@ -201,8 +189,8 @@ describe('Features', function () {
     expect(await this.EarningPoolTwo.calcPoolValueInUnderlying()).to.be.bignumber.equal(new BN('10000000000000000000')) // 10 of underlying two
 
     // mint some more
-    await this.dToken.mint(this.underlyingOne.address, new BN('10000000'), { from: user }) // mint with 10 of underlying one
-    await this.dToken.mint(this.underlyingTwo.address, new BN('10000000000000000000'), { from: user }) // mint with 10 of underlying two
+    await this.dToken.mint(user, this.underlyingOne.address, new BN('10000000'), { from: user }) // mint with 10 of underlying one
+    await this.dToken.mint(user, this.underlyingTwo.address, new BN('10000000000000000000'), { from: user }) // mint with 10 of underlying two
 
     // accrue more interest
     await this.compoundOne.accrueInterest('2') // increase compound token one exchange rate by 2x
@@ -221,10 +209,10 @@ describe('Features', function () {
 
   it('swap between two underlyings', async () => {
     // mint underlyingTwo to seed pool
-    await this.dToken.mint(this.underlyingTwo.address, new BN('100000000000000000000'), { from: user }) // mint with 100 of underlying two
+    await this.dToken.mint(user, this.underlyingTwo.address, new BN('100000000000000000000'), { from: user }) // mint with 100 of underlying two
 
     // swap
-    await this.dToken.swap(this.underlyingOne.address, new BN('5000000'), this.underlyingTwo.address, { from: user }) // swap 5 underlyingOne to 5 underlyingTwo
+    await this.dToken.swap(user, this.underlyingOne.address, new BN('5000000'), this.underlyingTwo.address, { from: user }) // swap 5 underlyingOne to 5 underlyingTwo
     expect(await this.underlyingOne.balanceOf.call(user)).to.be.bignumber.equal(new BN('95000000')) // 100 - 5 from swap
     expect(await this.underlyingTwo.balanceOf.call(user)).to.be.bignumber.equal(new BN('5000000000000000000'))  // 5 from swap
   })
@@ -234,7 +222,7 @@ describe('Features', function () {
     const miningStartBlock = await await this.managedRewardPool.lastUpdateBlock.call()
 
     // mint some dToken
-    await this.dToken.mint(this.underlyingTwo.address, new BN('10000000000000000000'), { from: user }) // mint 10 dTokens
+    await this.dToken.mint(user, this.underlyingTwo.address, new BN('10000000000000000000'), { from: user }) // mint 10 dTokens
 
     // record the block of which mining calculation should end
     const miningEndBlock = await time.latestBlock()

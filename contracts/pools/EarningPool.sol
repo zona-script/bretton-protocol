@@ -5,17 +5,17 @@ import "../externals/SafeERC20.sol";
 import "../externals/ReentrancyGuard.sol";
 import "../externals/Ownable.sol";
 import "../externals/IERC20.sol";
-import "../externals/ERC20.sol";
-import "../externals/ERC20Detailed.sol";
 
 import "../providers/CompoundInterface.sol";
+
+import "./abstract/Pool.sol";
 
 /**
  * @title EarningPool
  * @dev Pool that tracks shares of an underlying token, of which are deposited into COMPOUND.
         Earnings from provider is sent to a RewardPool
  */
-contract EarningPool is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
+contract EarningPool is ReentrancyGuard, Ownable, Pool {
     using SafeERC20 for IERC20;
     using SafeMath for uint256;
 
@@ -44,14 +44,11 @@ contract EarningPool is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
      * @param _compound Compound cToken address for underlying token
      */
     constructor (
-        string memory _name,
-        string memory _symbol,
-        uint8 _decimals,
         address _underlyingToken,
         address _rewardToken,
         address _compound
     )
-        ERC20Detailed(_name, _symbol, _decimals)
+        Pool()
         public
     {
         underlyingToken = _underlyingToken;
@@ -178,7 +175,7 @@ contract EarningPool is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
      * @return uint256 Underlying token balance
      */
     function calcUnclaimedEarningInUnderlying() public view returns(uint256) {
-        return calcPoolValueInUnderlying().sub(totalSupply());
+        return calcPoolValueInUnderlying().sub(totalShares());
     }
 
     /**
@@ -218,8 +215,8 @@ contract EarningPool is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
         // Supply underlying to provider
         _supplyToProvider(_amount);
 
-        // mint pool tokens for beneficiary
-        _mint(_beneficiary, _amount);
+        // increase pool shares for beneficiary
+        _increaseShares(_beneficiary, _amount);
 
         emit Deposited(_beneficiary, _amount, msg.sender);
     }
@@ -228,7 +225,7 @@ contract EarningPool is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
         internal
     {
         require(_amount > 0, "EARNING_POOL: withdraw must be greater than 0");
-        require(_amount <= balanceOf(msg.sender), "EARNING_POOL: withdraw insufficient shares");
+        require(_amount <= sharesOf(msg.sender), "EARNING_POOL: withdraw insufficient shares");
 
         // Withdraw underlying from provider
         _withdrawFromProvider(_amount);
@@ -240,8 +237,8 @@ contract EarningPool is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
         // Transfer underlying to beneficiary
         IERC20(underlyingToken).safeTransfer(_beneficiary, withdrawAmountLessFee);
 
-        // burn pool token from payer
-        _burn(msg.sender, _amount);
+        // decrease pool shares from payer
+        _decreaseShares(msg.sender, _amount);
 
         emit Withdrawn(_beneficiary, withdrawAmountLessFee, msg.sender);
     }

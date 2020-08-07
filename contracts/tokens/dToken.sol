@@ -196,14 +196,14 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
         require(_amount > 0, "DTOKEN: redeem must be greater than 0");
         require(isUnderlyingSupported(_underlying), "DTOKEN: redeem underlying is not supported");
 
+        // burn dToken
+        uint burnAmount = _scaleTokenAmount(_underlying, _amount, address(this));
+        _burn(msg.sender, burnAmount);
+        
         // withdraw underlying from earning pool and transfer to user
         EarningPoolInterface pool = EarningPoolInterface(underlyingToEarningPoolMap[_underlying]);
         pool.withdraw(address(this), _amount);
         IERC20(_underlying).safeTransfer(_beneficiary, _amount);
-
-        // burn dToken
-        uint burnAmount = _scaleTokenAmount(_underlying, _amount, address(this));
-        _burn(msg.sender, burnAmount);
 
         // burn shares from managedRewardPool
         if (address(managedRewardPool) != address(0)) {

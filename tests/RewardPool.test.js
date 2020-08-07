@@ -21,9 +21,6 @@ describe('RewardPool', function () {
 
       // deploy reward pool
       rewardPool = await RewardPoolFake.new(
-        'Fake Reward Pool',
-        'FRP',
-        '18',
         rewardToken.address,
         new BN('100000000000000000000'), // 100 per block, reward token is 18 decimal place,
         { from: admin }

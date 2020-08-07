@@ -21,9 +21,6 @@ describe('ManagedRewardPool', function () {
 
       // deploy reward pool
       managedRewardPool = await ManagedRewardPool.new(
-        'Managed Reward Pool',
-        'MRP',
-        '18',
         rewardToken.address,
         new BN('100000000000000000000'), // 100 per block, reward token is 18 decimal place,
         { from: admin }
@@ -69,7 +66,7 @@ describe('ManagedRewardPool', function () {
       )
 
       await managedRewardPool.mintShares(user, new BN('100'), { from: manager })
-      expect(await managedRewardPool.balanceOf(user)).to.be.bignumber.equal(new BN('100'))
+      expect(await managedRewardPool.sharesOf(user)).to.be.bignumber.equal(new BN('100'))
     })
 
     it('only manager can burn shares', async () => {
@@ -81,7 +78,7 @@ describe('ManagedRewardPool', function () {
       )
 
       await managedRewardPool.burnShares(user, new BN('100'), { from: manager })
-      expect(await managedRewardPool.balanceOf(user)).to.be.bignumber.equal(new BN('0'))
+      expect(await managedRewardPool.sharesOf(user)).to.be.bignumber.equal(new BN('0'))
     })
   })
 })

@@ -6,17 +6,11 @@ import "../pools/EarningPool.sol";
 contract EarningPoolFake is EarningPool {
 
     constructor (
-        string memory _name,
-        string memory _symbol,
-        uint8 _decimals,
         address _underlyingToken,
         address _rewardToken,
         address _compound
     )
         EarningPool(
-          _name,
-          _symbol,
-          _decimals,
           _underlyingToken,
           _rewardToken,
           _compound
@@ -29,7 +23,7 @@ contract EarningPoolFake is EarningPool {
         external
         nonReentrant
     {
-        
+
     }
 
     function withdraw(address _beneficiary, uint256 _amount)

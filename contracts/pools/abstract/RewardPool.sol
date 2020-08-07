@@ -5,14 +5,14 @@ import "../../externals/SafeERC20.sol";
 import "../../externals/ReentrancyGuard.sol";
 import "../../externals/Ownable.sol";
 import "../../externals/IERC20.sol";
-import "../../externals/ERC20.sol";
-import "../../externals/ERC20Detailed.sol";
+
+import "./Pool.sol";
 
 /**
  * @title  RewardPool
  * @notice Abstract pool to evenly distribute a rewardTokens to pool shareholders at a fixed per block rate
  */
-contract RewardPool is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
+contract RewardPool is ReentrancyGuard, Ownable, Pool {
     using SafeERC20 for IERC20;
     using SafeMath for uint256;
 
@@ -41,13 +41,10 @@ contract RewardPool is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
      * @param _rewardsPerBlock Reward distribution rate
      */
     constructor (
-        string memory _name,
-        string memory _symbol,
-        uint8 _decimals,
         address _rewardToken,
         uint256 _rewardsPerBlock
     )
-        ERC20Detailed(_name, _symbol, _decimals)
+        Pool()
         internal
     {
         rewardToken = IERC20(_rewardToken);
@@ -113,7 +110,7 @@ contract RewardPool is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
         returns (uint256)
     {
         // If there is no shares, avoid div(0)
-        uint256 totalShares = totalSupply();
+        uint256 totalShares = totalShares();
         if (totalShares == 0) {
             return rewardsPerShareStored;
         }
@@ -137,7 +134,7 @@ contract RewardPool is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
         returns (uint256)
     {
         uint256 unclaimedRewardsPerShare = rewardsPerShare().sub(rewardsPerSharePaid[_account]);
-        uint256 userNewReward = unclaimedRewardsPerShare.mul(balanceOf(_account)).div(1e18);
+        uint256 userNewReward = unclaimedRewardsPerShare.mul(sharesOf(_account)).div(1e18);
         return rewardUnclaimedStored[_account].add(userNewReward);
     }
 
@@ -199,7 +196,7 @@ contract RewardPool is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
         internal
         updateReward(_account)
     {
-        _mint(_account, _amount);
+        _increaseShares(_account, _amount);
     }
 
     /**
@@ -211,6 +208,6 @@ contract RewardPool is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
         internal
         updateReward(_account)
     {
-        _burn(_account, _amount);
+        _decreaseShares(_account, _amount);
     }
 }

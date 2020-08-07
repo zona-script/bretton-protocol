@@ -39,9 +39,6 @@ describe('EarningPool', function () {
 
       // deploy earning pool
       earningPool = await EarningPool.new(
-        'Managed Reward Pool',
-        'MRP',
-        '18',
         underlyingToken.address,
         rewardToken.address,
         cToken.address,
@@ -87,7 +84,7 @@ describe('EarningPool', function () {
       // should receive cToken in pool, 100 / 10 = 10
       expect(await cToken.balanceOf.call(earningPool.address)).to.be.bignumber.equal('10000000')
       // mint for beneficiary
-      expect(await earningPool.balanceOf.call(beneficiary)).to.be.bignumber.equal(depositAmount)
+      expect(await earningPool.sharesOf.call(beneficiary)).to.be.bignumber.equal(depositAmount)
       // expect DEPOSITED event
       expectEvent(receipt, 'Deposited', {
         beneficiary: beneficiary,
@@ -134,7 +131,7 @@ describe('EarningPool', function () {
         // should transferTo beneficiary
         expect(await underlyingToken.balanceOf.call(beneficiary)).to.be.bignumber.equal(withdrawAmount)
         // burn from payer
-        expect(await earningPool.balanceOf.call(payer)).to.be.bignumber.equal('0')
+        expect(await earningPool.sharesOf.call(payer)).to.be.bignumber.equal('0')
         // expect WITHDRAWN event
         expectEvent(receipt, 'Withdrawn', {
           beneficiary: beneficiary,
@@ -161,7 +158,7 @@ describe('EarningPool', function () {
         // should transfer withdraw amount less fee to beneficiary
         expect(await underlyingToken.balanceOf.call(beneficiary)).to.be.bignumber.equal(withdrawAmount.sub(withdrawFee))
         // burn from payer
-        expect(await earningPool.balanceOf.call(payer)).to.be.bignumber.equal('0')
+        expect(await earningPool.sharesOf.call(payer)).to.be.bignumber.equal('0')
         // should collect fee in pool
         expect(await underlyingToken.balanceOf.call(earningPool.address)).to.be.bignumber.equal(withdrawFee)
       })
