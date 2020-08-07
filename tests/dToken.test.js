@@ -10,7 +10,7 @@ const ManagedRewardPool = contract.fromArtifact('ManagedRewardPool')
 const DToken = contract.fromArtifact('dToken')
 
 describe('dToken', function () {
-  const [ admin, user, recipient, fakeAddress ] = accounts
+  const [ admin, user, beneficiary, recipient, fakeAddress ] = accounts
 
   let underlyingTokenOne, underlyingTokenTwo, rewardToken, managedRewardPool, earningPoolOne, earningPoolTwo
   beforeEach(async () => {
@@ -107,7 +107,7 @@ describe('dToken', function () {
     describe('when underlying is not supported', function () {
       it('should fail', async () => {
         await expectRevert(
-          dToken.mint(underlyingTokenTwo.address, '1', { from: user }),
+          dToken.mint(user, underlyingTokenTwo.address, '1', { from: user }),
           'DTOKEN: mint underlying is not supported'
         )
       })
@@ -122,7 +122,7 @@ describe('dToken', function () {
       describe('when user does not have sufficient underlying tokens', function () {
         it('should fail', async () => {
           await expectRevert(
-            dToken.mint(underlyingTokenTwo.address, '1', { from: user }),
+            dToken.mint(user, underlyingTokenTwo.address, '1', { from: user }),
             'SafeERC20: low-level call failed'
           )
         })
@@ -136,26 +136,29 @@ describe('dToken', function () {
           await underlyingTokenTwo.approve(dToken.address, '100000000000000000000', { from: user }) // 100
         })
 
-        it('should mint dToken, deposit in earning pool, and mint mining pool shares', async () => {
+        it('should mint dToken for beneficiary, deposit in earning pool, and mint mining pool shares', async () => {
           // mint
           const mintAmount = new BN('100000000000000000000')
-          const receipt = await dToken.mint(underlyingTokenTwo.address, mintAmount, { from: user })
+          const receipt = await dToken.mint(beneficiary, underlyingTokenTwo.address, mintAmount, { from: user })
 
+          const beneficiaryDTokenBalanceAfter = await dToken.balanceOf(beneficiary)
           const userDTokenBalanceAfter = await dToken.balanceOf(user)
           const earningPoolUnderlyingBalanceAfter = await underlyingTokenTwo.balanceOf(earningPoolTwo.address)
           const dTokenEarningPoolSharesAfter = await earningPoolTwo.sharesOf(dToken.address)
-          const userMiningPoolSharesAfter = await managedRewardPool.sharesOf(user)
+          const beneficiaryMiningPoolSharesAfter = await managedRewardPool.sharesOf(beneficiary)
 
-          expect(userDTokenBalanceAfter).to.be.bignumber.equal(mintAmount)
+          expect(beneficiaryDTokenBalanceAfter).to.be.bignumber.equal(mintAmount)
+          expect(userDTokenBalanceAfter).to.be.bignumber.equal('0')
           expect(earningPoolUnderlyingBalanceAfter).to.be.bignumber.equal(mintAmount)
           expect(dTokenEarningPoolSharesAfter).to.be.bignumber.equal(mintAmount)
-          expect(userMiningPoolSharesAfter).to.be.bignumber.equal(mintAmount)
+          expect(beneficiaryMiningPoolSharesAfter).to.be.bignumber.equal(mintAmount)
 
           // event
           expectEvent(receipt, 'Minted', {
-            user: user,
+            beneficiary: beneficiary,
             underlying: underlyingTokenTwo.address,
-            amount: mintAmount
+            amount: mintAmount,
+            payer: user
           })
         })
       })
@@ -164,7 +167,7 @@ describe('dToken', function () {
     describe('when amount is zero', function () {
       it('should fail', async () => {
         await expectRevert(
-          dToken.mint(underlyingTokenTwo.address, '0', { from: user }),
+          dToken.mint(user, underlyingTokenTwo.address, '0', { from: user }),
           'DTOKEN: mint must be greater than 0'
         )
       })
@@ -175,7 +178,7 @@ describe('dToken', function () {
     describe('when underlying is not supported', function () {
       it('should fail', async () => {
         await expectRevert(
-          dToken.redeem(underlyingTokenTwo.address, '1', { from: user }),
+          dToken.redeem(user, underlyingTokenTwo.address, '1', { from: user }),
           'DTOKEN: redeem underlying is not supported'
         )
       })
@@ -190,7 +193,7 @@ describe('dToken', function () {
       describe('when user does not have sufficient dTokens', function () {
         it('should fail', async () => {
           await expectRevert(
-            dToken.redeem(underlyingTokenTwo.address, '1', { from: user }),
+            dToken.redeem(user, underlyingTokenTwo.address, '1', { from: user }),
             'ERC20: burn amount exceeds balance'
           )
         })
@@ -203,21 +206,23 @@ describe('dToken', function () {
           // approve to dToken
           await underlyingTokenTwo.approve(dToken.address, '100000000000000000000', { from: user }) // 100
           // mint dToken
-          await dToken.mint(underlyingTokenTwo.address, '100000000000000000000', { from: user })
+          await dToken.mint(user, underlyingTokenTwo.address, '100000000000000000000', { from: user })
         })
 
-        it('should redeem underlying, withdraw from earning pool, and burn mining pool shares', async () => {
+        it('should redeem underlying to beneficiary, withdraw from earning pool, and burn mining pool shares', async () => {
           // redeem
           const redeemAmount = new BN('100000000000000000000')
-          const receipt = await dToken.redeem(underlyingTokenTwo.address, redeemAmount, { from: user })
+          const receipt = await dToken.redeem(beneficiary, underlyingTokenTwo.address, redeemAmount, { from: user })
 
+          const beneficiaryUnderlyingBalanceAfter = await underlyingTokenTwo.balanceOf(beneficiary)
           const userUnderlyingBalanceAfter = await underlyingTokenTwo.balanceOf(user)
           const earningPoolUnderlyingBalanceAfter = await underlyingTokenTwo.balanceOf(earningPoolTwo.address)
           const userDTokenBalanceAfter = await dToken.balanceOf(user)
           const dTokenEarningPoolSharesAfter = await earningPoolTwo.sharesOf(dToken.address)
           const userMiningPoolSharesAfter = await managedRewardPool.sharesOf(user)
 
-          expect(userUnderlyingBalanceAfter).to.be.bignumber.equal(redeemAmount)
+          expect(beneficiaryUnderlyingBalanceAfter).to.be.bignumber.equal(redeemAmount)
+          expect(userUnderlyingBalanceAfter).to.be.bignumber.equal('0')
           expect(earningPoolUnderlyingBalanceAfter).to.be.bignumber.equal('0')
           expect(dTokenEarningPoolSharesAfter).to.be.bignumber.equal('0')
           expect(userMiningPoolSharesAfter).to.be.bignumber.equal('0')
@@ -225,9 +230,10 @@ describe('dToken', function () {
 
           // event
           expectEvent(receipt, 'Redeemed', {
-            user: user,
+            beneficiary: beneficiary,
             underlying: underlyingTokenTwo.address,
             amount: redeemAmount,
+            payer: user
           })
         })
       })
@@ -236,7 +242,7 @@ describe('dToken', function () {
     describe('when amount is zero', function () {
       it('should fail', async () => {
         await expectRevert(
-          dToken.redeem(underlyingTokenTwo.address, '0', { from: user }),
+          dToken.redeem(user, underlyingTokenTwo.address, '0', { from: user }),
           'DTOKEN: redeem must be greater than 0'
         )
       })
@@ -252,7 +258,7 @@ describe('dToken', function () {
 
       it('should fail', async () => {
         await expectRevert(
-          dToken.swap(underlyingTokenOne.address, '1000', underlyingTokenTwo.address, { from: user }),
+          dToken.swap(user, underlyingTokenOne.address, '1000', underlyingTokenTwo.address, { from: user }),
           'DTOKEN: swap underlyingFrom is not supported'
         )
       })
@@ -266,7 +272,7 @@ describe('dToken', function () {
 
       it('should fail', async () => {
         await expectRevert(
-          dToken.swap(underlyingTokenOne.address, '1000', underlyingTokenTwo.address, { from: user }),
+          dToken.swap(user, underlyingTokenOne.address, '1000', underlyingTokenTwo.address, { from: user }),
           'DTOKEN: swap underlyingTo is not supported'
         )
       })
@@ -283,7 +289,7 @@ describe('dToken', function () {
       describe('when there is not enough underlyingTo in pool', function () {
         it('should fail', async () => {
           await expectRevert(
-            dToken.swap(underlyingTokenOne.address, '1000', underlyingTokenTwo.address, { from: user }),
+            dToken.swap(user, underlyingTokenOne.address, '1000', underlyingTokenTwo.address, { from: user }),
             'DTOKEN: insufficient underlyingTo for swap'
           )
         })
@@ -296,13 +302,13 @@ describe('dToken', function () {
           // approve to dToken
           await underlyingTokenTwo.approve(dToken.address, '100000000000000000000', { from: user }) // 100
           // mint dToken for user
-          await dToken.mint(underlyingTokenTwo.address, '100000000000000000000', { from: user })
+          await dToken.mint(user, underlyingTokenTwo.address, '100000000000000000000', { from: user })
         })
 
         describe('when user does not have sufficient underlyingFrom', function () {
           it('should fail', async () => {
             await expectRevert(
-              dToken.swap(underlyingTokenOne.address, '1000', underlyingTokenTwo.address, { from: user }),
+              dToken.swap(user, underlyingTokenOne.address, '1000', underlyingTokenTwo.address, { from: user }),
               'SafeERC20: low-level call failed'
             )
           })
@@ -316,36 +322,40 @@ describe('dToken', function () {
             await underlyingTokenOne.approve(dToken.address, '100000000000000000000', { from: user }) // 100
           })
 
-          it('should swap user underlyingFrom to underlyingTo', async () => {
+          it('should swap payer underlyingFrom to underlyingTo to beneficiary', async () => {
             const userMiningPoolSharesBefore = await managedRewardPool.sharesOf(user)
+            const beneficiaryMiningPoolSharesBefore = await managedRewardPool.sharesOf(beneficiary)
 
             const swapAmount = new BN('100000000000000000000')
-            const receipt = await dToken.swap(underlyingTokenOne.address, swapAmount, underlyingTokenTwo.address, { from: user })
+            const receipt = await dToken.swap(beneficiary, underlyingTokenOne.address, swapAmount, underlyingTokenTwo.address, { from: user })
 
             const userUnderlyingFromAfter = await underlyingTokenOne.balanceOf(user)
-            const userUnderlyingToAfter = await underlyingTokenTwo.balanceOf(user)
+            const beneficiaryUnderlyingToAfter = await underlyingTokenTwo.balanceOf(beneficiary)
             const userMiningPoolSharesAfter = await managedRewardPool.sharesOf(user)
+            const beneficiaryMiningPoolSharesAfter = await managedRewardPool.sharesOf(beneficiary)
 
             expect(userUnderlyingFromAfter).to.be.bignumber.equal('0')
-            expect(userUnderlyingToAfter).to.be.bignumber.equal(swapAmount)
+            expect(beneficiaryUnderlyingToAfter).to.be.bignumber.equal(swapAmount)
             // should not affect mining pool shares
             expect(userMiningPoolSharesAfter).to.be.bignumber.equal(userMiningPoolSharesBefore)
+            expect(beneficiaryMiningPoolSharesAfter).to.be.bignumber.equal(beneficiaryMiningPoolSharesBefore)
 
             // event
             expectEvent(receipt, 'Swapped', {
-              user: user,
+              beneficiary: beneficiary,
               underlyingFrom: underlyingTokenOne.address,
               amountFrom: swapAmount,
               underlyingTo: underlyingTokenTwo.address,
-              amountTo: swapAmount
+              amountTo: swapAmount,
+              payer: user
             })
           })
 
           describe('when amountFrom is zero', function () {
             it('should fail', async () => {
               await expectRevert(
-                dToken.swap(underlyingTokenOne.address, '0', underlyingTokenTwo.address, { from: user }),
-                'DTOKEN: mint must be greater than 0'
+                dToken.swap(user, underlyingTokenOne.address, '0', underlyingTokenTwo.address, { from: user }),
+                'DTOKEN: swap amountFrom must be greater than 0'
               )
             })
           })
@@ -363,7 +373,7 @@ describe('dToken', function () {
       // support underlying in dToken
       await dToken.addEarningPool(earningPoolOne.address, { from: admin })
       // mint dToken for user
-      await dToken.mint(underlyingTokenOne.address, '100000000000000000000', { from: user })
+      await dToken.mint(user, underlyingTokenOne.address, '100000000000000000000', { from: user })
     })
 
     it('should transfer dToken balance and mining pool shares', async () => {
@@ -485,7 +495,7 @@ describe('dToken', function () {
       // support underlying in newDToken
       await newDToken.addEarningPool(newEarningPool.address, { from: admin })
       // mint newDToken for user
-      await newDToken.mint(newUnderlying.address, '100000000000000000000', { from: user })
+      await newDToken.mint(user, newUnderlying.address, '100000000000000000000', { from: user })
 
       const userBalanceAfterMint = await newDToken.balanceOf(user)
       expect(userBalanceAfterMint).to.be.bignumber.equal('100000000000000000000')

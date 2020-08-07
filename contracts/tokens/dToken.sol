@@ -25,9 +25,9 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
 
     ManagedRewardPoolInterface public managedRewardPool;
 
-    event Minted(address indexed user, address indexed underlying, uint256 amount);
-    event Redeemed(address indexed user, address indexed underlying, uint256 amount);
-    event Swapped(address indexed user, address indexed underlyingFrom, uint256 amountFrom, address indexed underlyingTo, uint256 amountTo);
+    event Minted(address indexed beneficiary, address indexed underlying, uint256 amount, address payer);
+    event Redeemed(address indexed beneficiary, address indexed underlying, uint256 amount, address payer);
+    event Swapped(address indexed beneficiary, address indexed underlyingFrom, uint256 amountFrom, address indexed underlyingTo, uint256 amountTo, address payer);
     event EarningPoolAdded(address indexed earningPool, address indexed underlying);
 
     /**
@@ -57,43 +57,49 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
 
     /**
      * @dev Mint dToken using underlying
+     * @param _beneficiary Address of beneficiary
      * @param _underlying Token supplied for minting
      * @param _amount Amount of _underlying
      */
     function mint(
+        address _beneficiary,
         address _underlying,
         uint _amount
     )
         external
         nonReentrant
     {
-        _mintInternal(_underlying, _amount);
-        emit Minted(msg.sender, _underlying, _amount);
+        _mintInternal(_beneficiary, _underlying, _amount);
+        emit Minted(_beneficiary, _underlying, _amount, msg.sender);
     }
 
     /**
      * @dev Redeem dToken to underlying
+     * @param _beneficiary Address of beneficiary
      * @param _underlying Token withdrawn for redeeming
      * @param _amount Amount of _underlying
      */
     function redeem(
+        address _beneficiary,
         address _underlying,
         uint _amount
     )
         external
         nonReentrant
     {
-        _redeemInternal(_underlying, _amount);
-        emit Redeemed(msg.sender, _underlying, _amount);
+        _redeemInternal(_beneficiary, _underlying, _amount);
+        emit Redeemed(_beneficiary, _underlying, _amount, msg.sender);
     }
 
     /**
      * @dev Swap from one underlying to another
+     * @param _beneficiary Address of beneficiary
      * @param _underlyingFrom Token to swap from
      * @param _amountFrom Amount of _underlyingFrom
      * @param _underlyingTo Token to swap to
      */
     function swap(
+        address _beneficiary,
         address _underlyingFrom,
         uint _amountFrom,
         address _underlyingTo
@@ -101,22 +107,26 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
         external
         nonReentrant
     {
+        require(_amountFrom > 0, "DTOKEN: swap amountFrom must be greater than 0");
         require(isUnderlyingSupported(_underlyingFrom), "DTOKEN: swap underlyingFrom is not supported");
         require(isUnderlyingSupported(_underlyingTo), "DTOKEN: swap underlyingTo is not supported");
 
         // check if there is sufficient underlyingTo to swap
         // currently there are no exchange rate between underlyings as only stable coins are supported
-        EarningPoolInterface pool = EarningPoolInterface(underlyingToEarningPoolMap[_underlyingTo]);
+        EarningPoolInterface underlyingToPool = EarningPoolInterface(underlyingToEarningPoolMap[_underlyingTo]);
         uint amountTo = _scaleTokenAmount(_underlyingFrom, _amountFrom, _underlyingTo);
-        require(pool.calcPoolValueInUnderlying() >= amountTo, "DTOKEN: insufficient underlyingTo for swap");
+        require(underlyingToPool.calcPoolValueInUnderlying() >= amountTo, "DTOKEN: insufficient underlyingTo for swap");
 
-        // mint with _underlyingFrom
-        _mintInternal(_underlyingFrom, _amountFrom);
+        // transfer underlyingFrom from msg.sender and deposit into earnin pool
+        EarningPoolInterface underlyingFromPool = EarningPoolInterface(underlyingToEarningPoolMap[_underlyingFrom]);
+        IERC20(_underlyingFrom).safeTransferFrom(msg.sender, address(this), _amountFrom);
+        underlyingFromPool.deposit(address(this), _amountFrom);
 
-        // redeem to _underlyingTo
-        _redeemInternal(_underlyingTo, amountTo);
+        // withdraw underlyingTo from earning pool to _beneficiary
+        underlyingToPool.withdraw(address(this), amountTo);
+        IERC20(_underlyingTo).safeTransfer(_beneficiary, amountTo);
 
-        emit Swapped(msg.sender, _underlyingFrom, _amountFrom, _underlyingTo, amountTo);
+        emit Swapped(_beneficiary, _underlyingFrom, _amountFrom, _underlyingTo, amountTo, msg.sender);
     }
 
     /**
@@ -187,42 +197,42 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
 
     /*** INTERNAL ***/
 
-    function _mintInternal(address _underlying, uint _amount) internal {
+    function _mintInternal(address _beneficiary, address _underlying, uint _amount) internal {
         require(_amount > 0, "DTOKEN: mint must be greater than 0");
         require(isUnderlyingSupported(_underlying), "DTOKEN: mint underlying is not supported");
 
-        // transfer underlying into dToken and deposit into earning pool
+        // transfer underlying from msg.sender into dToken and deposit into earning pool
         EarningPoolInterface pool = EarningPoolInterface(underlyingToEarningPoolMap[_underlying]);
         IERC20(_underlying).safeTransferFrom(msg.sender, address(this), _amount);
         pool.deposit(address(this), _amount);
 
-        // mint dToken
+        // mint dToken for _beneficiary
         uint mintAmount = _scaleTokenAmount(_underlying, _amount, address(this));
-        _mint(msg.sender, mintAmount);
+        _mint(_beneficiary, mintAmount);
 
-        // mint shares in managedRewardPool
+        // mint shares in managedRewardPool for _beneficiary
         if (address(managedRewardPool) != address(0)) {
-            managedRewardPool.mintShares(msg.sender, _amount);
+            managedRewardPool.mintShares(_beneficiary, _amount);
         }
     }
 
-    function _redeemInternal(address _underlying, uint _amount) internal {
+    function _redeemInternal(address _beneficiary, address _underlying, uint _amount) internal {
         require(_amount > 0, "DTOKEN: redeem must be greater than 0");
         require(isUnderlyingSupported(_underlying), "DTOKEN: redeem underlying is not supported");
 
-        // burn dToken
+        // burn msg.sender dToken
         uint burnAmount = _scaleTokenAmount(_underlying, _amount, address(this));
         _burn(msg.sender, burnAmount);
 
-        // withdraw underlying from earning pool and transfer to user
-        EarningPoolInterface pool = EarningPoolInterface(underlyingToEarningPoolMap[_underlying]);
-        pool.withdraw(address(this), _amount);
-        IERC20(_underlying).safeTransfer(msg.sender, _amount);
-
-        // burn shares from managedRewardPool
+        // burn msg.sender shares from managedRewardPool
         if (address(managedRewardPool) != address(0)) {
             managedRewardPool.burnShares(msg.sender, _amount);
         }
+
+        // withdraw underlying from earning pool and transfer to _beneficiary
+        EarningPoolInterface pool = EarningPoolInterface(underlyingToEarningPoolMap[_underlying]);
+        pool.withdraw(address(this), _amount);
+        IERC20(_underlying).safeTransfer(_beneficiary, _amount);
     }
 
     /**
