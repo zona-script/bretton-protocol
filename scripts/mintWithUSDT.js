@@ -36,13 +36,14 @@ async function main() {
   await USDT.methods.approve(dUSDAddress, amountToMint).send({ from: account.address })
   // mint with 1 USDT
   console.log('Mint...')
-  await dUSD.methods.mint(account.address, USDTAddress, amountToMint).send({ from: account.address, gas: 500000 })
+  const receipt = await dUSD.methods.mint(account.address, USDTAddress, amountToMint).send({ from: account.address, gas: 500000 })
 
   // balance after
   const USDTBalanceAfter = await USDT.methods.balanceOf(account.address).call() / 1e6 // USDT is 6 decimal place
   console.log('USDT balance after mint: ' + USDTBalanceAfter)
   const dUSDBalanceAfter = await dUSD.methods.balanceOf(account.address).call() / 1e18 // dUSD is 18 decimal place
   console.log('dUSD balance after mint: ' + dUSDBalanceAfter)
+  console.log('gasUsed: ' + receipt.gasUsed)
 
   console.log('\n')
 }

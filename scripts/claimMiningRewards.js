@@ -30,11 +30,12 @@ async function main() {
 
   // claim rewards
   console.log('Claiming...')
-  await deltRewardPool.methods.claim(account.address).send({ from: account.address, gas: 500000 }) // from address does not matter here, anyone can claim
+  const receipt = await deltRewardPool.methods.claim(account.address).send({ from: account.address, gas: 500000 }) // from address does not matter here, anyone can claim
 
   // balance after
   const DELTBalanceAfter = await DELT.methods.balanceOf(account.address).call() / 1e18 // DELT is 18 decimal place
   console.log('DELT balance after claim: ' + DELTBalanceAfter)
+  console.log('gasUsed: ' + receipt.gasUsed)
 
   console.log('\n')
 }

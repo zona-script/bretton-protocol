@@ -32,13 +32,14 @@ async function main() {
 
   // redeem to 1 USDC
   console.log('Redeeming...')
-  await dUSD.methods.redeem(account.address, USDCAddress, '1000000').send({ from: account.address, gas: 500000 })
+  const receipt = await dUSD.methods.redeem(account.address, USDCAddress, '1000000').send({ from: account.address, gas: 500000 })
 
   // balance after
   const USDCBalanceAfter = await USDC.methods.balanceOf(account.address).call() / 1e6 // USDC is 6 decimal place
   console.log('USDC balance after mint: ' + USDCBalanceAfter)
   const dUSDBalanceAfter = await dUSD.methods.balanceOf(account.address).call() / 1e18 // dUSD is 18 decimal place
   console.log('dUSD balance after mint: ' + dUSDBalanceAfter)
+  console.log('gasUsed: ' + receipt.gasUsed)
 
   console.log('\n')
 }
