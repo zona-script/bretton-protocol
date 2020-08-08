@@ -102,6 +102,47 @@ describe('dToken', function () {
     })
   })
 
+  describe('pause', function () {
+    it('only owner can pause/unpause', async () => {
+      // only owner can pause
+      await expectRevert(
+        dToken.pause({ from: user }),
+        'Ownable: caller is not the owner'
+      )
+      await dToken.pause({ from: admin })
+      expect(await dToken.paused.call()).to.be.true
+
+      // only owner can unpause
+      await expectRevert(
+        dToken.unpause({ from: user }),
+        'Ownable: caller is not the owner'
+      )
+      await dToken.unpause({ from: admin })
+      expect(await dToken.paused.call()).to.be.false
+    })
+
+    describe('when paused', function () {
+      beforeEach(async () => {
+        // pause
+        await dToken.pause({ from: admin })
+      })
+
+      it('mint should fail', async () => {
+        await expectRevert(
+          dToken.mint(user, underlyingTokenTwo.address, '1', { from: user }),
+          'Pausable: paused'
+        )
+      })
+
+      it('swap should fail', async () => {
+        await expectRevert(
+          dToken.swap(user, underlyingTokenOne.address, '1000', underlyingTokenTwo.address, { from: user }),
+          'Pausable: paused'
+        )
+      })
+    })
+  })
+
   describe('mint', function () {
     describe('when underlying is not supported', function () {
       it('should fail', async () => {

@@ -7,6 +7,7 @@ import "../externals/Ownable.sol";
 import "../externals/IERC20.sol";
 import "../externals/ERC20.sol";
 import "../externals/ERC20Detailed.sol";
+import "../externals/Pausable.sol";
 
 import "../interfaces/EarningPoolInterface.sol";
 import "../interfaces/ManagedRewardPoolInterface.sol";
@@ -16,7 +17,7 @@ import "../interfaces/ManagedRewardPoolInterface.sol";
  * @dev dToken are collateralized assets pegged to a specific value.
  *      Collaterals are EarningPool shares
  */
-contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
+contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable, Pausable {
     using SafeERC20 for IERC20;
     using SafeMath for uint256;
 
@@ -70,6 +71,7 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
     )
         external
         nonReentrant
+        whenNotPaused
     {
         _mintInternal(_beneficiary, _underlying, _amount);
         emit Minted(_beneficiary, _underlying, _amount, msg.sender);
@@ -108,6 +110,7 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
     )
         external
         nonReentrant
+        whenNotPaused
     {
         require(_amountFrom > 0, "DTOKEN: swap amountFrom must be greater than 0");
         require(isUnderlyingSupported(_underlyingFrom), "DTOKEN: swap underlyingFrom is not supported");
