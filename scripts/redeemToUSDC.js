@@ -20,7 +20,7 @@ async function main() {
   const USDC = loader.fromArtifact('ERC20', USDCAddress)
 
   console.log('\n')
-  
+
   console.log('=========REDEEM TO USDC=========')
   console.log('Using account: ' + account.address)
 
@@ -32,7 +32,7 @@ async function main() {
 
   // redeem to 1 USDC
   console.log('Redeeming...')
-  await dUSD.methods.redeem(USDCAddress, '1000000').send({ from: account.address, gas: 500000 })
+  await dUSD.methods.redeem(account.address, USDCAddress, '1000000').send({ from: account.address, gas: 500000 })
 
   // balance after
   const USDCBalanceAfter = await USDC.methods.balanceOf(account.address).call() / 1e6 // USDC is 6 decimal place

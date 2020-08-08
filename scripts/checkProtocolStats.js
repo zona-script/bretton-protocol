@@ -13,17 +13,17 @@ async function main() {
   const loader = setupLoader({ provider: web3 }).web3
 
   // load addresses and contract from oz deployed project
-  const dUSDCpAddress = proxies['Delta Protocol/dUSDCp'][proxies['Delta Protocol/dUSDCp'].length - 1]['address']
-  const dUSDCp = loader.fromArtifact('dPool', dUSDCpAddress)
+  const USDCPoolAddress = proxies['Delta Protocol/USDCPool'][proxies['Delta Protocol/USDCPool'].length - 1]['address']
+  const USDCPool = loader.fromArtifact('EarningPool', USDCPoolAddress)
 
-  const dUSDTpAddress = proxies['Delta Protocol/dUSDTp'][proxies['Delta Protocol/dUSDCp'].length - 1]['address']
-  const dUSDTp = loader.fromArtifact('dPool', dUSDTpAddress)
+  const USDTPoolAddress = proxies['Delta Protocol/USDTPool'][proxies['Delta Protocol/USDCPool'].length - 1]['address']
+  const USDTPool = loader.fromArtifact('EarningPool', USDTPoolAddress)
 
   const dUSDAddress = proxies['Delta Protocol/dUSD'][proxies['Delta Protocol/dUSD'].length - 1]['address']
   const dUSD = loader.fromArtifact('dUSD', dUSDAddress)
 
-  const DELTMineAddress = proxies['Delta Protocol/DELTMine'][proxies['Delta Protocol/DELTMine'].length - 1]['address']
-  const deltMine = loader.fromArtifact('DELTMine', DELTMineAddress)
+  const DELTRewardPoolAddress = proxies['Delta Protocol/DELTRewardPool'][proxies['Delta Protocol/DELTRewardPool'].length - 1]['address']
+  const deltRewardPool = loader.fromArtifact('DELTRewardPool', DELTRewardPoolAddress)
 
 
   console.log('\n')
@@ -35,27 +35,27 @@ async function main() {
   // USDC Pool
   console.log('=========USDC Pool Stats=========')
   // get total supply
-  const USDCPoolTotalSupply = await dUSDCp.methods.totalSupply().call() / 1e6 // USDC is 6 decimal place
-  console.log('Total dUSDCp supply is: ' + USDCPoolTotalSupply)
+  const USDCPoolTotalSupply = await USDCPool.methods.totalShares().call() / 1e6 // USDC is 6 decimal place
+  console.log('Total USDCPool supply is: ' + USDCPoolTotalSupply)
   // get total pool value
-  const USDCPoolValue = await dUSDCp.methods.calcPoolValueInUnderlying().call() / 1e6 // USDC is 6 decimal place
-  console.log('Total USDC value in dUSDCp is: ' + USDCPoolValue)
+  const USDCPoolValue = await USDCPool.methods.calcPoolValueInUnderlying().call() / 1e6 // USDC is 6 decimal place
+  console.log('Total USDC value in USDCPool is: ' + USDCPoolValue)
   // get interest accured
-  const USDCInterestEarned = await dUSDCp.methods.calcUnclaimedEarningInUnderlying().call() // don't scale decimal as the number can be very small
-  console.log('Total unclaimed USDC interest * 1e6 in dUSDCp is: ' + USDCInterestEarned)
+  const USDCInterestEarned = await USDCPool.methods.calcUnclaimedEarningInUnderlying().call() // don't scale decimal as the number can be very small
+  console.log('Total unclaimed USDC interest * 1e6 in USDCPool is: ' + USDCInterestEarned)
 
 
   // USDT Pool
   console.log('=========USDT POOL STATS=========')
   // get total supply
-  const USDTPoolTotalSupply = await dUSDTp.methods.totalSupply().call() / 1e6 // USDT is 6 decimal place
-  console.log('Total dUSDTp supply is: ' + USDTPoolTotalSupply)
+  const USDTPoolTotalSupply = await USDTPool.methods.totalShares().call() / 1e6 // USDT is 6 decimal place
+  console.log('Total USDTPool supply is: ' + USDTPoolTotalSupply)
   // get total pool value
-  const USDTPoolValue = await dUSDTp.methods.calcPoolValueInUnderlying().call() / 1e6 // USDT is 6 decimal place
-  console.log('Total USDT value in dUSDTp is: ' + USDTPoolValue)
+  const USDTPoolValue = await USDTPool.methods.calcPoolValueInUnderlying().call() / 1e6 // USDT is 6 decimal place
+  console.log('Total USDT value in USDTPool is: ' + USDTPoolValue)
   // get interest accured
-  const USDTInterestEarned = await dUSDTp.methods.calcUnclaimedEarningInUnderlying().call() // don't scale decimal as the number can be very small
-  console.log('Total unclaimed USDT interest * 1e6 in dUSDTp is: ' + USDTInterestEarned)
+  const USDTInterestEarned = await USDTPool.methods.calcUnclaimedEarningInUnderlying().call() // don't scale decimal as the number can be very small
+  console.log('Total unclaimed USDT interest * 1e6 in USDTPool is: ' + USDTInterestEarned)
 
 
   /***************************************
@@ -69,14 +69,16 @@ async function main() {
   console.log('Total dUSD supply is: ' + dUSDTotalSupply)
 
   /***************************************
-                MINE
+                DELT Reward Pool
   ****************************************/
 
-  console.log('=========DELT MINE STATS=========')
-  const rewardsPerBlock = await deltMine.methods.rewardsPerBlock().call() / 1e18 // 18 decimal place
-  console.log('Mine current rewardsPerBlock is: ' + rewardsPerBlock)
-  const rewardsPerShare = await deltMine.methods.rewardsPerShare().call()
-  console.log('Mine current rewardsPerShare is: ' + rewardsPerShare)
+  console.log('=========DELT REWARD POOL STATS=========')
+  const rewardsPerBlock = await deltRewardPool.methods.rewardsPerBlock().call() / 1e18 // 18 decimal place
+  console.log('Pool current rewardsPerBlock is: ' + rewardsPerBlock)
+  const rewardsPerShare = await deltRewardPool.methods.rewardsPerShare().call() / 1e18 // scaled
+  console.log('Pool current rewardsPerShare is: ' + rewardsPerShare)
+  const unclaimed = await deltRewardPool.methods.unclaimedRewards(account.address).call() / 1e18 // 18 decimal place
+  console.log('My current unclaimed reward balance is: ' + unclaimed)
 
   console.log('\n')
 }

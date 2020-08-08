@@ -13,11 +13,11 @@ async function main() {
   const loader = setupLoader({ provider: web3 }).web3
 
   // load addresses and contract from oz deployed project
-  const DELTMineAddress = proxies['Delta Protocol/DELTMine'][proxies['Delta Protocol/DELTMine'].length - 1]['address']
-  const deltMine = loader.fromArtifact('DELTMine', DELTMineAddress)
+  const DELTRewardPoolAddress = proxies['Delta Protocol/DELTRewardPool'][proxies['Delta Protocol/DELTRewardPool'].length - 1]['address']
+  const deltRewardPool = loader.fromArtifact('DELTRewardPool', DELTRewardPoolAddress)
 
-  const DELTTokenAddress = proxies['Delta Protocol/DELTToken'][proxies['Delta Protocol/DELTToken'].length - 1]['address']
-  const DELT = loader.fromArtifact('DELTToken', DELTTokenAddress)
+  const DELTTokenAddress = proxies['Delta Protocol/ERC20Fake'][proxies['Delta Protocol/ERC20Fake'].length - 1]['address']
+  const DELT = loader.fromArtifact('ERC20Fake', DELTTokenAddress)
 
   console.log('\n')
 
@@ -26,15 +26,15 @@ async function main() {
 
   // balance before
   const DELTBalanceBefore = await DELT.methods.balanceOf(account.address).call() / 1e18 // DELT is 18 decimal place
-  console.log('DELT balance before mint: ' + DELTBalanceBefore)
+  console.log('DELT balance before claim: ' + DELTBalanceBefore)
 
   // claim rewards
   console.log('Claiming...')
-  await deltMine.methods.claim(account.address).send({ from: account.address, gas: 500000 }) // from address does not matter here, anyone can claim
+  await deltRewardPool.methods.claim(account.address).send({ from: account.address, gas: 500000 }) // from address does not matter here, anyone can claim
 
   // balance after
   const DELTBalanceAfter = await DELT.methods.balanceOf(account.address).call() / 1e18 // DELT is 18 decimal place
-  console.log('DELT balance after mint: ' + DELTBalanceAfter)
+  console.log('DELT balance after claim: ' + DELTBalanceAfter)
 
   console.log('\n')
 }

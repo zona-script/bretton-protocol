@@ -32,7 +32,7 @@ async function main() {
 
   // redeem to 1 USDT
   console.log('Redeeming...')
-  await dUSD.methods.redeem(USDTAddress, '1000000').send({ from: account.address, gas: 500000 })
+  await dUSD.methods.redeem(account.address, USDTAddress, '1000000').send({ from: account.address, gas: 500000 })
 
   // balance after
   const USDTBalanceAfter = await USDT.methods.balanceOf(account.address).call() / 1e6 // USDT is 6 decimal place

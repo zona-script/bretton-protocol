@@ -39,7 +39,7 @@ async function main() {
   await USDC.methods.approve(dUSDAddress, amountToSwap).send({ from: account.address })
   // swap from 1 USDC to 1 USDT
   console.log('Swapping...')
-  await dUSD.methods.swap(USDCAddress, amountToSwap, USDTAddress).send({ from: account.address, gas: 700000 })
+  await dUSD.methods.swap(account.address, USDCAddress, amountToSwap, USDTAddress).send({ from: account.address, gas: 700000 })
 
   // balance after
   const USDCBalanceAfter = await USDC.methods.balanceOf(account.address).call() / 1e6 // USDC is 6 decimal place

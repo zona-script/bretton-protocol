@@ -20,7 +20,7 @@ async function main() {
   const USDC = loader.fromArtifact('ERC20', USDCAddress)
 
   console.log('\n')
-  
+
   console.log('=========MINT WITH USDC=========')
   console.log('Using account: ' + account.address)
 
@@ -36,7 +36,7 @@ async function main() {
   await USDC.methods.approve(dUSDAddress, amountToMint).send({ from: account.address })
   // mint with 1 USDC
   console.log('Mint...')
-  await dUSD.methods.mint(USDCAddress, amountToMint).send({ from: account.address, gas: 500000 })
+  await dUSD.methods.mint(account.address, USDCAddress, amountToMint).send({ from: account.address, gas: 500000 })
 
   // balance after
   const USDCBalanceAfter = await USDC.methods.balanceOf(account.address).call() / 1e6 // USDC is 6 decimal place
