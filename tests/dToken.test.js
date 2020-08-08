@@ -102,6 +102,31 @@ describe('dToken', function () {
     })
   })
 
+  describe('setName', function () {
+    it('only owner can set name', async () => {
+      const newName = "new token name"
+      await expectRevert(
+        dToken.setName(newName, { from: user }),
+        'Ownable: caller is not the owner'
+      )
+      await dToken.setName(newName, { from: admin })
+      expect(await dToken.name.call()).to.be.equal(newName)
+    })
+
+  })
+
+  describe('setSymbol', function () {
+    it('only owner can set symbol', async () => {
+      const newSymbol = "new token symbol"
+      await expectRevert(
+        dToken.setSymbol(newSymbol, { from: user }),
+        'Ownable: caller is not the owner'
+      )
+      await dToken.setSymbol(newSymbol, { from: admin })
+      expect(await dToken.symbol.call()).to.be.equal(newSymbol)
+    })
+  })
+
   describe('pause', function () {
     it('only owner can pause/unpause', async () => {
       // only owner can pause

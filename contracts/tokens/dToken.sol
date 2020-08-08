@@ -188,6 +188,28 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable, Pausable {
         _addEarningPool(_earningPool);
     }
 
+    /**
+     * @dev Set the name of token
+     * @param _name Name of token
+     */
+    function setName(string calldata _name)
+        external
+        onlyOwner
+    {
+        name = _name;
+    }
+
+    /**
+     * @dev Set the symbol of token
+     * @param _symbol Symbol of token
+     */
+    function setSymbol(string calldata _symbol)
+        external
+        onlyOwner
+    {
+        symbol = _symbol;
+    }
+
     /*** INTERNAL ***/
 
     function _mintInternal(address _beneficiary, address _underlying, uint _amount) internal {
