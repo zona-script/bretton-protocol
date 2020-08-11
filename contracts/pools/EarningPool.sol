@@ -33,6 +33,9 @@ contract EarningPool is ReentrancyGuard, Ownable, Pool {
     // Fee factor mantissa, 1e18 = 100%
     uint256 public withdrawFeeFactorMantissa;
 
+    uint256 public earningDispenseThreshold;
+    uint256 public rewardDispenseThreshold;
+
     event Deposited(address indexed beneficiary, uint256 amount, address payer);
     event Withdrawn(address indexed beneficiary, uint256 amount, address payer);
     event Dispensed(address indexed token, uint256 amount);
@@ -90,19 +93,20 @@ contract EarningPool is ReentrancyGuard, Ownable, Pool {
      */
     function dispenseEarning() public returns (uint256) {
         if (rewardPool == address(0)) {
-           // Do not dispense earning if reward pool is not set
            return 0;
         }
 
         uint256 earnings = calcUnclaimedEarningInUnderlying();
-        if (earnings > 0) {
-            // Withdraw earning from provider
-            _withdrawFromProvider(earnings);
-            // Transfer earning to reward pool
-            IERC20(underlyingToken).safeTransfer(rewardPool, earnings);
-
-            emit Dispensed(underlyingToken, earnings);
+        if (earnings < earningDispenseThreshold) {
+           return 0;
         }
+
+        // Withdraw earning from provider
+        _withdrawFromProvider(earnings);
+        // Transfer earning to reward pool
+        IERC20(underlyingToken).safeTransfer(rewardPool, earnings);
+
+        emit Dispensed(underlyingToken, earnings);
 
         return earnings;
     }
@@ -113,17 +117,18 @@ contract EarningPool is ReentrancyGuard, Ownable, Pool {
      */
     function dispenseReward() public returns (uint256) {
         if (rewardPool == address(0)) {
-            // Do not dispense rewards if reward pool is not set
            return 0;
         }
 
         uint256 rewards = calcUnclaimedProviderReward();
-        if (rewards > 0) {
-            // Transfer COMP rewards to reward pool
-            IERC20(rewardToken).safeTransfer(rewardPool, rewards);
-
-            emit Dispensed(rewardToken, rewards);
+        if (rewards < rewardDispenseThreshold) {
+           return 0;
         }
+
+        // Transfer COMP rewards to reward pool
+        IERC20(rewardToken).safeTransfer(rewardPool, rewards);
+
+        emit Dispensed(rewardToken, rewards);
 
         return rewards;
     }
@@ -201,6 +206,21 @@ contract EarningPool is ReentrancyGuard, Ownable, Pool {
     {
         rewardPool = _rewardPool;
     }
+
+    function setEarningDispenseThreshold(uint256 _threshold)
+        public
+        onlyOwner
+    {
+        earningDispenseThreshold = _threshold;
+    }
+
+    function setRewardDispenseThreshold(uint256 _threshold)
+        public
+        onlyOwner
+    {
+        rewardDispenseThreshold = _threshold;
+    }
+
 
     /*** INTERNAL ***/
 

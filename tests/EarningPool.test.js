@@ -55,6 +55,8 @@ describe('EarningPool', function () {
       expect(await underlyingToken.allowance.call(earningPool.address, cToken.address)).to.be.bignumber.equal('115792089237316195423570985008687907853269984665640564039457584007913129639935')
       expect(await earningPool.rewardPool.call()).to.be.equal('0x0000000000000000000000000000000000000000')
       expect(await earningPool.withdrawFeeFactorMantissa.call()).to.be.bignumber.equal(new BN('0'))
+      expect(await earningPool.earningDispenseThreshold.call()).to.be.bignumber.equal(new BN('0'))
+      expect(await earningPool.rewardDispenseThreshold.call()).to.be.bignumber.equal(new BN('0'))
     })
   })
 
@@ -242,10 +244,47 @@ describe('EarningPool', function () {
     })
   })
 
-  describe('dispenseEarning', function () {
+  describe('setEarningDispenseThreshold', function () {
+    it('only owner can set earningDispenseThreshold', async () => {
+      const threshold = new BN('100000000')
+
+      await expectRevert(
+        earningPool.setEarningDispenseThreshold(threshold, { from: payer }),
+        'Ownable: caller is not the owner'
+      )
+
+      await earningPool.setEarningDispenseThreshold(threshold, { from: admin })
+      expect(await earningPool.earningDispenseThreshold.call()).to.be.bignumber.equal(threshold)
+    })
+  })
+
+  describe('setRewardDispenseThreshold', function () {
+    it('only owner can set rewardDispenseThreshold', async () => {
+      const threshold = new BN('100000000')
+
+      await expectRevert(
+        earningPool.setRewardDispenseThreshold(threshold, { from: payer }),
+        'Ownable: caller is not the owner'
+      )
+
+      await earningPool.setRewardDispenseThreshold(threshold, { from: admin })
+      expect(await earningPool.rewardDispenseThreshold.call()).to.be.bignumber.equal(threshold)
+    })
+  })
+
+  describe('dispenseEarning/dispenseReward', function () {
     beforeEach(async () => {
-      // mint 100 underlying to pool as earnings
+      // mint 100 underlying to payer
       await underlyingToken.mint(payer, '100000000')
+      // payer approve underlying to pool
+      await underlyingToken.approve(earningPool.address, '100000000', { from: payer })
+      // payer deposit for self
+      await earningPool.deposit(payer, '100000000', { from: payer })
+      // accrueInterest 2x
+      await cToken.accrueInterest('2')
+
+      // mint 100 reward token to pool as rewards
+      await rewardToken.mint(earningPool.address, '100000000')
     })
 
     describe('when reward pool address is not set', function () {
@@ -263,45 +302,68 @@ describe('EarningPool', function () {
         await earningPool.setRewardPoolAddress(rewardPoolAddress, { from: admin })
       })
 
-      it('should dispense all earnings', async () => {
-        const earningsBefore = await earningPool.calcUnclaimedEarningInUnderlying.call()
-        await earningPool.dispenseEarning()
-        const earningPoolAfter = await earningPool.calcUnclaimedEarningInUnderlying.call()
-        const rewardPoolBalanceAfter = await underlyingToken.balanceOf.call(rewardPoolAddress)
-        expect(earningPoolAfter).to.be.bignumber.equal('0')
-        expect(rewardPoolBalanceAfter).to.be.bignumber.equal(earningsBefore)
-      })
-    })
-  })
+      describe('when earning is less than threshold', function () {
+        beforeEach(async () => {
+          // set earning dispense threshold to 100.000001
+          await earningPool.setEarningDispenseThreshold('100000001', { from: admin })
+        })
 
-  describe('dispenseReward', function () {
-    beforeEach(async () => {
-      // mint 100 reward tokens to pool as rewards
-      await rewardToken.mint(earningPool.address, '100000000000000000000')
-    })
-
-    describe('when reward pool address is not set', function () {
-      it('should not dispense anything', async () => {
-        const rewardsBefore = await earningPool.calcUnclaimedProviderReward.call()
-        await earningPool.dispenseReward()
-        const rewardsAfter = await earningPool.calcUnclaimedProviderReward.call()
-        expect(rewardsBefore).to.be.bignumber.equal(rewardsAfter)
-      })
-    })
-
-    describe('when reward pool address is set', function () {
-      beforeEach(async () => {
-        // set reward pool address
-        await earningPool.setRewardPoolAddress(rewardPoolAddress, { from: admin })
+        it('should not dispense any earnings', async () => {
+          await earningPool.dispenseEarning()
+          const earningsAfter = await earningPool.calcUnclaimedEarningInUnderlying.call()
+          expect(earningsAfter).to.be.bignumber.equal('100000000')
+        })
       })
 
-      it('should dispense all rewards', async () => {
-        const rewardsBefore = await earningPool.calcUnclaimedProviderReward.call()
-        await earningPool.dispenseReward()
-        const rewardsAfter = await earningPool.calcUnclaimedProviderReward.call()
-        const rewardPoolBalanceAfter = await rewardToken.balanceOf.call(rewardPoolAddress)
-        expect(rewardsAfter).to.be.bignumber.equal('0')
-        expect(rewardPoolBalanceAfter).to.be.bignumber.equal(rewardsBefore)
+      describe('when reward is less than threshold', function () {
+        beforeEach(async () => {
+          // set reward dispense threshold to 100.000001
+          await earningPool.setRewardDispenseThreshold('100000001', { from: admin })
+        })
+
+        it('should not dispense any rewards', async () => {
+          await earningPool.dispenseReward()
+          const rewardsAfter = await earningPool.calcUnclaimedProviderReward.call()
+          expect(rewardsAfter).to.be.bignumber.equal('100000000')
+        })
+      })
+
+      describe('when earning is more than threshold', function () {
+        beforeEach(async () => {
+          // set earning dispense threshold to 100
+          await earningPool.setEarningDispenseThreshold('100000000', { from: admin })
+        })
+
+        it('should dispense all earnings', async () => {
+          const receipt = await earningPool.dispenseEarning()
+          const earningPoolAfter = await earningPool.calcUnclaimedEarningInUnderlying.call()
+          const rewardPoolBalanceAfter = await underlyingToken.balanceOf.call(rewardPoolAddress)
+          expect(earningPoolAfter).to.be.bignumber.equal('0')
+          expect(rewardPoolBalanceAfter).to.be.bignumber.equal('100000000')
+          expectEvent(receipt, 'Dispensed', {
+            token: underlyingToken.address,
+            amount: '100000000'
+          })
+        })
+      })
+
+      describe('when reward is more than threshold', function () {
+        beforeEach(async () => {
+          // set reward dispense threshold to 100
+          await earningPool.setEarningDispenseThreshold('100000000', { from: admin })
+        })
+
+        it('should dispense all rewards', async () => {
+          const receipt = await earningPool.dispenseReward()
+          const earningPoolAfter = await earningPool.calcUnclaimedProviderReward.call()
+          const rewardPoolBalanceAfter = await rewardToken.balanceOf.call(rewardPoolAddress)
+          expect(earningPoolAfter).to.be.bignumber.equal('0')
+          expect(rewardPoolBalanceAfter).to.be.bignumber.equal('100000000')
+          expectEvent(receipt, 'Dispensed', {
+            token: rewardToken.address,
+            amount: '100000000'
+          })
+        })
       })
     })
   })
