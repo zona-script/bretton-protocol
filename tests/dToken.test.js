@@ -131,39 +131,57 @@ describe('dToken', function () {
     it('only owner can pause/unpause', async () => {
       // only owner can pause
       await expectRevert(
-        dToken.pause({ from: user }),
+        dToken.pause(underlyingTokenOne.address, { from: user }),
         'Ownable: caller is not the owner'
       )
-      await dToken.pause({ from: admin })
-      expect(await dToken.paused.call()).to.be.true
+      await dToken.pause(underlyingTokenOne.address, { from: admin })
+      expect(await dToken.paused.call(underlyingTokenOne.address)).to.be.true
 
       // only owner can unpause
       await expectRevert(
-        dToken.unpause({ from: user }),
+        dToken.unpause(underlyingTokenOne.address, { from: user }),
         'Ownable: caller is not the owner'
       )
-      await dToken.unpause({ from: admin })
-      expect(await dToken.paused.call()).to.be.false
+      await dToken.unpause(underlyingTokenOne.address, { from: admin })
+      expect(await dToken.paused.call(underlyingTokenOne.address)).to.be.false
     })
 
-    describe('when paused', function () {
+    describe('when one underlying is paused', function () {
       beforeEach(async () => {
-        // pause
-        await dToken.pause({ from: admin })
+        // support underlying two
+        await dToken.addEarningPool(earningPoolTwo.address, { from: admin })
+        // mint underlying for user
+        await underlyingTokenTwo.mint(user, '100000000000000000000') // 100
+        // approve to dToken
+        await underlyingTokenTwo.approve(dToken.address, '100000000000000000000', { from: user }) // 100
+
+        // pause underlying one
+        await dToken.pause(underlyingTokenOne.address, { from: admin })
       })
 
-      it('mint should fail', async () => {
+      it('mint should fail for paused underlying', async () => {
         await expectRevert(
-          dToken.mint(user, underlyingTokenTwo.address, '1', { from: user }),
-          'Pausable: paused'
+          dToken.mint(user, underlyingTokenOne.address, '1', { from: user }),
+          'DTOKEN: underlying is paused'
         )
       })
 
-      it('swap should fail', async () => {
+      it('swap should fail for paused underlying', async () => {
         await expectRevert(
           dToken.swap(user, underlyingTokenOne.address, '1000', underlyingTokenTwo.address, { from: user }),
-          'Pausable: paused'
+          'DTOKEN: underlying is paused'
         )
+      })
+
+      it('redeem should work for paused underlying', async () => {
+        await dToken.mint(user, underlyingTokenTwo.address, '100000000000000000000', { from: user })
+        const receipt = await dToken.redeem(user, underlyingTokenTwo.address, '100000000000000000000', { from: user })
+        expectEvent(receipt, 'Redeemed', {
+          beneficiary: user,
+          underlying: underlyingTokenTwo.address,
+          amount: '100000000000000000000',
+          payer: user
+        })
       })
     })
   })

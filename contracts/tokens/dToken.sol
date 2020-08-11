@@ -7,7 +7,6 @@ import "../externals/Ownable.sol";
 import "../externals/IERC20.sol";
 import "../externals/ERC20.sol";
 import "../externals/ERC20Detailed.sol";
-import "../externals/Pausable.sol";
 
 import "../interfaces/EarningPoolInterface.sol";
 import "../interfaces/ManagedRewardPoolInterface.sol";
@@ -17,7 +16,7 @@ import "../interfaces/ManagedRewardPoolInterface.sol";
  * @dev dToken are collateralized assets pegged to a specific value.
  *      Collaterals are EarningPool shares
  */
-contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable, Pausable {
+contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
     using SafeERC20 for IERC20;
     using SafeMath for uint256;
 
@@ -26,10 +25,16 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable, Pausable {
 
     ManagedRewardPoolInterface public managedRewardPool;
 
+    // mapping between underlying token and its paused state
+    // pause is used for mint and swap
+    mapping(address => bool) public paused;
+
     event Minted(address indexed beneficiary, address indexed underlying, uint256 amount, address payer);
     event Redeemed(address indexed beneficiary, address indexed underlying, uint256 amount, address payer);
     event Swapped(address indexed beneficiary, address indexed underlyingFrom, uint256 amountFrom, address indexed underlyingTo, uint256 amountTo, address payer);
     event EarningPoolAdded(address indexed earningPool, address indexed underlying);
+    event Pause(address indexed underlying);
+    event Unpause(address indexed underlying);
 
     /**
      * @dev dToken constructor
@@ -56,6 +61,22 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable, Pausable {
         }
     }
 
+    /**
+     * @dev Modifier to make a function callable only when the underlying is not paused.
+     */
+    modifier whenNotPaused(address _underlying) {
+      require(!paused[_underlying], "DTOKEN: underlying is paused");
+      _;
+    }
+
+    /**
+     * @dev Modifier to make a function callable only when the contract is paused.
+     */
+    modifier whenPaused(address _underlying) {
+      require(paused[_underlying], "DTOKEN: underlying is not paused");
+      _;
+    }
+
     /*** PUBLIC ***/
 
     /**
@@ -71,7 +92,7 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable, Pausable {
     )
         external
         nonReentrant
-        whenNotPaused
+        whenNotPaused(_underlying)
     {
         _mintInternal(_beneficiary, _underlying, _amount);
         emit Minted(_beneficiary, _underlying, _amount, msg.sender);
@@ -110,7 +131,7 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable, Pausable {
     )
         external
         nonReentrant
-        whenNotPaused
+        whenNotPaused(_underlyingFrom)
     {
         require(_amountFrom > 0, "DTOKEN: swap amountFrom must be greater than 0");
         require(isUnderlyingSupported(_underlyingFrom), "DTOKEN: swap underlyingFrom is not supported");
@@ -186,6 +207,30 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable, Pausable {
         onlyOwner
     {
         _addEarningPool(_earningPool);
+    }
+
+    /**
+     * @dev called by the owner to pause, triggers stopped state
+     */
+    function pause(address _underlying)
+        public
+        onlyOwner
+        whenNotPaused(_underlying)
+    {
+        paused[_underlying] = true;
+        emit Pause(_underlying);
+    }
+
+    /**
+     * @dev called by the owner to unpause, returns to normal state
+     */
+    function unpause(address _underlying)
+        public
+        onlyOwner
+        whenPaused(_underlying)
+    {
+        paused[_underlying] = false;
+        emit Unpause(_underlying);
     }
 
     /**
