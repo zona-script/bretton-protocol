@@ -1,7 +1,6 @@
 pragma solidity 0.5.16;
 
 import "../externals/SafeERC20.sol";
-import "../externals/ReentrancyGuard.sol";
 import "../externals/IERC20.sol";
 
 import "./abstract/RewardPool.sol";
@@ -10,13 +9,13 @@ import "./abstract/RewardPool.sol";
  * @title  StakedRewardPool
  * @notice RewardPool that track shares based on staking of a stakingToken
  */
-contract StakedRewardPool is ReentrancyGuard, RewardPool {
+contract StakedRewardPool is RewardPool {
     using SafeERC20 for IERC20;
 
     IERC20 public stakingToken;
 
-    event Staked(address indexed user, uint256 amount, address payer);
-    event Withdrawn(address indexed user, uint256 amount);
+    event Staked(address indexed beneficiary, uint256 amount, address payer);
+    event Withdrawn(address indexed beneficiary, uint256 amount, address payer);
 
     /**
      * @dev StakedRewardPool constructor
@@ -46,8 +45,7 @@ contract StakedRewardPool is ReentrancyGuard, RewardPool {
      * @param _amount Units of shares
      */
     function stake(address _beneficiary, uint256 _amount)
-        external
-        nonReentrant
+        public
     {
         stakingToken.safeTransferFrom(msg.sender, address(this), _amount);
         _mintShares(_beneficiary, _amount);
@@ -57,15 +55,26 @@ contract StakedRewardPool is ReentrancyGuard, RewardPool {
 
     /**
      * @dev Remove a given amount of shares from sender, decrease msg.sender shares
+     * @param _beneficiary Account to withdraw to
      * @param _amount Units of shares
      */
-    function withdraw(uint256 _amount)
-        external
-        nonReentrant
+    function withdraw(address _beneficiary, uint256 _amount)
+        public
     {
-        stakingToken.safeTransfer(msg.sender, _amount);
+        require(sharesOf(msg.sender) >= _amount, "STAKED_REWARD_POOL: withdraw insufficient stake");
+        stakingToken.safeTransfer(_beneficiary, _amount);
         _burnShares(msg.sender, _amount);
 
-        emit Withdrawn(msg.sender, _amount);
+        emit Withdrawn(_beneficiary, _amount, msg.sender);
+    }
+
+    /**
+     * @dev Withdraws stake from pool and claims any rewards
+     */
+    function exit()
+        external
+    {
+        withdraw(msg.sender, sharesOf(msg.sender));
+        claim(msg.sender);
     }
 }

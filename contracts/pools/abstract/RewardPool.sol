@@ -116,7 +116,7 @@ contract RewardPool is ReentrancyGuard, Ownable, Pool {
         }
 
         uint256 newRewardsToIssue = rewardsPerBlock.mul(blockSinceLastUpdate());
-        uint256 rewardsAvailable = rewardToken.balanceOf(address(this));
+        uint256 rewardsAvailable = totalRewardsAvailable();
         uint256 actualRewardsToIssue = newRewardsToIssue > rewardsAvailable ? rewardsAvailable : newRewardsToIssue;
         uint256 newRewardToIssuePerShare = actualRewardsToIssue.mul(1e18).div(totalShares);
         return rewardsPerShareStored.add(newRewardToIssuePerShare);
@@ -160,6 +160,17 @@ contract RewardPool is ReentrancyGuard, Ownable, Pool {
         returns (uint256)
     {
         return getBlockNumber().sub(lastUpdateBlock);
+    }
+
+    /**
+     * @dev Get total rewards currently available
+     */
+    function totalRewardsAvailable()
+        public
+        view
+        returns (uint256)
+    {
+        return rewardToken.balanceOf(address(this));
     }
 
     /*** ADMIN ***/
