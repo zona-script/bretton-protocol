@@ -75,6 +75,9 @@ contract EarningPool is ReentrancyGuard, Ownable, Pool {
         external
         nonReentrant
     {
+        // dispense earning and rewards on deposit
+        dispenseEarning();
+        dispenseReward();
         _deposit(_beneficiary, _amount);
     }
 
@@ -87,6 +90,9 @@ contract EarningPool is ReentrancyGuard, Ownable, Pool {
         external
         nonReentrant
     {
+        // dispense earning and rewards on withdraw
+        dispenseEarning();
+        dispenseReward();
         _withdraw(_beneficiary, _amount);
     }
 
@@ -100,18 +106,21 @@ contract EarningPool is ReentrancyGuard, Ownable, Pool {
         }
 
         uint256 earnings = calcUndispensedEarningInUnderlying();
-        if (earnings < earningDispenseThreshold) {
+        // total dispense amount = earning + withdraw fee
+        uint256 totalDispenseAmount =  earnings.add(balanceInUnderlying());
+        if (totalDispenseAmount < earningDispenseThreshold) {
            return 0;
         }
 
         // Withdraw earning from provider
         _withdrawFromProvider(earnings);
-        // Transfer earning to recipient
-        IERC20(underlyingToken).safeTransfer(earningRecipient, earnings);
 
-        emit Dispensed(underlyingToken, earnings);
+        // Transfer earning + withdraw fee to recipient
+        IERC20(underlyingToken).safeTransfer(earningRecipient, totalDispenseAmount);
 
-        return earnings;
+        emit Dispensed(underlyingToken, totalDispenseAmount);
+
+        return totalDispenseAmount;
     }
 
     /**
@@ -140,6 +149,7 @@ contract EarningPool is ReentrancyGuard, Ownable, Pool {
 
     /**
      * @dev Get balance of underlying token in this pool
+     *      Should equal to withdraw fee unless underlyings are sent to pool
      * @return uint256 Underlying token balance
      */
     function balanceInUnderlying() public view returns (uint256) {
@@ -169,7 +179,7 @@ contract EarningPool is ReentrancyGuard, Ownable, Pool {
 
     /**
      * @dev Calculate total underlying balance of this pool
-     *      Total balance of underlying = total deposit + interest accrued
+     *      Total balance of underlying = total provider underlying balance (deposit + interest accrued) + withdraw fee
      * @return uint256 Underlying token balance
      */
     function calcPoolValueInUnderlying() public view returns (uint256) {
@@ -179,11 +189,11 @@ contract EarningPool is ReentrancyGuard, Ownable, Pool {
 
     /**
      * @dev Calculate outstanding interest earning of underlying token in this pool
-     *      Earning = total pool underlying value - total deposit + total withdraw fee
+     *      Earning = total provider underlying balance - total deposit
      * @return uint256 Underlying token balance
      */
     function calcUndispensedEarningInUnderlying() public view returns(uint256) {
-        return calcPoolValueInUnderlying().sub(totalShares());
+        return balanceCompoundInUnderlying().sub(totalShares());
     }
 
     /**

@@ -10,6 +10,8 @@ import "../externals/ERC20Detailed.sol";
 
 import "../providers/CompoundInterface.sol";
 
+import "./ERC20Fake.sol";
+
 // Fake implementation of compound's cToken for testing
 contract CompoundFake is ERC20, ERC20Detailed, CompoundInterface {
     using SafeERC20 for IERC20;
@@ -49,6 +51,7 @@ contract CompoundFake is ERC20, ERC20Detailed, CompoundInterface {
     // _amount = underlying amount to redeem
     function redeemUnderlying(uint256 _amount) external returns (uint256) {
         // Transfer underlying to withdrawer, decrease totalPoolBalance
+        require(IERC20(underlying).balanceOf(address(this)) >= _amount, "COMPOUND_FAKE: insufficient balance to redeem");
         IERC20(underlying).safeTransfer(msg.sender, _amount);
 
         // Burn cToken for withdrawer
@@ -63,5 +66,8 @@ contract CompoundFake is ERC20, ERC20Detailed, CompoundInterface {
 
     function accrueInterest(uint _interest) external {
         exchangeRateMantissa = exchangeRateMantissa.mul(_interest);
+        // also mint underlying so there are enough to redeem
+        uint256 currentBalance = IERC20(underlying).balanceOf(address(this));
+        ERC20Fake(underlying).mint(address(this), currentBalance.mul(_interest).sub(currentBalance));
     }
 }
