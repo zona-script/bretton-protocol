@@ -8,7 +8,7 @@ const CompoundFake = contract.fromArtifact('CompoundFake')
 const EarningPool = contract.fromArtifact('EarningPool')
 
 describe('EarningPool', function () {
-  const [ admin, payer, beneficiary, rewardPoolAddress ] = accounts
+  const [ admin, payer, beneficiary, earningRecipient, rewardRecipient ] = accounts
 
   let underlyingToken, rewardToken, cToken, earningPool
   beforeEach(async () => {
@@ -53,7 +53,8 @@ describe('EarningPool', function () {
       expect(await earningPool.compound.call()).to.be.equal(cToken.address)
       // should infinite approve
       expect(await underlyingToken.allowance.call(earningPool.address, cToken.address)).to.be.bignumber.equal('115792089237316195423570985008687907853269984665640564039457584007913129639935')
-      expect(await earningPool.rewardPool.call()).to.be.equal('0x0000000000000000000000000000000000000000')
+      expect(await earningPool.earningRecipient.call()).to.be.equal('0x0000000000000000000000000000000000000000')
+      expect(await earningPool.rewardRecipient.call()).to.be.equal('0x0000000000000000000000000000000000000000')
       expect(await earningPool.withdrawFeeFactorMantissa.call()).to.be.bignumber.equal(new BN('0'))
       expect(await earningPool.earningDispenseThreshold.call()).to.be.bignumber.equal(new BN('0'))
       expect(await earningPool.rewardDispenseThreshold.call()).to.be.bignumber.equal(new BN('0'))
@@ -232,15 +233,27 @@ describe('EarningPool', function () {
     })
   })
 
-  describe('setRewardPoolAddress', function () {
+  describe('setEarningRecipient', function () {
     it('only owner can set reward pool', async () => {
       await expectRevert(
-        earningPool.setRewardPoolAddress(rewardPoolAddress, { from: payer }),
+        earningPool.setEarningRecipient(earningRecipient, { from: payer }),
         'Ownable: caller is not the owner'
       )
 
-      await earningPool.setRewardPoolAddress(rewardPoolAddress, { from: admin })
-      expect(await earningPool.rewardPool.call()).to.be.bignumber.equal(rewardPoolAddress)
+      await earningPool.setEarningRecipient(earningRecipient, { from: admin })
+      expect(await earningPool.earningRecipient.call()).to.be.bignumber.equal(earningRecipient)
+    })
+  })
+
+  describe('setRewardRecipient', function () {
+    it('only owner can set reward pool', async () => {
+      await expectRevert(
+        earningPool.setRewardRecipient(rewardRecipient, { from: payer }),
+        'Ownable: caller is not the owner'
+      )
+
+      await earningPool.setRewardRecipient(rewardRecipient, { from: admin })
+      expect(await earningPool.rewardRecipient.call()).to.be.bignumber.equal(rewardRecipient)
     })
   })
 
@@ -287,7 +300,7 @@ describe('EarningPool', function () {
       await rewardToken.mint(earningPool.address, '100000000')
     })
 
-    describe('when reward pool address is not set', function () {
+    describe('when recipients is not set', function () {
       it('should not dispense anything', async () => {
         const earningsBefore = await earningPool.calcUnclaimedEarningInUnderlying.call()
         await earningPool.dispenseEarning()
@@ -296,10 +309,12 @@ describe('EarningPool', function () {
       })
     })
 
-    describe('when reward pool address is set', function () {
+    describe('when recipients is set', function () {
       beforeEach(async () => {
-        // set reward pool address
-        await earningPool.setRewardPoolAddress(rewardPoolAddress, { from: admin })
+        // set earning recipient address
+        await earningPool.setEarningRecipient(earningRecipient, { from: admin })
+        // set reward recipient address
+        await earningPool.setRewardRecipient(rewardRecipient, { from: admin })
       })
 
       describe('when earning is less than threshold', function () {
@@ -337,9 +352,9 @@ describe('EarningPool', function () {
         it('should dispense all earnings', async () => {
           const receipt = await earningPool.dispenseEarning()
           const earningPoolAfter = await earningPool.calcUnclaimedEarningInUnderlying.call()
-          const rewardPoolBalanceAfter = await underlyingToken.balanceOf.call(rewardPoolAddress)
+          const earningRecipientBalanceAfter = await underlyingToken.balanceOf.call(earningRecipient)
           expect(earningPoolAfter).to.be.bignumber.equal('0')
-          expect(rewardPoolBalanceAfter).to.be.bignumber.equal('100000000')
+          expect(earningRecipientBalanceAfter).to.be.bignumber.equal('100000000')
           expectEvent(receipt, 'Dispensed', {
             token: underlyingToken.address,
             amount: '100000000'
@@ -356,9 +371,9 @@ describe('EarningPool', function () {
         it('should dispense all rewards', async () => {
           const receipt = await earningPool.dispenseReward()
           const earningPoolAfter = await earningPool.calcUnclaimedProviderReward.call()
-          const rewardPoolBalanceAfter = await rewardToken.balanceOf.call(rewardPoolAddress)
+          const rewardRecipientBalanceAfter = await rewardToken.balanceOf.call(rewardRecipient)
           expect(earningPoolAfter).to.be.bignumber.equal('0')
-          expect(rewardPoolBalanceAfter).to.be.bignumber.equal('100000000')
+          expect(rewardRecipientBalanceAfter).to.be.bignumber.equal('100000000')
           expectEvent(receipt, 'Dispensed', {
             token: rewardToken.address,
             amount: '100000000'

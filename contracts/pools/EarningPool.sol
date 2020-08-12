@@ -13,7 +13,7 @@ import "./abstract/Pool.sol";
 /**
  * @title EarningPool
  * @dev Pool that tracks shares of an underlying token, of which are deposited into COMPOUND.
-        Earnings from provider is sent to a RewardPool
+        Earnings from provider is sent to recipients
  */
 contract EarningPool is ReentrancyGuard, Ownable, Pool {
     using SafeERC20 for IERC20;
@@ -27,8 +27,11 @@ contract EarningPool is ReentrancyGuard, Ownable, Pool {
     // Provider reward token address
     address public rewardToken;
 
-    // Address of rewardPool where earning and rewards are dispensed to
-    address public rewardPool;
+    // Address where earning are dispensed to
+    address public earningRecipient;
+
+    // Address where rewards are dispensed to
+    address public rewardRecipient;
 
     // Fee factor mantissa, 1e18 = 100%
     uint256 public withdrawFeeFactorMantissa;
@@ -88,11 +91,11 @@ contract EarningPool is ReentrancyGuard, Ownable, Pool {
     }
 
     /**
-     * @dev Transfer underlying token interest earned to reward pool
+     * @dev Transfer underlying token interest earned to recipient
      * @return uint256 Amount dispensed
      */
     function dispenseEarning() public returns (uint256) {
-        if (rewardPool == address(0)) {
+        if (earningRecipient == address(0)) {
            return 0;
         }
 
@@ -103,8 +106,8 @@ contract EarningPool is ReentrancyGuard, Ownable, Pool {
 
         // Withdraw earning from provider
         _withdrawFromProvider(earnings);
-        // Transfer earning to reward pool
-        IERC20(underlyingToken).safeTransfer(rewardPool, earnings);
+        // Transfer earning to recipient
+        IERC20(underlyingToken).safeTransfer(earningRecipient, earnings);
 
         emit Dispensed(underlyingToken, earnings);
 
@@ -112,11 +115,11 @@ contract EarningPool is ReentrancyGuard, Ownable, Pool {
     }
 
     /**
-     * @dev Transfer reward token earned to reward pool
+     * @dev Transfer reward token earned to recipient
      * @return uint256 Amount dispensed
      */
     function dispenseReward() public returns (uint256) {
-        if (rewardPool == address(0)) {
+        if (rewardRecipient == address(0)) {
            return 0;
         }
 
@@ -125,8 +128,8 @@ contract EarningPool is ReentrancyGuard, Ownable, Pool {
            return 0;
         }
 
-        // Transfer COMP rewards to reward pool
-        IERC20(rewardToken).safeTransfer(rewardPool, rewards);
+        // Transfer COMP rewards to recipient
+        IERC20(rewardToken).safeTransfer(rewardRecipient, rewards);
 
         emit Dispensed(rewardToken, rewards);
 
@@ -200,11 +203,18 @@ contract EarningPool is ReentrancyGuard, Ownable, Pool {
         withdrawFeeFactorMantissa = _withdrawFeeFactorManitssa;
     }
 
-    function setRewardPoolAddress(address _rewardPool)
+    function setEarningRecipient(address _recipient)
         public
         onlyOwner
     {
-        rewardPool = _rewardPool;
+        earningRecipient = _recipient;
+    }
+
+    function setRewardRecipient(address _recipient)
+        public
+        onlyOwner
+    {
+        rewardRecipient = _recipient;
     }
 
     function setEarningDispenseThreshold(uint256 _threshold)
