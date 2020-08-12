@@ -8,6 +8,6 @@ interface EarningPoolInterface {
     function underlyingToken() external view returns (address);
     function rewardToken() external view returns (address);
     function calcPoolValueInUnderlying() external view returns (uint);
-    function calcUnclaimedEarningInUnderlying() external view returns(uint256);
-    function calcUnclaimedProviderReward() external view returns(uint256);
+    function calcUndispensedEarningInUnderlying() external view returns(uint256);
+    function calcUndispensedProviderReward() external view returns(uint256);
 }

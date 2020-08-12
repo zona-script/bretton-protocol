@@ -203,17 +203,17 @@ describe('EarningPool', function () {
         })
       })
 
-      describe('calcUnclaimedEarningInUnderlying', function () {
+      describe('calcUndispensedEarningInUnderlying', function () {
         it('should get total earning balance in pool ', async () => {
           // should have 5 earning in pool
-          expect(await earningPool.calcUnclaimedEarningInUnderlying.call()).to.be.bignumber.equal('5000000')
+          expect(await earningPool.calcUndispensedEarningInUnderlying.call()).to.be.bignumber.equal('5000000')
         })
       })
 
-      describe('calcUnclaimedProviderReward', function () {
+      describe('calcUndispensedProviderReward', function () {
         it('should get total reward token balance in pool ', async () => {
           // should have 1 earning in pool
-          expect(await earningPool.calcUnclaimedProviderReward.call()).to.be.bignumber.equal('1000000000000000000')
+          expect(await earningPool.calcUndispensedProviderReward.call()).to.be.bignumber.equal('1000000000000000000')
         })
       })
     })
@@ -302,9 +302,9 @@ describe('EarningPool', function () {
 
     describe('when recipients is not set', function () {
       it('should not dispense anything', async () => {
-        const earningsBefore = await earningPool.calcUnclaimedEarningInUnderlying.call()
+        const earningsBefore = await earningPool.calcUndispensedEarningInUnderlying.call()
         await earningPool.dispenseEarning()
-        const earningsAfter = await earningPool.calcUnclaimedEarningInUnderlying.call()
+        const earningsAfter = await earningPool.calcUndispensedEarningInUnderlying.call()
         expect(earningsBefore).to.be.bignumber.equal(earningsAfter)
       })
     })
@@ -325,7 +325,7 @@ describe('EarningPool', function () {
 
         it('should not dispense any earnings', async () => {
           await earningPool.dispenseEarning()
-          const earningsAfter = await earningPool.calcUnclaimedEarningInUnderlying.call()
+          const earningsAfter = await earningPool.calcUndispensedEarningInUnderlying.call()
           expect(earningsAfter).to.be.bignumber.equal('100000000')
         })
       })
@@ -338,7 +338,7 @@ describe('EarningPool', function () {
 
         it('should not dispense any rewards', async () => {
           await earningPool.dispenseReward()
-          const rewardsAfter = await earningPool.calcUnclaimedProviderReward.call()
+          const rewardsAfter = await earningPool.calcUndispensedProviderReward.call()
           expect(rewardsAfter).to.be.bignumber.equal('100000000')
         })
       })
@@ -351,7 +351,7 @@ describe('EarningPool', function () {
 
         it('should dispense all earnings', async () => {
           const receipt = await earningPool.dispenseEarning()
-          const earningPoolAfter = await earningPool.calcUnclaimedEarningInUnderlying.call()
+          const earningPoolAfter = await earningPool.calcUndispensedEarningInUnderlying.call()
           const earningRecipientBalanceAfter = await underlyingToken.balanceOf.call(earningRecipient)
           expect(earningPoolAfter).to.be.bignumber.equal('0')
           expect(earningRecipientBalanceAfter).to.be.bignumber.equal('100000000')
@@ -370,7 +370,7 @@ describe('EarningPool', function () {
 
         it('should dispense all rewards', async () => {
           const receipt = await earningPool.dispenseReward()
-          const earningPoolAfter = await earningPool.calcUnclaimedProviderReward.call()
+          const earningPoolAfter = await earningPool.calcUndispensedProviderReward.call()
           const rewardRecipientBalanceAfter = await rewardToken.balanceOf.call(rewardRecipient)
           expect(earningPoolAfter).to.be.bignumber.equal('0')
           expect(rewardRecipientBalanceAfter).to.be.bignumber.equal('100000000')

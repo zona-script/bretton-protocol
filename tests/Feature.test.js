@@ -11,7 +11,7 @@ const StakedRewardPool = contract.fromArtifact('StakedRewardPool')
 const dToken = contract.fromArtifact('dToken')
 
 describe('Features', function () {
-  const [ admin, user ] = accounts
+  const [ admin, user, earningRecipient ] = accounts
   beforeEach(async () => {
     // deploy DELT
     this.DELTToken = await ERC20Fake.new(
@@ -65,28 +65,19 @@ describe('Features', function () {
     await this.underlyingTwo.mint(this.compoundTwo.address, '1000000000000000000000') // 1000
 
 
-    // deploy StakedRewardPool
-    this.StakedRewardPool = await StakedRewardPool.new(
-      this.DELTToken.address,
-      this.COMPRewardToken.address,
-      '10000000000000000000', // rewardPerBlock rate, 10 mining token distributed per block
-      { from: admin }
-    )
-
-
     // deploy EarningPools
     this.EarningPoolOne = await EarningPool.new(
       this.underlyingOne.address,
       this.COMPRewardToken.address,
       this.compoundOne.address
     )
-    await this.EarningPoolOne.setRewardPoolAddress(this.StakedRewardPool.address)
+    await this.EarningPoolOne.setEarningRecipient(earningRecipient)
     this.EarningPoolTwo = await EarningPool.new(
       this.underlyingTwo.address,
       this.COMPRewardToken.address,
       this.compoundTwo.address
     )
-    await this.EarningPoolTwo.setRewardPoolAddress(this.StakedRewardPool.address)
+    await this.EarningPoolTwo.setEarningRecipient(earningRecipient)
 
 
     // deploy managed reward pool
@@ -157,8 +148,8 @@ describe('Features', function () {
     // accrueInterest
     await this.compoundOne.accrueInterest('2') // increase compound token one exchange rate by 2x
     await this.compoundTwo.accrueInterest('4') // increase compound token two exchange rate by 4x
-    expect(await this.EarningPoolOne.calcUnclaimedEarningInUnderlying()).to.be.bignumber.equal(new BN('100000000')) // 200 of underlying one
-    expect(await this.EarningPoolTwo.calcUnclaimedEarningInUnderlying()).to.be.bignumber.equal(new BN('300000000000000000000')) // 400 of underlying two
+    expect(await this.EarningPoolOne.calcUndispensedEarningInUnderlying()).to.be.bignumber.equal(new BN('100000000')) // 200 of underlying one
+    expect(await this.EarningPoolTwo.calcUndispensedEarningInUnderlying()).to.be.bignumber.equal(new BN('300000000000000000000')) // 400 of underlying two
 
     // redeem
     await this.dToken.redeem(user, this.underlyingOne.address, new BN('100000000'), { from: user }) // redeem into 100 of underlying one
@@ -179,11 +170,11 @@ describe('Features', function () {
     // dispenseEarning should transfer earnings to staking contract
     await this.EarningPoolOne.dispenseEarning()
     await this.EarningPoolTwo.dispenseEarning()
-    expect(await this.underlyingOne.balanceOf.call(this.StakedRewardPool.address)).to.be.bignumber.equal(new BN('10000000')) // 10
-    expect(await this.underlyingTwo.balanceOf.call(this.StakedRewardPool.address)).to.be.bignumber.equal(new BN('30000000000000000000')) // 30
-    expect(await this.EarningPoolOne.calcUnclaimedEarningInUnderlying()).to.be.bignumber.equal(new BN('0')) // 0 of underlying one
+    expect(await this.underlyingOne.balanceOf.call(earningRecipient)).to.be.bignumber.equal(new BN('10000000')) // 10
+    expect(await this.underlyingTwo.balanceOf.call(earningRecipient)).to.be.bignumber.equal(new BN('30000000000000000000')) // 30
+    expect(await this.EarningPoolOne.calcUndispensedEarningInUnderlying()).to.be.bignumber.equal(new BN('0')) // 0 of underlying one
     expect(await this.EarningPoolOne.calcPoolValueInUnderlying()).to.be.bignumber.equal(new BN('10000000')) // 10 of underlying one
-    expect(await this.EarningPoolTwo.calcUnclaimedEarningInUnderlying()).to.be.bignumber.equal(new BN('0')) // 0 of underlying two
+    expect(await this.EarningPoolTwo.calcUndispensedEarningInUnderlying()).to.be.bignumber.equal(new BN('0')) // 0 of underlying two
     expect(await this.EarningPoolTwo.calcPoolValueInUnderlying()).to.be.bignumber.equal(new BN('10000000000000000000')) // 10 of underlying two
 
     // mint some more
@@ -197,11 +188,11 @@ describe('Features', function () {
     // dispenseEarning should transfer earnings to staking contract
     await this.EarningPoolOne.dispenseEarning() // interest accrued on total of 20 underlying one
     await this.EarningPoolTwo.dispenseEarning() // interest accrued on total of 20 underlying two
-    expect(await this.underlyingOne.balanceOf.call(this.StakedRewardPool.address)).to.be.bignumber.equal(new BN('30000000')) // 10 first time interest + 20 second time interest
-    expect(await this.underlyingTwo.balanceOf.call(this.StakedRewardPool.address)).to.be.bignumber.equal(new BN('50000000000000000000'))  // 30 first time interest + 20 second time interest
-    expect(await this.EarningPoolOne.calcUnclaimedEarningInUnderlying()).to.be.bignumber.equal(new BN('0')) // 0 of underlying one
+    expect(await this.underlyingOne.balanceOf.call(earningRecipient)).to.be.bignumber.equal(new BN('30000000')) // 10 first time interest + 20 second time interest
+    expect(await this.underlyingTwo.balanceOf.call(earningRecipient)).to.be.bignumber.equal(new BN('50000000000000000000'))  // 30 first time interest + 20 second time interest
+    expect(await this.EarningPoolOne.calcUndispensedEarningInUnderlying()).to.be.bignumber.equal(new BN('0')) // 0 of underlying one
     expect(await this.EarningPoolOne.calcPoolValueInUnderlying()).to.be.bignumber.equal(new BN('20000000')) // 20 of underlying one
-    expect(await this.EarningPoolTwo.calcUnclaimedEarningInUnderlying()).to.be.bignumber.equal(new BN('0')) // 0 of underlying two
+    expect(await this.EarningPoolTwo.calcUndispensedEarningInUnderlying()).to.be.bignumber.equal(new BN('0')) // 0 of underlying two
     expect(await this.EarningPoolTwo.calcPoolValueInUnderlying()).to.be.bignumber.equal(new BN('20000000000000000000')) // 20 of underlying two
   })
 

@@ -99,7 +99,7 @@ contract EarningPool is ReentrancyGuard, Ownable, Pool {
            return 0;
         }
 
-        uint256 earnings = calcUnclaimedEarningInUnderlying();
+        uint256 earnings = calcUndispensedEarningInUnderlying();
         if (earnings < earningDispenseThreshold) {
            return 0;
         }
@@ -123,7 +123,7 @@ contract EarningPool is ReentrancyGuard, Ownable, Pool {
            return 0;
         }
 
-        uint256 rewards = calcUnclaimedProviderReward();
+        uint256 rewards = calcUndispensedProviderReward();
         if (rewards < rewardDispenseThreshold) {
            return 0;
         }
@@ -182,7 +182,7 @@ contract EarningPool is ReentrancyGuard, Ownable, Pool {
      *      Earning = total pool underlying value - total deposit + total withdraw fee
      * @return uint256 Underlying token balance
      */
-    function calcUnclaimedEarningInUnderlying() public view returns(uint256) {
+    function calcUndispensedEarningInUnderlying() public view returns(uint256) {
         return calcPoolValueInUnderlying().sub(totalShares());
     }
 
@@ -190,7 +190,7 @@ contract EarningPool is ReentrancyGuard, Ownable, Pool {
      * @dev Get outstanding reward token in pool
      * @return uint256 Reward token balance
      */
-    function calcUnclaimedProviderReward() public view returns(uint256) {
+    function calcUndispensedProviderReward() public view returns(uint256) {
         return IERC20(rewardToken).balanceOf(address(this));
     }
 
