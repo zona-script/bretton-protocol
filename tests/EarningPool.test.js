@@ -96,35 +96,6 @@ describe('EarningPool', function () {
       });
     })
 
-    describe('when there are pending earning/rewards', function () {
-      beforeEach(async () => {
-        // mint 200 underlying to payer
-        await underlyingToken.mint(payer, '200000000')
-        // payer approve underlying to pool
-        await underlyingToken.approve(earningPool.address, '200000000', { from: payer })
-        // payer deposit 100 for self
-        await earningPool.deposit(payer, '100000000', { from: payer })
-        // accrueInterest 2x, should result in 100 in earning
-        await cToken.accrueInterest('2')
-
-        // mint reward token to pool as rewards
-        await rewardToken.mint(earningPool.address, '100000000')
-
-        // set recipients
-        await earningPool.setEarningRecipient(earningRecipient, { from: admin })
-        await earningPool.setRewardRecipient(rewardRecipient, { from: admin })
-      })
-
-      it('should dispense earning and rewards to recipient', async () => {
-        await earningPool.deposit(beneficiary, '100000000', { from: payer })
-
-        expect(await earningPool.calcUndispensedEarningInUnderlying()).to.be.bignumber.equal('0')
-        expect(await underlyingToken.balanceOf(earningRecipient)).to.be.bignumber.equal('100000000')
-        expect(await earningPool.calcUndispensedProviderReward()).to.be.bignumber.equal('0')
-        expect(await rewardToken.balanceOf(rewardRecipient)).to.be.bignumber.equal('100000000')
-      })
-    })
-
     describe('when depositer does not have sufficient underlying token balance', function () {
       it('should fail', async () => {
         const amountGreaterThanBalance = '9999999999999999'
@@ -196,29 +167,6 @@ describe('EarningPool', function () {
       })
     })
 
-    describe('when there are pending earning/rewards', function () {
-      beforeEach(async () => {
-        // accrueInterest 2x, should result in 100 in earning
-        await cToken.accrueInterest('2')
-
-        // mint reward token to pool as rewards
-        await rewardToken.mint(earningPool.address, '100000000')
-
-        // set recipients
-        await earningPool.setEarningRecipient(earningRecipient, { from: admin })
-        await earningPool.setRewardRecipient(rewardRecipient, { from: admin })
-      })
-
-      it('should dispense earning and rewards to recipient', async () => {
-        await earningPool.withdraw(payer, '100000000', { from: payer })
-
-        expect(await earningPool.calcUndispensedEarningInUnderlying()).to.be.bignumber.equal('0')
-        expect(await underlyingToken.balanceOf(earningRecipient)).to.be.bignumber.equal('100000000')
-        expect(await earningPool.calcUndispensedProviderReward()).to.be.bignumber.equal('0')
-        expect(await rewardToken.balanceOf(rewardRecipient)).to.be.bignumber.equal('100000000')
-      })
-    })
-
     describe('when withdrawer does not have sufficient shares in pool', function () {
       it('should fail', async () => {
         const amountGreaterThanDeposit = '9999999999999999'
@@ -259,14 +207,14 @@ describe('EarningPool', function () {
 
       describe('calcUndispensedEarningInUnderlying', function () {
         it('should get total earning balance in pool ', async () => {
-          // should have 5 earning in pool
+          // should have 100 earning in pool
           expect(await earningPool.calcUndispensedEarningInUnderlying.call()).to.be.bignumber.equal('100000000')
         })
       })
 
       describe('balanceInUnderlying', function () {
         it('should get total withdraw fee as balance in pool ', async () => {
-          // should have 5 earning in pool
+          // should have 5 withdraw fee in pool
           expect(await earningPool.balanceInUnderlying.call()).to.be.bignumber.equal('5000000')
         })
       })

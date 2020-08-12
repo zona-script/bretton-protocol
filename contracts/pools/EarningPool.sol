@@ -75,9 +75,6 @@ contract EarningPool is ReentrancyGuard, Ownable, Pool {
         external
         nonReentrant
     {
-        // dispense earning and rewards on deposit
-        dispenseEarning();
-        dispenseReward();
         _deposit(_beneficiary, _amount);
     }
 
@@ -90,9 +87,6 @@ contract EarningPool is ReentrancyGuard, Ownable, Pool {
         external
         nonReentrant
     {
-        // dispense earning and rewards on withdraw
-        dispenseEarning();
-        dispenseReward();
         _withdraw(_beneficiary, _amount);
     }
 

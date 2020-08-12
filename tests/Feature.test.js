@@ -153,11 +153,9 @@ describe('Features', function () {
 
     // redeem
     await this.dToken.redeem(user, this.underlyingOne.address, new BN('100000000'), { from: user }) // redeem into 100 of underlying one
-    expect(await this.EarningPoolOne.calcPoolValueInUnderlying()).to.be.bignumber.equal(new BN('0'))
-    expect(await this.underlyingOne.balanceOf.call(earningRecipient)).to.be.bignumber.equal(new BN('100000000')) // 100 of underlying one dispensed
+    expect(await this.EarningPoolOne.calcPoolValueInUnderlying()).to.be.bignumber.equal(new BN('100000000')) // 100 of underlying one left
     await this.dToken.redeem(user, this.underlyingTwo.address, new BN('100000000000000000000'), { from: user })  // redeem into 100 of underlying two
-    expect(await this.EarningPoolTwo.calcPoolValueInUnderlying()).to.be.bignumber.equal(new BN('0'))
-    expect(await this.underlyingTwo.balanceOf.call(earningRecipient)).to.be.bignumber.equal(new BN('300000000000000000000')) // 300 of underlying two dispensed
+    expect(await this.EarningPoolTwo.calcPoolValueInUnderlying()).to.be.bignumber.equal(new BN('300000000000000000000')) // 300 of underlying two left
   })
 
   it('collect earnings from dPool', async () => {
