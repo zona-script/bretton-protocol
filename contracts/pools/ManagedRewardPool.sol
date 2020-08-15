@@ -14,12 +14,12 @@ contract ManagedRewardPool is RewardPool {
     event Demoted(address indexed manager);
 
     constructor(
-        address _rewardToken,
-        uint256 _rewardsPerBlock
+        uint256 _DURATION,
+        address _rewardToken
     )
         RewardPool (
-            _rewardToken,
-            _rewardsPerBlock
+            _DURATION,
+            _rewardToken
         )
         public
     {

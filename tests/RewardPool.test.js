@@ -21,10 +21,17 @@ describe('RewardPool', function () {
 
       // deploy reward pool
       rewardPool = await RewardPoolFake.new(
+        '100',
         rewardToken.address,
-        new BN('100000000000000000000'), // 100 per block, reward token is 18 decimal place,
         { from: admin }
       )
+  })
+
+  describe('init', function () {
+    it('should initialize states', async () => {
+      expect(await rewardPool.DURATION.call()).to.be.bignumber.equal('100')
+      expect(await rewardPool.rewardToken.call()).to.be.equal(rewardToken.address)
+    })
   })
 
   describe('calculate reward earnings', function () {
@@ -34,8 +41,11 @@ describe('RewardPool', function () {
         // mint reward tokens to pool
         await rewardToken.mint(rewardPool.address, totalRewardsInPool)
 
+        // notify rewards
+        await rewardPool.notifyRewardAmount(totalRewardsInPool, { from: admin })
+
         // accrue some rewards
-        await rewardPool.increaseBlockNumber('1')
+        await rewardPool.increaseCurrentTime('1')
       })
 
       describe('as a single share holder', async () => {
@@ -44,21 +54,19 @@ describe('RewardPool', function () {
           await rewardPool.increaseShares(user, new BN('1000000000000000000')) // 1
         })
 
-        it('should earns all rewards up to lastest block', async () => {
-          // rewards per block = 100
-          // user rewards = rewards per block * blocks = 100
-          expect(await rewardPool.unclaimedRewards.call(user)).to.be.bignumber.equal(new BN('100000000000000000000'))
+        it('should earns all rewards up to current time', async () => {
+          // user rewards = rewardRate * seconds passed = 100
+          expect(await rewardPool.earned.call(user)).to.be.bignumber.equal(new BN('100000000000000000000'))
         })
 
-        describe('after a block is mined', async () => {
+        describe('after time pass', async () => {
           beforeEach(async () => {
-            // increase block number
-            await rewardPool.increaseBlockNumber('1')
+            // increase time by 1 second
+            await rewardPool.increaseCurrentTime('1')
           })
 
           it('should accumulate more rewards', async () => {
-            // user rewards = rewards per block * blocks = 200
-            expect(await rewardPool.unclaimedRewards.call(user)).to.be.bignumber.equal(new BN('200000000000000000000'))
+            expect(await rewardPool.earned.call(user)).to.be.bignumber.equal(new BN('200000000000000000000'))
           })
 
           describe('as more people enters pool', async () => {
@@ -71,25 +79,24 @@ describe('RewardPool', function () {
             })
 
             it("should not dilute your rewards", async () => {
-              // user1 rewards = rewards per block * blocks = 200
-              expect(await rewardPool.unclaimedRewards.call(user)).to.be.bignumber.equal(new BN('200000000000000000000'))
-              expect(await rewardPool.unclaimedRewards.call(user2)).to.be.bignumber.equal('0')
-              expect(await rewardPool.unclaimedRewards.call(user3)).to.be.bignumber.equal('0')
+              expect(await rewardPool.earned.call(user)).to.be.bignumber.equal(new BN('200000000000000000000'))
+              expect(await rewardPool.earned.call(user2)).to.be.bignumber.equal('0')
+              expect(await rewardPool.earned.call(user3)).to.be.bignumber.equal('0')
             })
 
-            describe('after a block is mined', async () => {
+            describe('after time pass', async () => {
               beforeEach(async () => {
-                // increase block number
-                await rewardPool.increaseBlockNumber('1')
+                // increase by 1 second
+                await rewardPool.increaseCurrentTime('1')
               })
 
               it("should accumulate rewards for all shareholders in pro rata fashion", async () => {
                 // user1 rewards = 200 + 10 = 210
                 // user2 rewards = 0 + 10 = 10
                 // user3 rewards = 0 + 80 = 80
-                expect(await rewardPool.unclaimedRewards.call(user)).to.be.bignumber.equal(new BN('210000000000000000000'))
-                expect(await rewardPool.unclaimedRewards.call(user2)).to.be.bignumber.equal(new BN('10000000000000000000'))
-                expect(await rewardPool.unclaimedRewards.call(user3)).to.be.bignumber.equal(new BN('80000000000000000000'))
+                expect(await rewardPool.earned.call(user)).to.be.bignumber.equal(new BN('210000000000000000000'))
+                expect(await rewardPool.earned.call(user2)).to.be.bignumber.equal(new BN('10000000000000000000'))
+                expect(await rewardPool.earned.call(user3)).to.be.bignumber.equal(new BN('80000000000000000000'))
               })
             })
 
@@ -105,10 +112,10 @@ describe('RewardPool', function () {
                 await rewardPool.increaseShares(user3, new BN('1000000000000000000')) // 1
               })
 
-              it("should not accrue rewards without block mined", async () => {
-                expect(await rewardPool.unclaimedRewards.call(user)).to.be.bignumber.equal(new BN('200000000000000000000'))
-                expect(await rewardPool.unclaimedRewards.call(user2)).to.be.bignumber.equal(new BN('0'))
-                expect(await rewardPool.unclaimedRewards.call(user3)).to.be.bignumber.equal(new BN('0'))
+              it("should not accrue rewards without time passage", async () => {
+                expect(await rewardPool.earned.call(user)).to.be.bignumber.equal(new BN('200000000000000000000'))
+                expect(await rewardPool.earned.call(user2)).to.be.bignumber.equal(new BN('0'))
+                expect(await rewardPool.earned.call(user3)).to.be.bignumber.equal(new BN('0'))
               })
             })
           })
@@ -122,25 +129,26 @@ describe('RewardPool', function () {
         // mint reward tokens to pool
         await rewardToken.mint(rewardPool.address, totalRewardsInPool)
 
+        // notify rewards
+        await rewardPool.notifyRewardAmount(totalRewardsInPool, { from: admin })
+
         // increase user shares
         await rewardPool.increaseShares(user, new BN('1000000000000000000')) // 1
       })
 
       it('should not have any earning', async () => {
-        // rewards per block = 100
-        // user rewards = rewards per block * blocks = 100
-        expect(await rewardPool.unclaimedRewards.call(user)).to.be.bignumber.equal(new BN('0'))
+        expect(await rewardPool.earned.call(user)).to.be.bignumber.equal(new BN('0'))
       })
 
-      describe('after a block is mined', async () => {
+      describe('after time pass', async () => {
         beforeEach(async () => {
-          // increase block number
-          await rewardPool.increaseBlockNumber('1')
+          // increase time by 1 second
+          await rewardPool.increaseCurrentTime('1')
         })
 
-        it('should earn rewards in new block', async () => {
-          // user rewards = rewards per block * 1 = 100
-          expect(await rewardPool.unclaimedRewards.call(user)).to.be.bignumber.equal(new BN('100000000000000000000'))
+        it('should earn rewards', async () => {
+          // user rewards = rewardRate * 1 second = 100
+          expect(await rewardPool.earned.call(user)).to.be.bignumber.equal(new BN('100000000000000000000'))
         })
       })
     })
@@ -153,27 +161,13 @@ describe('RewardPool', function () {
         // increase user2 shares
         await rewardPool.increaseShares(user2, new BN('1000000000000000000')) // 1
 
-        // try to accrue some rewards
-        await rewardPool.increaseBlockNumber('1')
+        // accrue rewards
+        await rewardPool.increaseCurrentTime('1')
       })
 
       it('should not have any earnings', async () => {
-        expect(await rewardPool.unclaimedRewards.call(user)).to.be.bignumber.equal(new BN('0'))
-        expect(await rewardPool.unclaimedRewards.call(user2)).to.be.bignumber.equal(new BN('0'))
-      })
-
-      describe('when rewards are added to pool', async () => {
-        beforeEach(async () => {
-          // mint reward tokens to pool
-          await rewardToken.mint(rewardPool.address, new BN('100000000000000000000')) // 100
-        })
-
-        it('should retroactively assign earned rewards to shareholder', async () => {
-          // total user rewards = rewards per block * 1 = 100
-          // each user rewards = 100 / 2 = 50
-          expect(await rewardPool.unclaimedRewards.call(user)).to.be.bignumber.equal(new BN('50000000000000000000'))
-          expect(await rewardPool.unclaimedRewards.call(user2)).to.be.bignumber.equal(new BN('50000000000000000000'))
-        })
+        expect(await rewardPool.earned.call(user)).to.be.bignumber.equal(new BN('0'))
+        expect(await rewardPool.earned.call(user2)).to.be.bignumber.equal(new BN('0'))
       })
     })
   })
@@ -184,17 +178,20 @@ describe('RewardPool', function () {
         // mint reward tokens to pool
         await rewardToken.mint(rewardPool.address, new BN('10000000000000000000000')) //10000
 
+        // notify rewards
+        await rewardPool.notifyRewardAmount(new BN('10000000000000000000000'), { from: admin })
+
         // increase user shares
         await rewardPool.increaseShares(user, new BN('1000000000000000000')) // 1
 
-        // mine a block
-        await rewardPool.increaseBlockNumber('1')
+        // accrue rewards
+        await rewardPool.increaseCurrentTime('1')
       })
 
       it('should withdraw rewards', async () => {
         const userRewardBalanceBefore = await rewardToken.balanceOf.call(user)
 
-        const receipt = await rewardPool.claim(user)
+        const receipt = await rewardPool.claim({from: user})
 
         const userRewardBalanceAfter = await rewardToken.balanceOf.call(user)
         expectEvent(receipt, 'RewardPaid', {
@@ -207,13 +204,13 @@ describe('RewardPool', function () {
       describe('when all rewards are claimed', function () {
         beforeEach(async () => {
           // claim all outstanding rewards
-          await rewardPool.claim(user)
+          await rewardPool.claim({from: user})
         })
 
         it('should not be able to withdraw more rewards', async () => {
           const userRewardBalanceBefore = await rewardToken.balanceOf.call(user)
 
-          const receipt = await rewardPool.claim(user)
+          const receipt = await rewardPool.claim({from: user})
 
           const userRewardBalanceAfter = await rewardToken.balanceOf.call(user)
           expect(userRewardBalanceAfter).to.be.bignumber.equal(userRewardBalanceBefore)
@@ -221,14 +218,14 @@ describe('RewardPool', function () {
 
         describe('when there are new rewards accrued', function () {
           beforeEach(async () => {
-            // mine a block
-            await rewardPool.increaseBlockNumber('1')
+            // increase time
+            await rewardPool.increaseCurrentTime('1')
           })
 
           it('should be able to withdraw new rewards', async () => {
             const userRewardBalanceBefore = await rewardToken.balanceOf.call(user)
 
-            const receipt = await rewardPool.claim(user)
+            const receipt = await rewardPool.claim({from: user})
 
             const userRewardBalanceAfter = await rewardToken.balanceOf.call(user)
             expectEvent(receipt, 'RewardPaid', {
@@ -246,14 +243,17 @@ describe('RewardPool', function () {
         // mint reward tokens to pool
         await rewardToken.mint(rewardPool.address, new BN('10000000000000000000000')) //10000
 
-        // mine a block
-        await rewardPool.increaseBlockNumber('1')
+        // notify rewards
+        await rewardPool.notifyRewardAmount(new BN('10000000000000000000000'), { from: admin })
+
+        // increase time
+        await rewardPool.increaseCurrentTime('1')
       })
 
-      it('should not be able to withdraw rewards', async () => {
+      it('should not be able to claim rewards', async () => {
         const userRewardBalanceBefore = await rewardToken.balanceOf.call(user)
 
-        const receipt = await rewardPool.claim(user)
+        const receipt = await rewardPool.claim({from: user})
 
         const userRewardBalanceAfter = await rewardToken.balanceOf.call(user)
         expect(userRewardBalanceAfter).to.be.bignumber.equal(userRewardBalanceBefore)
@@ -265,78 +265,18 @@ describe('RewardPool', function () {
         // increase user shares
         await rewardPool.increaseShares(user, new BN('1000000000000000000')) // 1
 
-        // mine a block
-        await rewardPool.increaseBlockNumber('1')
+        // increase time
+        await rewardPool.increaseCurrentTime('1')
       })
 
-      it('should not be able to withdraw rewards', async () => {
+      it('should not be able to claim rewards', async () => {
         const userRewardBalanceBefore = await rewardToken.balanceOf.call(user)
 
-        const receipt = await rewardPool.claim(user)
+        const receipt = await rewardPool.claim({from: user})
 
         const userRewardBalanceAfter = await rewardToken.balanceOf.call(user)
         expect(userRewardBalanceAfter).to.be.bignumber.equal(userRewardBalanceBefore)
       })
-    })
-  })
-
-  describe('setRewardsPerBlock', function () {
-    it('only owner can set rewards per block', async () => {
-      await expectRevert(
-        rewardPool.setRewardsPerBlock(new BN('10'), { from: user }),
-        'Ownable: caller is not the owner'
-      )
-
-      const newRewardsPerBlock = new BN('10')
-      await rewardPool.setRewardsPerBlock(newRewardsPerBlock, { from: admin })
-      expect(await rewardPool.rewardsPerBlock.call()).to.be.bignumber.equal(newRewardsPerBlock)
-    })
-
-    it('should affect all unclaimed rewards', async () => {
-      // mint reward tokens to pool
-      await rewardToken.mint(rewardPool.address, new BN('10000000000000000000000')) //10000
-
-      // increase user shares
-      await rewardPool.increaseShares(user, new BN('1000000000000000000')) // 1
-
-      // mine a block
-      await rewardPool.increaseBlockNumber('1')
-
-      // user should have 100 rewards
-      expect(await rewardPool.unclaimedRewards.call(user)).to.be.bignumber.equal(new BN('100000000000000000000'))
-
-      // set new rewards per block
-      const newRewardsPerBlock = new BN('10000000000000000000')
-      await rewardPool.setRewardsPerBlock(newRewardsPerBlock, { from: admin })
-
-      // user should now have 10 rewards
-      expect(await rewardPool.unclaimedRewards.call(user)).to.be.bignumber.equal(new BN('10000000000000000000'))
-
-      // mine a block
-      await rewardPool.increaseBlockNumber('1')
-
-      // user should still have 20 rewards
-      expect(await rewardPool.unclaimedRewards.call(user)).to.be.bignumber.equal(new BN('20000000000000000000'))
-    })
-  })
-
-  describe('withdrawRemainingRewards', function () {
-    beforeEach(async () => {
-      // mint reward tokens to pool
-      await rewardToken.mint(rewardPool.address, new BN('10000000000000000000000')) //10000
-    })
-
-    it('only owner can withdraw remaining reward tokens', async () => {
-      await expectRevert(
-        rewardPool.withdrawRemainingRewards({ from: user }),
-        'Ownable: caller is not the owner'
-      )
-
-      await rewardPool.withdrawRemainingRewards({ from: admin })
-      const adminRewardBalanceAfter = await rewardToken.balanceOf.call(admin)
-      const poolRewardBalanceAfter = await rewardToken.balanceOf.call(rewardPool.address)
-      expect(adminRewardBalanceAfter).to.be.bignumber.equal(new BN('10000000000000000000000'))
-      expect(poolRewardBalanceAfter).to.be.bignumber.equal(new BN('0'))
     })
   })
 
@@ -353,33 +293,36 @@ describe('RewardPool', function () {
 
       // deploy reward pool
       rewardPool18Decimal = await RewardPoolFake.new(
+        '100', // 100 seconds
         rewardToken6Decimal.address,
-        new BN('100000000'), // 100 per block, reward token is 6 decimal place,
         { from: admin }
       )
     })
 
     it("should not affect the pro rata payouts", async () => {
       const totalRewardsInPool = new BN('10000000000')  // 10000
+      // rwardRatePerSecond = 100 / second
 
       // mint reward tokens to pool
       await rewardToken6Decimal.mint(rewardPool18Decimal.address, totalRewardsInPool)
 
-      // accrue some rewards
-      await rewardPool18Decimal.increaseBlockNumber('1')
+      // notify rewards
+      await rewardPool18Decimal.notifyRewardAmount(totalRewardsInPool, { from: admin })
 
       // increase user shares
       await rewardPool18Decimal.increaseShares(user, new BN('1000000000000000000')) // 1
 
-      // rewards per block = 100
-      // user rewards = 100 rewards per block * 1 block = 100 rewards
-      expect(await rewardPool18Decimal.unclaimedRewards.call(user)).to.be.bignumber.equal(new BN('100000000'))
+      // increase time
+      await rewardPool18Decimal.increaseCurrentTime('1')
 
-      // accrue some more rewards
-      await rewardPool18Decimal.increaseBlockNumber('1')
+      // user rewards = rwardRatePerSecond * 1 second = 100 rewards
+      expect(await rewardPool18Decimal.earned.call(user)).to.be.bignumber.equal(new BN('100000000'))
 
-      // user rewards = 100 rewards per block * 2 blocks = 200
-      expect(await rewardPool18Decimal.unclaimedRewards.call(user)).to.be.bignumber.equal(new BN('200000000'))
+      // increase time
+      await rewardPool18Decimal.increaseCurrentTime('1')
+
+      // user rewards = rwardRatePerSecond * 2 second = 200 rewards
+      expect(await rewardPool18Decimal.earned.call(user)).to.be.bignumber.equal(new BN('200000000'))
 
       // user2 enters pool
       await rewardPool18Decimal.increaseShares(user2, new BN('1000000000000000000')) // 1
@@ -397,19 +340,19 @@ describe('RewardPool', function () {
 
       // should not dilute user1 rewards
       // user1 rewards = 100 rewards per block * 2 blocks = 200
-      expect(await rewardPool18Decimal.unclaimedRewards.call(user)).to.be.bignumber.equal(new BN('200000000'))
-      expect(await rewardPool18Decimal.unclaimedRewards.call(user2)).to.be.bignumber.equal('0')
-      expect(await rewardPool18Decimal.unclaimedRewards.call(user3)).to.be.bignumber.equal('0')
+      expect(await rewardPool18Decimal.earned.call(user)).to.be.bignumber.equal(new BN('200000000'))
+      expect(await rewardPool18Decimal.earned.call(user2)).to.be.bignumber.equal('0')
+      expect(await rewardPool18Decimal.earned.call(user3)).to.be.bignumber.equal('0')
 
-      // accrue rewards
-      await rewardPool18Decimal.increaseBlockNumber('1')
+      // increase time
+      await rewardPool18Decimal.increaseCurrentTime('1')
 
       // user1 rewards = 200 + 10 = 210
       // user2 rewards = 0 + 10 = 10
       // user3 rewards = 0 + 80 = 80
-      expect(await rewardPool18Decimal.unclaimedRewards.call(user)).to.be.bignumber.equal(new BN('210000000'))
-      expect(await rewardPool18Decimal.unclaimedRewards.call(user2)).to.be.bignumber.equal(new BN('10000000'))
-      expect(await rewardPool18Decimal.unclaimedRewards.call(user3)).to.be.bignumber.equal(new BN('80000000'))
+      expect(await rewardPool18Decimal.earned.call(user)).to.be.bignumber.equal(new BN('210000000'))
+      expect(await rewardPool18Decimal.earned.call(user2)).to.be.bignumber.equal(new BN('10000000'))
+      expect(await rewardPool18Decimal.earned.call(user3)).to.be.bignumber.equal(new BN('80000000'))
 
       // user 3 exit pool
       await rewardPool18Decimal.decreaseShares(user3, new BN('8000000000000000000'))
@@ -422,15 +365,15 @@ describe('RewardPool', function () {
         ========
       */
 
-      // accrue rewards
-      await rewardPool18Decimal.increaseBlockNumber('1')
+      // increase time
+      await rewardPool18Decimal.increaseCurrentTime('1')
 
       // user1 rewards = 200 + 10 + 50 = 260
       // user2 rewards = 0 + 10 + 50 = 60
       // user3 rewards = 0 + 80 + 0 = 80
-      expect(await rewardPool18Decimal.unclaimedRewards.call(user)).to.be.bignumber.equal(new BN('260000000'))
-      expect(await rewardPool18Decimal.unclaimedRewards.call(user2)).to.be.bignumber.equal(new BN('60000000'))
-      expect(await rewardPool18Decimal.unclaimedRewards.call(user3)).to.be.bignumber.equal(new BN('80000000'))
+      expect(await rewardPool18Decimal.earned.call(user)).to.be.bignumber.equal(new BN('260000000'))
+      expect(await rewardPool18Decimal.earned.call(user2)).to.be.bignumber.equal(new BN('60000000'))
+      expect(await rewardPool18Decimal.earned.call(user3)).to.be.bignumber.equal(new BN('80000000'))
     })
   })
 })

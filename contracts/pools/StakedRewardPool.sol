@@ -20,17 +20,15 @@ contract StakedRewardPool is RewardPool {
     /**
      * @dev StakedRewardPool constructor
      * @param _stakingToken Token to be staked
-     * @param _rewardToken The rewardToken
-     * @param _rewardsPerBlock Reward distribution rate
      */
     constructor(
         address _stakingToken,
-        address _rewardToken,
-        uint256 _rewardsPerBlock
+        uint256 _DURATION,
+        address _rewardToken
     )
         RewardPool (
-            _rewardToken,
-            _rewardsPerBlock
+            _DURATION,
+            _rewardToken
         )
         public
     {
@@ -62,8 +60,8 @@ contract StakedRewardPool is RewardPool {
         public
     {
         require(sharesOf(msg.sender) >= _amount, "STAKED_REWARD_POOL: withdraw insufficient stake");
-        stakingToken.safeTransfer(_beneficiary, _amount);
         _burnShares(msg.sender, _amount);
+        stakingToken.safeTransfer(_beneficiary, _amount);
 
         emit Withdrawn(_beneficiary, _amount, msg.sender);
     }
@@ -75,6 +73,6 @@ contract StakedRewardPool is RewardPool {
         external
     {
         withdraw(msg.sender, sharesOf(msg.sender));
-        claim(msg.sender);
+        claim();
     }
 }

@@ -9,8 +9,8 @@ import "../../pools/ManagedRewardPool.sol";
 contract DELTRewardPool is ManagedRewardPool {
     constructor ()
         ManagedRewardPool (
-            address(0x1dA02F7abbD841C1BaFE9eFe987a72D9008CbB1E), // DELT token address
-            10000000000000000000 // 10 DELTs per block
+            625000, // 7 1/4 days
+            address(0x1dA02F7abbD841C1BaFE9eFe987a72D9008CbB1E) // DELT token address
         )
         public
     {

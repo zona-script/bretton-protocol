@@ -4,15 +4,15 @@ import "../pools/abstract/RewardPool.sol";
 
 // Fake RewardPool with adjustable shares
 contract RewardPoolFake is RewardPool {
-    uint256 fakeBlockNumber = 0;
+    uint256 fakeTimestamp;
 
     constructor(
-        address _rewardToken,
-        uint256 _rewardsPerBlock
+        uint256 _DURATION,
+        address _rewardToken
     )
         RewardPool (
-            _rewardToken,
-            _rewardsPerBlock
+            _DURATION,
+            _rewardToken
         )
         public
     {
@@ -26,11 +26,11 @@ contract RewardPoolFake is RewardPool {
         _burnShares(_account, _amount);
     }
 
-    function increaseBlockNumber(uint256 _blockNumber) public {
-        fakeBlockNumber += _blockNumber;
+    function increaseCurrentTime(uint256 _seconds) public {
+        fakeTimestamp += _seconds;
     }
 
-    function getBlockNumber() public view returns (uint256){
-        return fakeBlockNumber;
+    function getCurrentTimestamp() public view returns (uint256){
+        return fakeTimestamp;
     }
 }

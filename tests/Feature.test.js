@@ -82,13 +82,14 @@ describe('Features', function () {
 
     // deploy managed reward pool
     this.managedRewardPool = await ManagedRewardPool.new(
+      '100', // 100 seconds
       this.DELTToken.address,
-      new BN('10000000000000000000'), // rewardPerBlock rate, 10 mining token distributed per block
       { from: admin }
     )
     // mint DELT for ManagedRewardPool
     this.DELTToken.mint(this.managedRewardPool.address, '10000000000000000000000') // 10000
-
+    // notify rewards
+    await this.managedRewardPool.notifyRewardAmount('10000000000000000000000', { from: admin })
 
     // deploy dTokens
     this.dToken = await dToken.new(
@@ -208,17 +209,17 @@ describe('Features', function () {
 
   it('mine delta token from minting dToken', async () => {
     // record the block of which mining calculation should start
-    const miningStartBlock = await await this.managedRewardPool.lastUpdateBlock.call()
+    const miningStartTime = await await this.managedRewardPool.lastUpdateTime.call()
 
     // mint some dToken
     await this.dToken.mint(user, this.underlyingTwo.address, new BN('10000000000000000000'), { from: user }) // mint 10 dTokens
 
     // record the block of which mining calculation should end
-    const miningEndBlock = await time.latestBlock()
-    const rewardsPerBlock = await this.managedRewardPool.rewardsPerBlock.call()
-    const expectedMiningReward = (miningEndBlock.sub(miningStartBlock)).mul(rewardsPerBlock)
+    const miningEndBlock = await time.latest()
+    const rewardPerSecond = await this.managedRewardPool.rewardPerSecond.call()
+    const expectedMiningReward = (miningEndBlock.sub(miningStartTime)).mul(rewardPerSecond)
     // should have mined DELTToken for minter, who has whole share of pool
-    expect(await this.managedRewardPool.unclaimedRewards.call(user)).to.be.bignumber.equal(expectedMiningReward)
+    expect(await this.managedRewardPool.earned.call(user)).to.be.bignumber.equal(expectedMiningReward)
   })
 
   it.skip('deposit staking token into staking contract and collect earnings', async () => {

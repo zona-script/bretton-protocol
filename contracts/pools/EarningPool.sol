@@ -177,8 +177,8 @@ contract EarningPool is ReentrancyGuard, Ownable, Pool {
      * @return uint256 Underlying token balance
      */
     function calcPoolValueInUnderlying() public view returns (uint256) {
-        return balanceCompoundInUnderlying()
-               .add(balanceInUnderlying());
+        return balanceCompoundInUnderlying() // compound
+               .add(balanceInUnderlying()); // withdraw fee
     }
 
     /**

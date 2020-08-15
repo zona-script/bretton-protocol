@@ -74,8 +74,8 @@ describe('dToken', function () {
 
       // deploy reward pool
       managedRewardPool = await ManagedRewardPool.new(
+        '100',
         rewardToken.address,
-        new BN('100000000000000000000'), // 100 per block, reward token is 18 decimal place,
         { from: admin }
       )
 
@@ -513,8 +513,8 @@ describe('dToken', function () {
 
       // deploy reward pool
       newRewardPool = await ManagedRewardPool.new(
+        '100',
         rewardToken.address,
-        new BN('100000000000000000000'), // 100 per block, reward token is 18 decimal place,
         { from: admin }
       )
 

@@ -1,5 +1,5 @@
 const { accounts, contract, web3 } = require('@openzeppelin/test-environment')
-const { BN, expectEvent, expectRevert } = require('@openzeppelin/test-helpers')
+const { BN, expectEvent, expectRevert, time } = require('@openzeppelin/test-helpers')
 const { expect } = require('chai')
 
 // Load compiled artifacts
@@ -31,8 +31,8 @@ describe('StakedRewardPool', function () {
       // deploy reward pool
       stakedRewardPool = await StakedRewardPool.new(
         stakingToken.address,
+        '100', // 100 seconds
         rewardToken.address,
-        new BN('100000000000000000000'), // 100 per block, reward token is 18 decimal place,
         { from: admin }
       )
   })
@@ -41,7 +41,7 @@ describe('StakedRewardPool', function () {
     it('should initialize state', async () => {
       expect(await stakedRewardPool.stakingToken.call()).to.be.equal(stakingToken.address)
       expect(await stakedRewardPool.rewardToken.call()).to.be.equal(rewardToken.address)
-      expect(await stakedRewardPool.rewardsPerBlock.call()).to.be.bignumber.equal(new BN('100000000000000000000'))
+      expect(await stakedRewardPool.DURATION.call()).to.be.bignumber.equal('100')
     })
   })
 
@@ -117,17 +117,23 @@ describe('StakedRewardPool', function () {
   })
 
   describe('exit', function () {
-    beforeEach(async () => {
+    it('should withdraw all stake and unclaimed rewards', async () => {
+      const timeBefore = await time.latest()
+
       // mint rewards to pool
       await rewardToken.mint(stakedRewardPool.address, '100000000000000000000') // 100
+      // notify rewards
+      await stakedRewardPool.notifyRewardAmount('100000000000000000000', { from: admin })
+
       // populate pool with some stake from user
       await stakingToken.mint(user, '100000000000000000000') // 100
       await stakingToken.approve(stakedRewardPool.address, '100000000000000000000', { from: user }) // 100
       await stakedRewardPool.stake(user, '100000000000000000000', { from: user })
-    })
 
-    it('should withdraw all stake and unclaimed rewards', async () => {
-      const receipt = await stakedRewardPool.exit({ from: user })
+      // increase 1 second block time
+      await time.increaseTo(timeBefore + 1)
+
+      await stakedRewardPool.exit({ from: user })
 
       expect(await stakedRewardPool.sharesOf(user)).to.be.bignumber.equal('0')
       expect(await stakingToken.balanceOf(user)).to.be.bignumber.equal('100000000000000000000')
