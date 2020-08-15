@@ -18,7 +18,7 @@ describe('dToken', function () {
       underlyingTokenOne = await ERC20Fake.new(
         'Underlying Token One',
         'UTO',
-        '18',
+        '6',
         { from: admin }
       )
 
@@ -26,7 +26,7 @@ describe('dToken', function () {
       underlyingTokenTwo = await ERC20Fake.new(
         'Underlying Token Two',
         'UTT',
-        '18',
+        '6',
         { from: admin }
       )
 
@@ -36,7 +36,7 @@ describe('dToken', function () {
         'CTO',
         '18',
         underlyingTokenOne.address,
-        '10000000000000000000', // exchange rate - 10
+        '10000000', // exchange rate - 10
       )
 
       // deploy fake cToken
@@ -45,7 +45,7 @@ describe('dToken', function () {
         'CTT',
         '18',
         underlyingTokenTwo.address,
-        '10000000000000000000', // exchange rate - 10
+        '10000000', // exchange rate - 10
       )
 
       // deploy reward token
@@ -151,9 +151,9 @@ describe('dToken', function () {
         // support underlying two
         await dToken.addEarningPool(earningPoolTwo.address, { from: admin })
         // mint underlying for user
-        await underlyingTokenTwo.mint(user, '100000000000000000000') // 100
+        await underlyingTokenTwo.mint(user, '100000000') // 100
         // approve to dToken
-        await underlyingTokenTwo.approve(dToken.address, '100000000000000000000', { from: user }) // 100
+        await underlyingTokenTwo.approve(dToken.address, '100000000', { from: user }) // 100
 
         // pause underlying one
         await dToken.pause(underlyingTokenOne.address, { from: admin })
@@ -174,12 +174,12 @@ describe('dToken', function () {
       })
 
       it('redeem should work for paused underlying', async () => {
-        await dToken.mint(user, underlyingTokenTwo.address, '100000000000000000000', { from: user })
-        const receipt = await dToken.redeem(user, underlyingTokenTwo.address, '100000000000000000000', { from: user })
+        await dToken.mint(user, underlyingTokenTwo.address, '100000000', { from: user })
+        const receipt = await dToken.redeem(user, underlyingTokenTwo.address, '100000000', { from: user })
         expectEvent(receipt, 'Redeemed', {
           beneficiary: user,
           underlying: underlyingTokenTwo.address,
-          amount: '100000000000000000000',
+          amount: '100000000',
           payer: user
         })
       })
@@ -214,15 +214,16 @@ describe('dToken', function () {
       describe('when user have sufficient underlying tokens', function () {
         beforeEach(async () => {
           // mint underlying for user
-          await underlyingTokenTwo.mint(user, '100000000000000000000') // 100
+          await underlyingTokenTwo.mint(user, '100000000') // 100
           // approve to dToken
-          await underlyingTokenTwo.approve(dToken.address, '100000000000000000000', { from: user }) // 100
+          await underlyingTokenTwo.approve(dToken.address, '100000000', { from: user }) // 100
         })
 
         it('should mint dToken for beneficiary, deposit in earning pool, and mint mining pool shares', async () => {
           // mint
+          const underlyingAmount = new BN('100000000')
           const mintAmount = new BN('100000000000000000000')
-          const receipt = await dToken.mint(beneficiary, underlyingTokenTwo.address, mintAmount, { from: user })
+          const receipt = await dToken.mint(beneficiary, underlyingTokenTwo.address, underlyingAmount, { from: user })
 
           const beneficiaryDTokenBalanceAfter = await dToken.balanceOf(beneficiary)
           const userDTokenBalanceAfter = await dToken.balanceOf(user)
@@ -232,15 +233,15 @@ describe('dToken', function () {
 
           expect(beneficiaryDTokenBalanceAfter).to.be.bignumber.equal(mintAmount)
           expect(userDTokenBalanceAfter).to.be.bignumber.equal('0')
-          expect(earningPoolUnderlyingBalanceAfter).to.be.bignumber.equal(mintAmount)
-          expect(dTokenEarningPoolSharesAfter).to.be.bignumber.equal(mintAmount)
+          expect(earningPoolUnderlyingBalanceAfter).to.be.bignumber.equal(underlyingAmount)
+          expect(dTokenEarningPoolSharesAfter).to.be.bignumber.equal(underlyingAmount)
           expect(beneficiaryMiningPoolSharesAfter).to.be.bignumber.equal(mintAmount)
 
           // event
           expectEvent(receipt, 'Minted', {
             beneficiary: beneficiary,
             underlying: underlyingTokenTwo.address,
-            amount: mintAmount,
+            amount: underlyingAmount,
             payer: user
           })
         })
@@ -285,16 +286,17 @@ describe('dToken', function () {
       describe('when user have sufficient dTokens', function () {
         beforeEach(async () => {
           // mint underlying for user
-          await underlyingTokenTwo.mint(user, '100000000000000000000') // 100
+          await underlyingTokenTwo.mint(user, '100000000') // 100
           // approve to dToken
-          await underlyingTokenTwo.approve(dToken.address, '100000000000000000000', { from: user }) // 100
+          await underlyingTokenTwo.approve(dToken.address, '100000000', { from: user }) // 100
           // mint dToken
-          await dToken.mint(user, underlyingTokenTwo.address, '100000000000000000000', { from: user })
+          await dToken.mint(user, underlyingTokenTwo.address, '100000000', { from: user })
         })
 
         it('should redeem underlying to beneficiary, withdraw from earning pool, and burn mining pool shares', async () => {
           // redeem
-          const redeemAmount = new BN('100000000000000000000')
+          const redeemAmount = new BN('100000000')
+          const dTokenAmount = new BN('100000000000000000000')
           const receipt = await dToken.redeem(beneficiary, underlyingTokenTwo.address, redeemAmount, { from: user })
 
           const beneficiaryUnderlyingBalanceAfter = await underlyingTokenTwo.balanceOf(beneficiary)
@@ -381,11 +383,11 @@ describe('dToken', function () {
       describe('when there is enough underlyingTo in pool', function () {
         beforeEach(async () => {
           // mint underlyingTo for user
-          await underlyingTokenTwo.mint(user, '100000000000000000000')
+          await underlyingTokenTwo.mint(user, '100000000')
           // approve to dToken
-          await underlyingTokenTwo.approve(dToken.address, '100000000000000000000', { from: user }) // 100
+          await underlyingTokenTwo.approve(dToken.address, '100000000', { from: user }) // 100
           // mint dToken for user
-          await dToken.mint(user, underlyingTokenTwo.address, '100000000000000000000', { from: user })
+          await dToken.mint(user, underlyingTokenTwo.address, '100000000', { from: user })
         })
 
         describe('when user does not have sufficient underlyingFrom', function () {
@@ -400,16 +402,16 @@ describe('dToken', function () {
         describe('when user have sufficient underlyingFrom', function () {
           beforeEach(async () => {
             // mint underlyingFrom for user
-            await underlyingTokenOne.mint(user, '100000000000000000000')
+            await underlyingTokenOne.mint(user, '100000000')
             // approve to dToken
-            await underlyingTokenOne.approve(dToken.address, '100000000000000000000', { from: user }) // 100
+            await underlyingTokenOne.approve(dToken.address, '100000000', { from: user }) // 100
           })
 
           it('should swap payer underlyingFrom to underlyingTo to beneficiary', async () => {
             const userMiningPoolSharesBefore = await managedRewardPool.sharesOf(user)
             const beneficiaryMiningPoolSharesBefore = await managedRewardPool.sharesOf(beneficiary)
 
-            const swapAmount = new BN('100000000000000000000')
+            const swapAmount = new BN('100000000')
             const receipt = await dToken.swap(beneficiary, underlyingTokenOne.address, swapAmount, underlyingTokenTwo.address, { from: user })
 
             const userUnderlyingFromAfter = await underlyingTokenOne.balanceOf(user)
@@ -450,13 +452,13 @@ describe('dToken', function () {
   describe('transfer', function () {
     beforeEach(async () => {
       // mint underlying for user
-      await underlyingTokenOne.mint(user, '100000000000000000000')
+      await underlyingTokenOne.mint(user, '100000000')
       // approve to dToken
-      await underlyingTokenOne.approve(dToken.address, '100000000000000000000', { from: user })
+      await underlyingTokenOne.approve(dToken.address, '100000000', { from: user })
       // support underlying in dToken
       await dToken.addEarningPool(earningPoolOne.address, { from: admin })
       // mint dToken for user
-      await dToken.mint(user, underlyingTokenOne.address, '100000000000000000000', { from: user })
+      await dToken.mint(user, underlyingTokenOne.address, '100000000', { from: user })
     })
 
     it('should transfer dToken balance and mining pool shares', async () => {
