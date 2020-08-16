@@ -8,17 +8,23 @@
 - `redeem(address _beneficiary, address _underlying, uint _amount)`
 - `swap(address _beneficiary, address _underlyingFrom, uint _amountFrom, address _underlyingTo)`
 
-## Mining Reward Pool ABI
-- `claim(address _account)` - claim outstanding rewards for an account
-- `rewardsPerBlock()` - get rewards distributed per block
-- `unclaimedRewards(address _account)` - get outstanding rewards available to claim for an account
+## Earning Pool ABI
+- `withdrawFeeFactorMantissa()` - withdraw fee mantissa
+- `underlyingToken()` - underlying token of earning pool
+
+## Reward Pool ABI
+- `claim()` - claim outstanding rewards for msg.sender
+- `rewardPerSecond()` - get rewards distributed per second
+- `rewardPerShare()` - get rewards distributed per share
+- `earned(address _account)` - get outstanding rewards available to claim for an account
 
 ## Testnet Addresses (Ropsten)
-- DETL - `0x1dA02F7abbD841C1BaFE9eFe987a72D9008CbB1E`
-- DELTRewardPool - `0x4e491B012B7E7aAEBe83Fd1788ca97a20f234947`
-- USDCEarningPool - `0xbF37bC6226A44d2017971d5dBa404f34cDc40048`
-- USDTEarningPool - `0x47842daB6819F6B70fA959d5E3F06C7C60218695`
-- dUSD - `0xB1D4d6Df0F7f3EA5B763Be95366e47BC6A562Ff5`
+- DETLToken - `0xBa4f8fCf70085594124D0704C227C2B92d6a7895`
+- dUSDMintRewardPool - `0x8b7bfe20BBa5CcaE9fA7796357263a658c61e892`
+- USDCEarningPool - `0x28f7E2472B74C5F0d8df40c6EB308B3A9334DbfE`
+- USDTEarningPool - `0x37C8D49E6800729db3f63c8dA086cBE7Ea1B7Bae`
+- DAIEarningPool - `0x6075dAfAd453e9002A216cc9c67F9e8B92DfCc66`
+- dUSD - `0xC1a43135d21C3ce061D180017E4F69797CF776e1`
 
 ## Interacting with dToken
 - create `secrets.json` based on `secrets.example.json` and populate with detail
@@ -26,8 +32,8 @@
 
 ## Deployment Steps
 1. Deploy DELT Token
-2. Deploy MiningPool
-3. Mint DELT to MiningPool
-4. Earning Pools
-5. dToken
-6. promote dToken as MiningPool manager
+2. Deploy dUSDMintRewardPool (update DELT token reference)
+3. Deploy Earning Pools
+4. Deploy dUSD (update reward pool and earning pool reference)
+5. Promote dUSD as dUSDMintRewardPool manager
+6. Mint and notify DELT to dUSDMintRewardPool

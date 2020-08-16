@@ -16,14 +16,17 @@ async function main() {
   const USDCPoolAddress = proxies['Delta Protocol/USDCPool'][proxies['Delta Protocol/USDCPool'].length - 1]['address']
   const USDCPool = loader.fromArtifact('EarningPool', USDCPoolAddress)
 
-  const USDTPoolAddress = proxies['Delta Protocol/USDTPool'][proxies['Delta Protocol/USDCPool'].length - 1]['address']
+  const USDTPoolAddress = proxies['Delta Protocol/USDTPool'][proxies['Delta Protocol/USDTPool'].length - 1]['address']
   const USDTPool = loader.fromArtifact('EarningPool', USDTPoolAddress)
+
+  const DAIPoolAddress = proxies['Delta Protocol/DAIPool'][proxies['Delta Protocol/DAIPool'].length - 1]['address']
+  const DAIPool = loader.fromArtifact('EarningPool', DAIPoolAddress)
 
   const dUSDAddress = proxies['Delta Protocol/dUSD'][proxies['Delta Protocol/dUSD'].length - 1]['address']
   const dUSD = loader.fromArtifact('dUSD', dUSDAddress)
 
-  const DELTRewardPoolAddress = proxies['Delta Protocol/DELTRewardPool'][proxies['Delta Protocol/DELTRewardPool'].length - 1]['address']
-  const deltRewardPool = loader.fromArtifact('DELTRewardPool', DELTRewardPoolAddress)
+  const dUSDMintRewardPoolAddress = proxies['Delta Protocol/dUSDMintRewardPool'][proxies['Delta Protocol/dUSDMintRewardPool'].length - 1]['address']
+  const deltRewardPool = loader.fromArtifact('dUSDMintRewardPool', dUSDMintRewardPoolAddress)
 
 
   console.log('\n')
@@ -41,7 +44,7 @@ async function main() {
   const USDCPoolValue = await USDCPool.methods.calcPoolValueInUnderlying().call() / 1e6 // USDC is 6 decimal place
   console.log('Total USDC value in USDCPool is: ' + USDCPoolValue)
   // get interest accured
-  const USDCInterestEarned = await USDCPool.methods.calcUnclaimedEarningInUnderlying().call() // don't scale decimal as the number can be very small
+  const USDCInterestEarned = await USDCPool.methods.calcUndispensedEarningInUnderlying().call() // don't scale decimal as the number can be very small
   console.log('Total unclaimed USDC interest * 1e6 in USDCPool is: ' + USDCInterestEarned)
 
 
@@ -54,9 +57,21 @@ async function main() {
   const USDTPoolValue = await USDTPool.methods.calcPoolValueInUnderlying().call() / 1e6 // USDT is 6 decimal place
   console.log('Total USDT value in USDTPool is: ' + USDTPoolValue)
   // get interest accured
-  const USDTInterestEarned = await USDTPool.methods.calcUnclaimedEarningInUnderlying().call() // don't scale decimal as the number can be very small
+  const USDTInterestEarned = await USDTPool.methods.calcUndispensedEarningInUnderlying().call() // don't scale decimal as the number can be very small
   console.log('Total unclaimed USDT interest * 1e6 in USDTPool is: ' + USDTInterestEarned)
 
+
+  // DAI Pool
+  console.log('=========DAI POOL STATS=========')
+  // get total supply
+  const DAIPoolTotalSupply = await DAIPool.methods.totalShares().call() / 1e18 // DAI is 18 decimal place
+  console.log('Total DAIPool supply is: ' + DAIPoolTotalSupply)
+  // get total pool value
+  const DAIPoolValue = await DAIPool.methods.calcPoolValueInUnderlying().call() / 1e18 // DAI is 18 decimal place
+  console.log('Total DAI value in DAIPool is: ' + DAIPoolValue)
+  // get interest accured
+  const DAIInterestEarned = await DAIPool.methods.calcUndispensedEarningInUnderlying().call() // don't scale decimal as the number can be very small
+  console.log('Total unclaimed DAI interest * 1e6 in DAIPool is: ' + DAIInterestEarned)
 
   /***************************************
                 DTOKENS
@@ -73,12 +88,12 @@ async function main() {
   ****************************************/
 
   console.log('=========DELT REWARD POOL STATS=========')
-  const rewardsPerBlock = await deltRewardPool.methods.rewardsPerBlock().call() / 1e18 // 18 decimal place
-  console.log('Pool current rewardsPerBlock is: ' + rewardsPerBlock)
-  const rewardsPerShare = await deltRewardPool.methods.rewardsPerShare().call() / 1e18 // scaled
-  console.log('Pool current rewardsPerShare is: ' + rewardsPerShare)
-  const unclaimed = await deltRewardPool.methods.unclaimedRewards(account.address).call() / 1e18 // 18 decimal place
-  console.log('My current unclaimed reward balance is: ' + unclaimed)
+  const rewardPerSecond = await deltRewardPool.methods.rewardPerSecond().call() / 1e18 // 18 decimal place
+  console.log('Pool current rewardPerSecond is: ' + rewardPerSecond)
+  const rewardPerShare = await deltRewardPool.methods.rewardPerShare().call() / 1e18 // scaled
+  console.log('Pool current rewardPerShare is: ' + rewardPerShare)
+  const earned = await deltRewardPool.methods.earned(account.address).call() / 1e18 // 18 decimal place
+  console.log('My current earned reward balance is: ' + earned)
 
   console.log('\n')
 }

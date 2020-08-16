@@ -2,39 +2,81 @@
   "contracts": {},
   "solidityLibs": {},
   "proxies": {
-    "Delta Protocol/ERC20Fake": [
+    "Delta Protocol/DELTToken": [
       {
-        "address": "0x1dA02F7abbD841C1BaFE9eFe987a72D9008CbB1E",
+        "address": "0x9E789A1015006aA63C932A2C3f0bF02dD00D8adf",
         "kind": "NonProxy",
-        "bytecodeHash": "08035b489038157281523397e71ca4e2bed2103e0d4ab1bf6616930fef8fffbc"
+        "bytecodeHash": "53bd3ed5c52acf85c25624e899e962456e8f6268163f9099b8150c3c3a59d386"
+      },
+      {
+        "address": "0xBa4f8fCf70085594124D0704C227C2B92d6a7895",
+        "kind": "NonProxy",
+        "bytecodeHash": "53bd3ed5c52acf85c25624e899e962456e8f6268163f9099b8150c3c3a59d386"
       }
     ],
-    "Delta Protocol/DELTRewardPool": [
+    "Delta Protocol/dUSDMintRewardPool": [
       {
-        "address": "0x4e491B012B7E7aAEBe83Fd1788ca97a20f234947",
+        "address": "0xD66c12c18a4533Ee84a49Af20e9A1F1412F9C39C",
         "kind": "NonProxy",
-        "bytecodeHash": "1bb149c6beca8145a0d56660f6061f5c92d526eeb747b1c97b50847bdadaecac"
+        "bytecodeHash": "fce6154dbf2df618bff46f2692d226d7e5fe3f6a7aa821d1618390019decfcb6"
+      },
+      {
+        "address": "0x6BBB694C03C56a5B6F3A620ee48B99B7d339098A",
+        "kind": "NonProxy",
+        "bytecodeHash": "fce6154dbf2df618bff46f2692d226d7e5fe3f6a7aa821d1618390019decfcb6"
+      },
+      {
+        "address": "0x8b7bfe20BBa5CcaE9fA7796357263a658c61e892",
+        "kind": "NonProxy",
+        "bytecodeHash": "ae052a30ec72133c0b0e8aae9558e2d18ebe4c2df06d99743711e17caf1813ff"
       }
     ],
     "Delta Protocol/USDCPool": [
       {
-        "address": "0xbF37bC6226A44d2017971d5dBa404f34cDc40048",
+        "address": "0x97C42f2De68A9B906161E1f74585c27659d9E9D9",
         "kind": "NonProxy",
-        "bytecodeHash": "14625374c21dbe77ffc304d64234984ce737ac1e11c7313d485f53b2efd22717"
+        "bytecodeHash": "d92986b2083546f11c5dce75ec8a4c7ea5b65923d8a3aec37d74173c70a6c3bf"
+      },
+      {
+        "address": "0x28f7E2472B74C5F0d8df40c6EB308B3A9334DbfE",
+        "kind": "NonProxy",
+        "bytecodeHash": "d92986b2083546f11c5dce75ec8a4c7ea5b65923d8a3aec37d74173c70a6c3bf"
       }
     ],
     "Delta Protocol/USDTPool": [
       {
-        "address": "0x47842daB6819F6B70fA959d5E3F06C7C60218695",
+        "address": "0x7a2B08BF9a62b18b1Afaf458E501eede5019aD10",
         "kind": "NonProxy",
-        "bytecodeHash": "9d897f86e3eda9a9c591e5dab2104c9f9a9afd846a2583c35ffa0af48c0244fb"
+        "bytecodeHash": "e3a39e36354017477847cb50739b54489961735629a3412044e8ea68cf6cb15e"
+      },
+      {
+        "address": "0x37C8D49E6800729db3f63c8dA086cBE7Ea1B7Bae",
+        "kind": "NonProxy",
+        "bytecodeHash": "e3a39e36354017477847cb50739b54489961735629a3412044e8ea68cf6cb15e"
+      }
+    ],
+    "Delta Protocol/DAIPool": [
+      {
+        "address": "0x5EE99A3B4C9091e99726262dDfe6078350Eef9B4",
+        "kind": "NonProxy",
+        "bytecodeHash": "d3c6b0d1833f645ed5892364354e4a179a3d2b26a4bf7db4d0d2df33318b77e8"
+      },
+      {
+        "address": "0x6075dAfAd453e9002A216cc9c67F9e8B92DfCc66",
+        "kind": "NonProxy",
+        "bytecodeHash": "d3c6b0d1833f645ed5892364354e4a179a3d2b26a4bf7db4d0d2df33318b77e8"
       }
     ],
     "Delta Protocol/dUSD": [
       {
-        "address": "0xB1D4d6Df0F7f3EA5B763Be95366e47BC6A562Ff5",
+        "address": "0x0a54De864767405919f13D9EFe06Ac4c7F6e5b1c",
         "kind": "NonProxy",
-        "bytecodeHash": "e8cae5bd2028113bfd802f57fbb62f312e9e2c276dc03ae2c73fe9eefcc2bc1a"
+        "bytecodeHash": "f780d16ef6db5914c632aaf40491280d45d52faa289b286e6b4936938aac0b16"
+      },
+      {
+        "address": "0xC1a43135d21C3ce061D180017E4F69797CF776e1",
+        "kind": "NonProxy",
+        "bytecodeHash": "025fb4b11bccd1393ad3ee16d42467e7a3bd3a1523313bc5037708471d411cb7"
       }
     ]
   },

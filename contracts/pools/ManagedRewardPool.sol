@@ -8,7 +8,7 @@ import "./abstract/RewardPool.sol";
  */
 contract ManagedRewardPool is RewardPool {
 
-    mapping(address => bool) public isManager;
+    mapping(address => bool) public managers;
 
     event Promoted(address indexed manager);
     event Demoted(address indexed manager);
@@ -26,7 +26,7 @@ contract ManagedRewardPool is RewardPool {
     }
 
     modifier onlyManager() {
-        require(isManager[msg.sender], "MANAGED_REWARD_POOL: caller is not a manager");
+        require(isManager(msg.sender), "MANAGED_REWARD_POOL: caller is not a manager");
         _;
     }
 
@@ -46,13 +46,21 @@ contract ManagedRewardPool is RewardPool {
         _burnShares(_account, _amount);
     }
 
+    function isManager(address _account)
+        public
+        view
+        returns (bool)
+    {
+        return managers[_account];
+    }
+
     /*** ADMIN ***/
 
     function promote(address _address)
         external
         onlyOwner
     {
-        isManager[_address] = true;
+        managers[_address] = true;
 
         emit Promoted(_address);
     }
@@ -61,7 +69,7 @@ contract ManagedRewardPool is RewardPool {
         external
         onlyOwner
     {
-        isManager[_address] = false;
+        managers[_address] = false;
 
         emit Demoted(_address);
     }
