@@ -314,9 +314,11 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
         if (fromTokenDecimalPlace > toTokenDecimalPlace) {
             scaleFactor = fromTokenDecimalPlace.sub(toTokenDecimalPlace);
             toTokenAmount = _fromAmount.div(uint(10**scaleFactor)); // expect precision loss
-        } else {
+        } else if (toTokenDecimalPlace > fromTokenDecimalPlace) {
             scaleFactor = toTokenDecimalPlace.sub(fromTokenDecimalPlace);
             toTokenAmount = _fromAmount.mul(uint(10**(scaleFactor)));
+        } else {
+            toTokenAmount = _fromAmount;
         }
         return toTokenAmount;
     }

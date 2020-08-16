@@ -565,7 +565,160 @@ describe('dToken', function () {
     })
   })
 
-  describe.skip('different decimal places', function () {
+  describe('different decimal places', function () {
+    let newDToken, fakeRewardToken, newRewardPool
+    let underlying6, cToken6, earningPool6
+    let underlying20, cToken20, earningPool20
+    let underlying18, cToken18, earningPool18
 
+    beforeEach(async () => {
+      // deploy fake reward token
+      fakeRewardToken = await ERC20Fake.new(
+        'Reward Token',
+        'RTT',
+        '18',
+        { from: admin }
+      )
+
+      // deploy reward pool
+      newRewardPool = await ManagedRewardPool.new(
+        '100',
+        rewardToken.address,
+        { from: admin }
+      )
+
+      /*** 6 DECIMAL ***/
+
+      // deploy underlying token
+      underlying6 = await ERC20Fake.new(
+        'Underlying Token One',
+        'UTO',
+        '6',
+        { from: admin }
+      )
+
+      // deploy fake cToken
+      cToken6 = await CompoundFake.new(
+        'Compound CToken One',
+        'CTO',
+        '6',
+        underlying6.address,
+        '10000000', // exchange rate - 10
+      )
+
+      // deploy earning pool
+      earningPool6 = await EarningPoolFake.new(
+        underlying6.address,
+        fakeRewardToken.address,
+        cToken6.address,
+        { from: admin }
+      )
+
+      /*** 20 DECIMAL ***/
+
+      // deploy underlying token
+      underlying20 = await ERC20Fake.new(
+        'Underlying Token One',
+        'UTO',
+        '20',
+        { from: admin }
+      )
+
+      // deploy fake cToken
+      cToken20 = await CompoundFake.new(
+        'Compound CToken One',
+        'CTO',
+        '20',
+        underlying20.address,
+        '10000000', // exchange rate - 10
+      )
+
+      // deploy earning pool
+      earningPool20 = await EarningPoolFake.new(
+        underlying20.address,
+        fakeRewardToken.address,
+        cToken20.address,
+        { from: admin }
+      )
+
+      /*** 18 DECIMAL ***/
+
+      // deploy underlying token
+      underlying18 = await ERC20Fake.new(
+        'Underlying Token One',
+        'UTO',
+        '18',
+        { from: admin }
+      )
+
+      // deploy fake cToken
+      cToken18 = await CompoundFake.new(
+        'Compound CToken One',
+        'CTO',
+        '18',
+        underlying18.address,
+        '10000000', // exchange rate - 10
+      )
+
+      // deploy earning pool
+      earningPool18 = await EarningPoolFake.new(
+        underlying18.address,
+        fakeRewardToken.address,
+        cToken18.address,
+        { from: admin }
+      )
+
+      // deploy dToken
+      newDToken = await DToken.new(
+        'new dToken',
+        'NDTK',
+        '18',
+        [earningPool6.address, earningPool20.address, earningPool18.address],
+        newRewardPool.address,
+        { from: admin }
+      )
+      // add dToken as manager in reward pool
+      await newRewardPool.promote(newDToken.address, { from: admin })
+
+
+      // mint underlying6 for user
+      await underlying6.mint(user, '100000000') // 100
+      // approve to newDToken
+      await underlying6.approve(newDToken.address, '115792089237316195423570985008687907853269984665640564039457584007913129639935', { from: user }) // infinite
+
+      // mint underlying20 for user
+      await underlying20.mint(user, '10000000000000000000000') // 100
+      // approve to newDToken
+      await underlying20.approve(newDToken.address, '115792089237316195423570985008687907853269984665640564039457584007913129639935', { from: user }) // infinite
+
+      // mint underlying18 for user
+      await underlying18.mint(user, '100000000000000000000') // 100
+      // approve to newDToken
+      await underlying18.approve(newDToken.address, '115792089237316195423570985008687907853269984665640564039457584007913129639935', { from: user }) // infinite
+    })
+
+    it('should allow mint, swap and redeem for underlying with different decimal precision', async () => {
+      /*** MINT ***/
+      await newDToken.mint(user, underlying6.address, '100000000', { from: user })
+      await newDToken.mint(user, underlying18.address, '100000000000000000000', { from: user })
+      await newDToken.mint(user, underlying20.address, '10000000000000000000000', { from: user })
+      // check balances
+      expect(await newDToken.balanceOf(user)).to.be.bignumber.equal('300000000000000000000') // 300
+
+      /*** REDEEM ***/
+      await newDToken.redeem(user, underlying6.address, '100000000', { from: user })
+      // check balances
+      expect(await newDToken.balanceOf(user)).to.be.bignumber.equal('200000000000000000000') // 200
+      expect(await underlying6.balanceOf(user)).to.be.bignumber.equal('100000000') // 100
+
+      /*** SWAP ***/
+      await newDToken.swap(user, underlying6.address, '100000000', underlying18.address, { from: user })
+      // check balances
+      expect(await newDToken.balanceOf(user)).to.be.bignumber.equal('200000000000000000000') // 200
+      expect(await underlying6.balanceOf(user)).to.be.bignumber.equal('0')
+      expect(await underlying18.balanceOf(user)).to.be.bignumber.equal('100000000000000000000') // 100
+
+      /*** REDEEM ALL ***/
+    })
   })
 })
