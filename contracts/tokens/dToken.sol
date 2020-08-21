@@ -155,21 +155,6 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
         emit Swapped(_beneficiary, _underlyingFrom, _amountFrom, _underlyingTo, amountTo, msg.sender);
     }
 
-    /**
-     * @dev Overrides parent ERC20 transfer function to update reward for sender and recipient
-     * @param _recipient Address to recieve transfer
-     * @param _amount Amount to transfer
-     * @return bool Is transfer successful
-     */
-    function transfer(address _recipient, uint256 _amount)
-        public
-        returns (bool)
-    {
-        managedRewardPool.burnShares(msg.sender, _amount);
-        managedRewardPool.mintShares(_recipient, _amount);
-        return super.transfer(_recipient, _amount);
-    }
-
     /*** VIEW ***/
 
     /**
@@ -337,5 +322,20 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
         _approveUnderlyingToEarningPool(pool.underlyingToken(), _earningPool);
 
         emit EarningPoolAdded(_earningPool, pool.underlyingToken());
+    }
+
+    /**
+     * @dev Overrides parent ERC20 _transfer function to update reward for sender and recipient
+     * @param _sender Sender of transfer
+     * @param _recipient Address to recieve transfer
+     * @param _amount Amount to transfer
+     * @return bool Is transfer successful
+     */
+    function _transfer(address _sender, address _recipient, uint256 _amount)
+        internal
+    {
+        managedRewardPool.burnShares(_sender, _amount);
+        managedRewardPool.mintShares(_recipient, _amount);
+        super._transfer(_sender, _recipient, _amount);
     }
 }

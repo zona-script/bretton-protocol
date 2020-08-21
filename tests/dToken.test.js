@@ -461,19 +461,39 @@ describe('dToken', function () {
       await dToken.mint(user, underlyingTokenOne.address, '100000000', { from: user })
     })
 
-    it('should transfer dToken balance and mining pool shares', async () => {
-      const transferAmount = new BN('100000000000000000000')
-      await dToken.transfer(recipient, transferAmount, { from: user })
+    describe('on transfer', function () {
+      it('should transfer dToken balance and mining pool shares', async () => {
+        const transferAmount = new BN('100000000000000000000')
+        await dToken.transfer(recipient, transferAmount, { from: user })
 
-      const recipientBalanceAfter = await dToken.balanceOf(recipient)
-      const recipientMiningPoolSharesAfter = await managedRewardPool.sharesOf(recipient)
-      const userBalanceAfter = await dToken.balanceOf(user)
-      const userMiningPoolSharesAfter = await managedRewardPool.sharesOf(user)
+        const recipientBalanceAfter = await dToken.balanceOf(recipient)
+        const recipientMiningPoolSharesAfter = await managedRewardPool.sharesOf(recipient)
+        const userBalanceAfter = await dToken.balanceOf(user)
+        const userMiningPoolSharesAfter = await managedRewardPool.sharesOf(user)
 
-      expect(recipientBalanceAfter).to.be.bignumber.equal(transferAmount)
-      expect(recipientMiningPoolSharesAfter).to.be.bignumber.equal(transferAmount)
-      expect(userBalanceAfter).to.be.bignumber.equal('0')
-      expect(userMiningPoolSharesAfter).to.be.bignumber.equal('0')
+        expect(recipientBalanceAfter).to.be.bignumber.equal(transferAmount)
+        expect(recipientMiningPoolSharesAfter).to.be.bignumber.equal(transferAmount)
+        expect(userBalanceAfter).to.be.bignumber.equal('0')
+        expect(userMiningPoolSharesAfter).to.be.bignumber.equal('0')
+      })
+    })
+
+    describe('on transferFrom', function () {
+      it('should transfer dToken balance and mining pool shares', async () => {
+        const transferAmount = new BN('100000000000000000000')
+        await dToken.approve(recipient, transferAmount, { from: user })
+        await dToken.transferFrom(user, recipient, transferAmount, { from: recipient })
+
+        const recipientBalanceAfter = await dToken.balanceOf(recipient)
+        const recipientMiningPoolSharesAfter = await managedRewardPool.sharesOf(recipient)
+        const userBalanceAfter = await dToken.balanceOf(user)
+        const userMiningPoolSharesAfter = await managedRewardPool.sharesOf(user)
+
+        expect(recipientBalanceAfter).to.be.bignumber.equal(transferAmount)
+        expect(recipientMiningPoolSharesAfter).to.be.bignumber.equal(transferAmount)
+        expect(userBalanceAfter).to.be.bignumber.equal('0')
+        expect(userMiningPoolSharesAfter).to.be.bignumber.equal('0')
+      })
     })
   })
 
