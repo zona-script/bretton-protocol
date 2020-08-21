@@ -264,15 +264,15 @@ contract EarningPool is ReentrancyGuard, Ownable, Pool {
         // Withdraw underlying from provider
         _withdrawFromProvider(_amount);
 
+        // decrease pool shares from payer
+        _decreaseShares(msg.sender, _amount);
+        
         // Collect withdraw fee
         uint256 withdrawFee = _amount.mul(withdrawFeeFactorMantissa).div(1e18);
         uint256 withdrawAmountLessFee = _amount.sub(withdrawFee);
 
         // Transfer underlying to beneficiary
         IERC20(underlyingToken).safeTransfer(_beneficiary, withdrawAmountLessFee);
-
-        // decrease pool shares from payer
-        _decreaseShares(msg.sender, _amount);
 
         emit Withdrawn(_beneficiary, withdrawAmountLessFee, msg.sender);
     }

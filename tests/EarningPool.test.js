@@ -146,14 +146,14 @@ describe('EarningPool', function () {
 
     describe('when there is withdraw fee', function () {
       beforeEach(async () => {
-        // set withdraw fee to 10%
-        const withdrawFeeFactorMantissa = '100000000000000000'
+        // set withdraw fee to 0.1%
+        const withdrawFeeFactorMantissa = '1000000000000000'
         await earningPool.setWithdrawFeeFactor(withdrawFeeFactorMantissa, { from: admin })
       })
 
       it('should withdraw to beneficiary and collect fee in pool', async () => {
         const withdrawAmount = new BN('100000000') // 100
-        const withdrawFee = new BN('10000000') // 10
+        const withdrawFee = new BN('100000') // 0.1
         await earningPool.withdraw(beneficiary, withdrawAmount, { from: payer })
 
         // should withdraw from provider
