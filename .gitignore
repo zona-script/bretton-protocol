@@ -5,3 +5,4 @@ secrets.json
 # OpenZeppelin
 .openzeppelin/dev-*.json
 .openzeppelin/.session
+.env

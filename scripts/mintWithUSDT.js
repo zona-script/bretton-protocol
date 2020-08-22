@@ -1,5 +1,5 @@
 const { ropstenProjectId, accountPrivateKey } = require('../secrets.json')
-const { proxies } = require('../.openzeppelin/ropsten.json')
+const dUSDABI = require('../build/contracts/dUSD.json')
 
 const Web3 = require('web3')
 const { setupLoader } = require('@openzeppelin/contract-loader')
@@ -13,7 +13,7 @@ async function main() {
   const loader = setupLoader({ provider: web3 }).web3
 
   // load addresses and contract from oz deployed project
-  const dUSDAddress = proxies['Delta Protocol/dUSD'][proxies['Delta Protocol/dUSD'].length - 1]['address']
+  const dUSDAddress = dUSDABI.networks[3].address
   const dUSD = loader.fromArtifact('dUSD', dUSDAddress)
 
   const USDTAddress = '0x516de3a7A567d81737e3a46ec4FF9cFD1fcb0136'

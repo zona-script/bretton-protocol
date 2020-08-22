@@ -2,7 +2,7 @@
   "manifestVersion": "2.2",
   "contracts": {},
   "dependencies": {},
-  "name": "Delta Protocol",
+  "name": "bretton-protocol",
   "version": "1.0.0",
   "compiler": {
     "compilerSettings": {
@@ -14,10 +14,8 @@
     "typechain": {
       "enabled": false
     },
-    "manager": "openzeppelin",
-    "solcVersion": "0.5.16",
+    "manager": "truffle",
     "artifactsDir": "build/contracts",
     "contractsDir": "contracts"
-  },
-  "telemetryOptIn": true
+  }
 }

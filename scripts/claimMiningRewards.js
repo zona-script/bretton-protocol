@@ -1,5 +1,6 @@
 const { ropstenProjectId, accountPrivateKey } = require('../secrets.json')
-const { proxies } = require('../.openzeppelin/ropsten.json')
+const RewardPoolABI = require('../build/contracts/dUSDMintRewardPool.json')
+const DELTTokenABI = require('../build/contracts/DELTToken.json')
 
 const Web3 = require('web3')
 const { setupLoader } = require('@openzeppelin/contract-loader')
@@ -13,11 +14,11 @@ async function main() {
   const loader = setupLoader({ provider: web3 }).web3
 
   // load addresses and contract from oz deployed project
-  const dUSDMintRewardPoolAddress = proxies['Delta Protocol/dUSDMintRewardPool'][proxies['Delta Protocol/dUSDMintRewardPool'].length - 1]['address']
+  const dUSDMintRewardPoolAddress = RewardPoolABI.networks[3].address
   const deltRewardPool = loader.fromArtifact('dUSDMintRewardPool', dUSDMintRewardPoolAddress)
 
-  const DELTTokenAddress = proxies['Delta Protocol/ERC20Fake'][proxies['Delta Protocol/ERC20Fake'].length - 1]['address']
-  const DELT = loader.fromArtifact('ERC20Fake', DELTTokenAddress)
+  const DELTTokenAddress = DELTTokenABI.networks[3].address
+  const DELT = loader.fromArtifact('DELTToken', DELTTokenAddress)
 
   console.log('\n')
 

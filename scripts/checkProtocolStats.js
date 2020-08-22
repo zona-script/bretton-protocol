@@ -1,5 +1,9 @@
 const { ropstenProjectId, accountPrivateKey } = require('../secrets.json')
-const { proxies } = require('../.openzeppelin/ropsten.json')
+const USDCPoolABI = require('../build/contracts/USDCPool.json')
+const USDTPoolABI = require('../build/contracts/USDTPool.json')
+const DAIPoolABI = require('../build/contracts/DAIPool.json')
+const dUSDABI = require('../build/contracts/dUSD.json')
+const dUSDMintRewardPoolABI = require('../build/contracts/dUSDMintRewardPool.json')
 
 const Web3 = require('web3')
 const { setupLoader } = require('@openzeppelin/contract-loader')
@@ -13,20 +17,15 @@ async function main() {
   const loader = setupLoader({ provider: web3 }).web3
 
   // load addresses and contract from oz deployed project
-  const USDCPoolAddress = proxies['Delta Protocol/USDCPool'][proxies['Delta Protocol/USDCPool'].length - 1]['address']
-  const USDCPool = loader.fromArtifact('EarningPool', USDCPoolAddress)
+  const USDCPool = loader.fromArtifact('EarningPool', USDCPoolABI.networks[3].address)
 
-  const USDTPoolAddress = proxies['Delta Protocol/USDTPool'][proxies['Delta Protocol/USDTPool'].length - 1]['address']
-  const USDTPool = loader.fromArtifact('EarningPool', USDTPoolAddress)
+  const USDTPool = loader.fromArtifact('EarningPool', USDTPoolABI.networks[3].address)
 
-  const DAIPoolAddress = proxies['Delta Protocol/DAIPool'][proxies['Delta Protocol/DAIPool'].length - 1]['address']
-  const DAIPool = loader.fromArtifact('EarningPool', DAIPoolAddress)
+  const DAIPool = loader.fromArtifact('EarningPool', DAIPoolABI.networks[3].address)
 
-  const dUSDAddress = proxies['Delta Protocol/dUSD'][proxies['Delta Protocol/dUSD'].length - 1]['address']
-  const dUSD = loader.fromArtifact('dUSD', dUSDAddress)
+  const dUSD = loader.fromArtifact('dUSD', dUSDABI.networks[3].address)
 
-  const dUSDMintRewardPoolAddress = proxies['Delta Protocol/dUSDMintRewardPool'][proxies['Delta Protocol/dUSDMintRewardPool'].length - 1]['address']
-  const deltRewardPool = loader.fromArtifact('dUSDMintRewardPool', dUSDMintRewardPoolAddress)
+  const deltRewardPool = loader.fromArtifact('dUSDMintRewardPool', dUSDMintRewardPoolABI.networks[3].address)
 
 
   console.log('\n')
