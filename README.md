@@ -1,9 +1,9 @@
-# Delta Protocol
+# Bretton Protocol
 
 ## Run Test
 - `npm test`
 
-## dToken ABI
+## nToken ABI
 - `mint(address _beneficiary, address _underlying, uint _amount)`
 - `redeem(address _beneficiary, address _underlying, uint _amount)`
 - `swap(address _beneficiary, address _underlyingFrom, uint _amountFrom, address _underlyingTo)`
@@ -19,21 +19,13 @@
 - `earned(address _account)` - get outstanding rewards available to claim for an account
 
 ## Testnet Addresses (Ropsten)
-- DETLToken - `0xBa4f8fCf70085594124D0704C227C2B92d6a7895`
-- dUSDMintRewardPool - `0x8b7bfe20BBa5CcaE9fA7796357263a658c61e892`
-- USDCEarningPool - `0x28f7E2472B74C5F0d8df40c6EB308B3A9334DbfE`
-- USDTEarningPool - `0x37C8D49E6800729db3f63c8dA086cBE7Ea1B7Bae`
-- DAIEarningPool - `0x6075dAfAd453e9002A216cc9c67F9e8B92DfCc66`
-- dUSD - `0xC1a43135d21C3ce061D180017E4F69797CF776e1`
+- BRETToken - `0xDD3caA4006a8cb16F2b3070E7C963280334cd049`
+- nUSDMintRewardPool - `0x1a7E6671B8561e5fe29EA2eCf57aBe3EB36cc993`
+- USDCEarningPool - `0x527362Ec7c8FC1425CA8d684b4398F70dB0aD8D9`
+- USDTEarningPool - `0x1f18e01DC1A3fA08a72894F98b1770dEC67380FA`
+- DAIEarningPool - `0xd38A5236C9430506e04EB1Edea27fBC75328ab2b`
+- nUSD - `0x9fCed6a889696F4b43BDA52E9dc6601E805a31e8`
 
-## Interacting with dToken
+## Interacting with nToken
 - create `secrets.json` based on `secrets.example.json` and populate with detail
 - run desired scripts with `node scripts/...`
-
-## Deployment Steps
-1. Deploy DELT Token
-2. Deploy dUSDMintRewardPool (update DELT token reference)
-3. Deploy Earning Pools
-4. Deploy dUSD (update reward pool and earning pool reference)
-5. Promote dUSD as dUSDMintRewardPool manager
-6. Mint and notify DELT to dUSDMintRewardPool

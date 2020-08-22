@@ -12,11 +12,11 @@ import "../interfaces/EarningPoolInterface.sol";
 import "../interfaces/ManagedRewardPoolInterface.sol";
 
 /**
- * @title dToken
- * @dev dToken are collateralized assets pegged to a specific value.
+ * @title nToken
+ * @dev nToken are collateralized assets pegged to a specific value.
  *      Collaterals are EarningPool shares
  */
-contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
+contract nToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
     using SafeERC20 for IERC20;
     using SafeMath for uint256;
 
@@ -37,10 +37,10 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
     event Unpause(address indexed underlying);
 
     /**
-     * @dev dToken constructor
-     * @param _name Name of dToken
-     * @param _symbol Symbol of dToken
-     * @param _decimals Decimal place of dToken
+     * @dev nToken constructor
+     * @param _name Name of nToken
+     * @param _symbol Symbol of nToken
+     * @param _decimals Decimal place of nToken
      * @param _earningPools List of earning pools to supply underlying token to
      */
     constructor (
@@ -53,7 +53,7 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
         ERC20Detailed(_name, _symbol, _decimals)
         public
     {
-        require(_managedRewardPool != address(0), "DTOKEN: reward pool address cannot be zero");
+        require(_managedRewardPool != address(0), "NTOKEN: reward pool address cannot be zero");
         managedRewardPool = ManagedRewardPoolInterface(_managedRewardPool);
 
         for (uint i=0; i<_earningPools.length; i++) {
@@ -65,7 +65,7 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
      * @dev Modifier to make a function callable only when the underlying is not paused.
      */
     modifier whenNotPaused(address _underlying) {
-      require(!paused[_underlying], "DTOKEN: underlying is paused");
+      require(!paused[_underlying], "NTOKEN: underlying is paused");
       _;
     }
 
@@ -73,14 +73,14 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
      * @dev Modifier to make a function callable only when the contract is paused.
      */
     modifier whenPaused(address _underlying) {
-      require(paused[_underlying], "DTOKEN: underlying is not paused");
+      require(paused[_underlying], "NTOKEN: underlying is not paused");
       _;
     }
 
     /*** PUBLIC ***/
 
     /**
-     * @dev Mint dToken using underlying
+     * @dev Mint nToken using underlying
      * @param _beneficiary Address of beneficiary
      * @param _underlying Token supplied for minting
      * @param _underlyingAmount Amount of _underlying
@@ -98,7 +98,7 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
     }
 
     /**
-     * @dev Redeem dToken to underlying
+     * @dev Redeem nToken to underlying
      * @param _beneficiary Address of beneficiary
      * @param _underlying Token withdrawn for redeeming
      * @param _underlyingAmount Amount of _underlying
@@ -131,15 +131,15 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
         nonReentrant
         whenNotPaused(_underlyingFrom)
     {
-        require(_amountFrom > 0, "DTOKEN: swap amountFrom must be greater than 0");
-        require(isUnderlyingSupported(_underlyingFrom), "DTOKEN: swap underlyingFrom is not supported");
-        require(isUnderlyingSupported(_underlyingTo), "DTOKEN: swap underlyingTo is not supported");
+        require(_amountFrom > 0, "NTOKEN: swap amountFrom must be greater than 0");
+        require(isUnderlyingSupported(_underlyingFrom), "NTOKEN: swap underlyingFrom is not supported");
+        require(isUnderlyingSupported(_underlyingTo), "NTOKEN: swap underlyingTo is not supported");
 
         // check if there is sufficient underlyingTo to swap
         // currently there are no exchange rate between underlyings as only stable coins are supported
         EarningPoolInterface underlyingToPool = EarningPoolInterface(underlyingToEarningPoolMap[_underlyingTo]);
         uint amountTo = _scaleTokenAmount(_underlyingFrom, _amountFrom, _underlyingTo);
-        require(underlyingToPool.calcPoolValueInUnderlying() >= amountTo, "DTOKEN: insufficient underlyingTo for swap");
+        require(underlyingToPool.calcPoolValueInUnderlying() >= amountTo, "NTOKEN: insufficient underlyingTo for swap");
 
         // transfer underlyingFrom from msg.sender and deposit into earnin pool
         EarningPoolInterface underlyingFromPool = EarningPoolInterface(underlyingToEarningPoolMap[_underlyingFrom]);
@@ -182,7 +182,7 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
     /*** ADMIN ***/
 
     /**
-     * @dev Add earning pool to dToken
+     * @dev Add earning pool to nToken
      * @param _earningPool Address of earning pool
      */
     function addEarningPool(address _earningPool)
@@ -241,34 +241,34 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
     /*** INTERNAL ***/
 
     function _mintInternal(address _beneficiary, address _underlying, uint _underlyingAmount) internal {
-        require(_underlyingAmount > 0, "DTOKEN: mint must be greater than 0");
-        require(isUnderlyingSupported(_underlying), "DTOKEN: mint underlying is not supported");
+        require(_underlyingAmount > 0, "NTOKEN: mint must be greater than 0");
+        require(isUnderlyingSupported(_underlying), "NTOKEN: mint underlying is not supported");
 
-        // transfer underlying from msg.sender into dToken and deposit into earning pool
+        // transfer underlying from msg.sender into nToken and deposit into earning pool
         EarningPoolInterface pool = EarningPoolInterface(underlyingToEarningPoolMap[_underlying]);
         IERC20(_underlying).safeTransferFrom(msg.sender, address(this), _underlyingAmount);
         pool.deposit(address(this), _underlyingAmount);
 
-        // mint dToken for _beneficiary
-        uint dTokenAmount = _scaleTokenAmount(_underlying, _underlyingAmount, address(this));
-        _mint(_beneficiary, dTokenAmount);
+        // mint nToken for _beneficiary
+        uint nTokenAmount = _scaleTokenAmount(_underlying, _underlyingAmount, address(this));
+        _mint(_beneficiary, nTokenAmount);
 
         // mint shares in managedRewardPool for _beneficiary
-        managedRewardPool.mintShares(_beneficiary, dTokenAmount);
+        managedRewardPool.mintShares(_beneficiary, nTokenAmount);
 
         emit Minted(_beneficiary, _underlying, _underlyingAmount, msg.sender);
     }
 
     function _redeemInternal(address _beneficiary, address _underlying, uint _underlyingAmount) internal {
-        require(_underlyingAmount > 0, "DTOKEN: redeem must be greater than 0");
-        require(isUnderlyingSupported(_underlying), "DTOKEN: redeem underlying is not supported");
+        require(_underlyingAmount > 0, "NTOKEN: redeem must be greater than 0");
+        require(isUnderlyingSupported(_underlying), "NTOKEN: redeem underlying is not supported");
 
-        // burn msg.sender dToken
-        uint dTokenAmount = _scaleTokenAmount(_underlying, _underlyingAmount, address(this));
-        _burn(msg.sender, dTokenAmount);
+        // burn msg.sender nToken
+        uint nTokenAmount = _scaleTokenAmount(_underlying, _underlyingAmount, address(this));
+        _burn(msg.sender, nTokenAmount);
 
         // burn msg.sender shares from managedRewardPool
-        managedRewardPool.burnShares(msg.sender, dTokenAmount);
+        managedRewardPool.burnShares(msg.sender, nTokenAmount);
 
         // withdraw underlying from earning pool and transfer to _beneficiary
         EarningPoolInterface pool = EarningPoolInterface(underlyingToEarningPoolMap[_underlying]);
@@ -311,7 +311,7 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
     }
 
     /**
-     * @dev Add earning pool to dToken
+     * @dev Add earning pool to nToken
      * @param _earningPool Address of earning pool
      */
     function _addEarningPool(address _earningPool)

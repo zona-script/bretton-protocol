@@ -1,6 +1,6 @@
 const { ropstenProjectId, accountPrivateKey } = require('../secrets.json')
-const RewardPoolABI = require('../build/contracts/dUSDMintRewardPool.json')
-const DELTTokenABI = require('../build/contracts/DELTToken.json')
+const RewardPoolABI = require('../build/contracts/nUSDMintRewardPool.json')
+const BRETTokenABI = require('../build/contracts/BRETToken.json')
 
 const Web3 = require('web3')
 const { setupLoader } = require('@openzeppelin/contract-loader')
@@ -14,28 +14,28 @@ async function main() {
   const loader = setupLoader({ provider: web3 }).web3
 
   // load addresses and contract from oz deployed project
-  const dUSDMintRewardPoolAddress = RewardPoolABI.networks[3].address
-  const deltRewardPool = loader.fromArtifact('dUSDMintRewardPool', dUSDMintRewardPoolAddress)
+  const nUSDMintRewardPoolAddress = RewardPoolABI.networks[3].address
+  const deltRewardPool = loader.fromArtifact('nUSDMintRewardPool', nUSDMintRewardPoolAddress)
 
-  const DELTTokenAddress = DELTTokenABI.networks[3].address
-  const DELT = loader.fromArtifact('DELTToken', DELTTokenAddress)
+  const BRETTokenAddress = BRETTokenABI.networks[3].address
+  const BRET = loader.fromArtifact('BRETToken', BRETTokenAddress)
 
   console.log('\n')
 
-  console.log('=========CLAIM DELT FROM MINE=========')
+  console.log('=========CLAIM BRET FROM MINE=========')
   console.log('Using account: ' + account.address)
 
   // balance before
-  const DELTBalanceBefore = await DELT.methods.balanceOf(account.address).call() / 1e18 // DELT is 18 decimal place
-  console.log('DELT balance before claim: ' + DELTBalanceBefore)
+  const BRETBalanceBefore = await BRET.methods.balanceOf(account.address).call() / 1e18 // BRET is 18 decimal place
+  console.log('BRET balance before claim: ' + BRETBalanceBefore)
 
   // claim rewards
   console.log('Claiming...')
   const receipt = await deltRewardPool.methods.claim().send({ from: account.address, gas: 500000 }) // from address does not matter here, anyone can claim
 
   // balance after
-  const DELTBalanceAfter = await DELT.methods.balanceOf(account.address).call() / 1e18 // DELT is 18 decimal place
-  console.log('DELT balance after claim: ' + DELTBalanceAfter)
+  const BRETBalanceAfter = await BRET.methods.balanceOf(account.address).call() / 1e18 // BRET is 18 decimal place
+  console.log('BRET balance after claim: ' + BRETBalanceAfter)
   console.log('gasUsed: ' + receipt.gasUsed)
 
   console.log('\n')

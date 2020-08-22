@@ -1,7 +1,7 @@
 // ============ Contracts ============
 
-const DELTToken = artifacts.require("DELTToken");
-const dUSDMintRewardPool = artifacts.require("dUSDMintRewardPool");
+const BRETToken = artifacts.require("BRETToken");
+const nUSDMintRewardPool = artifacts.require("nUSDMintRewardPool");
 
 // ============ Main Migration ============
 
@@ -16,5 +16,5 @@ module.exports = migration;
 // ============ Deploy Functions ============
 
 async function deployRewardPool(deployer, network) {
-  await deployer.deploy(dUSDMintRewardPool, DELTToken.address);
+  await deployer.deploy(nUSDMintRewardPool, BRETToken.address);
 }

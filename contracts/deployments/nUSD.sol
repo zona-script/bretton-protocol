@@ -1,19 +1,19 @@
 pragma solidity 0.5.16;
 
-import "../tokens/dToken.sol";
+import "../tokens/nToken.sol";
 
 /**
- * @title dUSD
- * @dev dToken pegged to USD
+ * @title nUSD
+ * @dev nToken pegged to USD
  */
-contract dUSD is dToken {
+contract nUSD is nToken {
     constructor (
         address[] memory _initialEarningPools,
         address _rewardPool
     )
-        dToken (
-            "Delta USD",
-            "dUSD",
+        nToken (
+            "Bretton USD",
+            "nUSD",
             18,
             _initialEarningPools,
             _rewardPool

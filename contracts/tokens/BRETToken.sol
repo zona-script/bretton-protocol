@@ -3,14 +3,14 @@ pragma solidity 0.5.16;
 import "./BurnableMintableERC20.sol";
 
 /**
- * @title DELTToken
- * @dev Delta Protocol token
+ * @title BRETToken
+ * @dev Bretton Protocol token
  */
-contract DELTToken is BurnableMintableERC20 {
+contract BRETToken is BurnableMintableERC20 {
     constructor ()
         BurnableMintableERC20(
-            "Delta",
-            "DELT",
+            "Bretton Protocol Token",
+            "BRET",
             18
         )
         public

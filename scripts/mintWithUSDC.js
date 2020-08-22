@@ -1,5 +1,5 @@
 const { ropstenProjectId, accountPrivateKey } = require('../secrets.json')
-const dUSDABI = require('../build/contracts/dUSD.json')
+const nUSDABI = require('../build/contracts/nUSD.json')
 
 const Web3 = require('web3')
 const { setupLoader } = require('@openzeppelin/contract-loader')
@@ -13,8 +13,8 @@ async function main() {
   const loader = setupLoader({ provider: web3 }).web3
 
   // load addresses and contract from oz deployed project
-  const dUSDAddress = dUSDABI.networks[3].address
-  const dUSD = loader.fromArtifact('dUSD', dUSDAddress)
+  const nUSDAddress = nUSDABI.networks[3].address
+  const nUSD = loader.fromArtifact('nUSD', nUSDAddress)
 
   const USDCAddress = '0x0D9C8723B343A8368BebE0B5E89273fF8D712e3C'
   const USDC = loader.fromArtifact('ERC20', USDCAddress)
@@ -27,22 +27,22 @@ async function main() {
   // balance before
   const USDCBalanceBefore = await USDC.methods.balanceOf(account.address).call() / 1e6 // USDC is 6 decimal place
   console.log('USDC balance before mint: ' + USDCBalanceBefore)
-  const dUSDBalanceBefore = await dUSD.methods.balanceOf(account.address).call() / 1e18 // dUSD is 18 decimal place
-  console.log('dUSD balance before mint: ' + dUSDBalanceBefore)
+  const nUSDBalanceBefore = await nUSD.methods.balanceOf(account.address).call() / 1e18 // nUSD is 18 decimal place
+  console.log('nUSD balance before mint: ' + nUSDBalanceBefore)
 
   const amountToMint = '1000000' // 1 USDC
-  // approve dUSD with 1 USDC
+  // approve nUSD with 1 USDC
   console.log('Approving USDC...')
-  await USDC.methods.approve(dUSDAddress, amountToMint).send({ from: account.address })
+  await USDC.methods.approve(nUSDAddress, amountToMint).send({ from: account.address })
   // mint with 1 USDC
   console.log('Mint...')
-  const receipt = await dUSD.methods.mint(account.address, USDCAddress, amountToMint).send({ from: account.address, gas: 500000 })
+  const receipt = await nUSD.methods.mint(account.address, USDCAddress, amountToMint).send({ from: account.address, gas: 500000 })
 
   // balance after
   const USDCBalanceAfter = await USDC.methods.balanceOf(account.address).call() / 1e6 // USDC is 6 decimal place
   console.log('USDC balance after mint: ' + USDCBalanceAfter)
-  const dUSDBalanceAfter = await dUSD.methods.balanceOf(account.address).call() / 1e18 // dUSD is 18 decimal place
-  console.log('dUSD balance after mint: ' + dUSDBalanceAfter)
+  const nUSDBalanceAfter = await nUSD.methods.balanceOf(account.address).call() / 1e18 // nUSD is 18 decimal place
+  console.log('nUSD balance after mint: ' + nUSDBalanceAfter)
   console.log('gasUsed: ' + receipt.gasUsed)
 
   console.log('\n')

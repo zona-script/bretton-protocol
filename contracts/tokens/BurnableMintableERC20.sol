@@ -5,7 +5,7 @@ import "../externals/ERC20.sol";
 import "../externals/ERC20Detailed.sol";
 
 /**
- * @title DELTA Protocol Token
+ * @title Bretton Protocol Token
  * @dev Burnable and Mintable ERC20 Token
  */
 contract BurnableMintableERC20 is ERC20, ERC20Detailed, Ownable {

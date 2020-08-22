@@ -1,6 +1,6 @@
 // ============ Contracts ============
 
-const DELTToken = artifacts.require("DELTToken");
+const BRETToken = artifacts.require("BRETToken");
 
 // ============ Main Migration ============
 
@@ -15,5 +15,5 @@ module.exports = migration;
 // ============ Deploy Functions ============
 
 async function deployToken(deployer, network) {
-  await deployer.deploy(DELTToken);
+  await deployer.deploy(BRETToken);
 }

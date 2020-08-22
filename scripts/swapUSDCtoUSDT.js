@@ -1,5 +1,5 @@
 const { ropstenProjectId, accountPrivateKey } = require('../secrets.json')
-const dUSDABI = require('../build/contracts/dUSD.json')
+const nUSDABI = require('../build/contracts/nUSD.json')
 
 const Web3 = require('web3')
 const { setupLoader } = require('@openzeppelin/contract-loader')
@@ -13,8 +13,8 @@ async function main() {
   const loader = setupLoader({ provider: web3 }).web3
 
   // load addresses and contract from oz deployed project
-  const dUSDAddress = dUSDABI.networks[3].address
-  const dUSD = loader.fromArtifact('dUSD', dUSDAddress)
+  const nUSDAddress = nUSDABI.networks[3].address
+  const nUSD = loader.fromArtifact('nUSD', nUSDAddress)
 
   const USDCAddress = '0x0D9C8723B343A8368BebE0B5E89273fF8D712e3C'
   const USDC = loader.fromArtifact('ERC20', USDCAddress)
@@ -34,12 +34,12 @@ async function main() {
   console.log('USDT balance before swap: ' + USDTBalanceBefore)
 
   const amountToSwap = '1000000'
-  // approve dUSD with 1 USDC
+  // approve nUSD with 1 USDC
   console.log('Approving USDC...')
-  await USDC.methods.approve(dUSDAddress, amountToSwap).send({ from: account.address })
+  await USDC.methods.approve(nUSDAddress, amountToSwap).send({ from: account.address })
   // swap from 1 USDC to 1 USDT
   console.log('Swapping...')
-  const receipt = await dUSD.methods.swap(account.address, USDCAddress, amountToSwap, USDTAddress).send({ from: account.address, gas: 700000 })
+  const receipt = await nUSD.methods.swap(account.address, USDCAddress, amountToSwap, USDTAddress).send({ from: account.address, gas: 700000 })
 
   // balance after
   const USDCBalanceAfter = await USDC.methods.balanceOf(account.address).call() / 1e6 // USDC is 6 decimal place

@@ -2,8 +2,8 @@ const { ropstenProjectId, accountPrivateKey } = require('../secrets.json')
 const USDCPoolABI = require('../build/contracts/USDCPool.json')
 const USDTPoolABI = require('../build/contracts/USDTPool.json')
 const DAIPoolABI = require('../build/contracts/DAIPool.json')
-const dUSDABI = require('../build/contracts/dUSD.json')
-const dUSDMintRewardPoolABI = require('../build/contracts/dUSDMintRewardPool.json')
+const nUSDABI = require('../build/contracts/nUSD.json')
+const nUSDMintRewardPoolABI = require('../build/contracts/nUSDMintRewardPool.json')
 
 const Web3 = require('web3')
 const { setupLoader } = require('@openzeppelin/contract-loader')
@@ -23,9 +23,9 @@ async function main() {
 
   const DAIPool = loader.fromArtifact('EarningPool', DAIPoolABI.networks[3].address)
 
-  const dUSD = loader.fromArtifact('dUSD', dUSDABI.networks[3].address)
+  const nUSD = loader.fromArtifact('nUSD', nUSDABI.networks[3].address)
 
-  const deltRewardPool = loader.fromArtifact('dUSDMintRewardPool', dUSDMintRewardPoolABI.networks[3].address)
+  const bretRewardPool = loader.fromArtifact('nUSDMintRewardPool', nUSDMintRewardPoolABI.networks[3].address)
 
 
   console.log('\n')
@@ -76,22 +76,22 @@ async function main() {
                 DTOKENS
   ****************************************/
 
-  // dUSD
-  console.log('=========dUSD STATS=========')
+  // nUSD
+  console.log('=========nUSD STATS=========')
   // get total supply
-  const dUSDTotalSupply = await dUSD.methods.totalSupply().call() / 1e18 // dUSD is 18 decimal place
-  console.log('Total dUSD supply is: ' + dUSDTotalSupply)
+  const nUSDTotalSupply = await nUSD.methods.totalSupply().call() / 1e18 // nUSD is 18 decimal place
+  console.log('Total nUSD supply is: ' + nUSDTotalSupply)
 
   /***************************************
-                DELT Reward Pool
+                BRET Reward Pool
   ****************************************/
 
-  console.log('=========DELT REWARD POOL STATS=========')
-  const rewardPerSecond = await deltRewardPool.methods.rewardPerSecond().call() / 1e18 // 18 decimal place
+  console.log('=========BRET REWARD POOL STATS=========')
+  const rewardPerSecond = await bretRewardPool.methods.rewardPerSecond().call() / 1e18 // 18 decimal place
   console.log('Pool current rewardPerSecond is: ' + rewardPerSecond)
-  const rewardPerShare = await deltRewardPool.methods.rewardPerShare().call() / 1e18 // scaled
+  const rewardPerShare = await bretRewardPool.methods.rewardPerShare().call() / 1e18 // scaled
   console.log('Pool current rewardPerShare is: ' + rewardPerShare)
-  const earned = await deltRewardPool.methods.earned(account.address).call() / 1e18 // 18 decimal place
+  const earned = await bretRewardPool.methods.earned(account.address).call() / 1e18 // 18 decimal place
   console.log('My current earned reward balance is: ' + earned)
 
   console.log('\n')

@@ -1,8 +1,8 @@
 // ============ Contracts ============
 
-const DELTToken = artifacts.require("DELTToken");
-const dUSDMintRewardPool = artifacts.require("dUSDMintRewardPool");
-const dUSD = artifacts.require("dUSD");
+const BRETToken = artifacts.require("BRETToken");
+const nUSDMintRewardPool = artifacts.require("nUSDMintRewardPool");
+const nUSD = artifacts.require("nUSD");
 
 // ============ Main Migration ============
 
@@ -17,10 +17,10 @@ module.exports = migration;
 // ============ Deploy Functions ============
 
 async function deploySetup(deployer, network) {
-  let rewardPool = await dUSDMintRewardPool.deployed();
-  await rewardPool.promote(dUSD.address)
-  let delt = await DELTToken.deployed();
+  let rewardPool = await nUSDMintRewardPool.deployed();
+  await rewardPool.promote(nUSD.address)
+  let bret = await BRETToken.deployed();
   let oneMillion = web3.utils.toBN(10**6).mul(web3.utils.toBN(1)).mul(web3.utils.toBN(10**18));
-  await delt.mint(rewardPool.address, oneMillion)
+  await bret.mint(rewardPool.address, oneMillion)
   await rewardPool.notifyRewardAmount(oneMillion)
 }
