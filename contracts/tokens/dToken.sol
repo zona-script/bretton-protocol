@@ -95,7 +95,6 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
         whenNotPaused(_underlying)
     {
         _mintInternal(_beneficiary, _underlying, _underlyingAmount);
-        emit Minted(_beneficiary, _underlying, _underlyingAmount, msg.sender);
     }
 
     /**
@@ -113,7 +112,6 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
         nonReentrant
     {
         _redeemInternal(_beneficiary, _underlying, _underlyingAmount);
-        emit Redeemed(_beneficiary, _underlying, _underlyingAmount, msg.sender);
     }
 
     /**
@@ -149,10 +147,10 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
         underlyingFromPool.deposit(address(this), _amountFrom);
 
         // withdraw underlyingTo from earning pool to _beneficiary
-        underlyingToPool.withdraw(address(this), amountTo);
-        IERC20(_underlyingTo).safeTransfer(_beneficiary, amountTo);
+        uint256 actualAmountTo = underlyingToPool.withdraw(address(this), amountTo);
+        IERC20(_underlyingTo).safeTransfer(_beneficiary, actualAmountTo);
 
-        emit Swapped(_beneficiary, _underlyingFrom, _amountFrom, _underlyingTo, amountTo, msg.sender);
+        emit Swapped(_beneficiary, _underlyingFrom, _amountFrom, _underlyingTo, actualAmountTo, msg.sender);
     }
 
     /*** VIEW ***/
@@ -257,6 +255,8 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
 
         // mint shares in managedRewardPool for _beneficiary
         managedRewardPool.mintShares(_beneficiary, dTokenAmount);
+
+        emit Minted(_beneficiary, _underlying, _underlyingAmount, msg.sender);
     }
 
     function _redeemInternal(address _beneficiary, address _underlying, uint _underlyingAmount) internal {
@@ -272,8 +272,10 @@ contract dToken is ERC20, ERC20Detailed, ReentrancyGuard, Ownable {
 
         // withdraw underlying from earning pool and transfer to _beneficiary
         EarningPoolInterface pool = EarningPoolInterface(underlyingToEarningPoolMap[_underlying]);
-        pool.withdraw(address(this), _underlyingAmount);
-        IERC20(_underlying).safeTransfer(_beneficiary, _underlyingAmount);
+        uint256 actualWithdrawnAmount = pool.withdraw(address(this), _underlyingAmount);
+        IERC20(_underlying).safeTransfer(_beneficiary, actualWithdrawnAmount);
+
+        emit Redeemed(_beneficiary, _underlying, actualWithdrawnAmount, msg.sender);
     }
 
     /**

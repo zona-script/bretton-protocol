@@ -82,12 +82,14 @@ contract EarningPool is ReentrancyGuard, Ownable, Pool {
      * @dev Withdraw underlying from pool
      * @param _beneficiary Address to benefit from the withdraw
      * @param _amount Amount of underlying to withdraw
+     * @return uint256 Actual amount of underlying withdrawn
      */
     function withdraw(address _beneficiary, uint256 _amount)
         external
         nonReentrant
+        returns (uint256)
     {
-        _withdraw(_beneficiary, _amount);
+        return _withdraw(_beneficiary, _amount);
     }
 
     /**
@@ -257,6 +259,7 @@ contract EarningPool is ReentrancyGuard, Ownable, Pool {
 
     function _withdraw(address _beneficiary, uint256 _amount)
         internal
+        returns (uint256)
     {
         require(_amount > 0, "EARNING_POOL: withdraw must be greater than 0");
         require(_amount <= sharesOf(msg.sender), "EARNING_POOL: withdraw insufficient shares");
@@ -266,7 +269,7 @@ contract EarningPool is ReentrancyGuard, Ownable, Pool {
 
         // decrease pool shares from payer
         _decreaseShares(msg.sender, _amount);
-        
+
         // Collect withdraw fee
         uint256 withdrawFee = _amount.mul(withdrawFeeFactorMantissa).div(1e18);
         uint256 withdrawAmountLessFee = _amount.sub(withdrawFee);
@@ -275,6 +278,8 @@ contract EarningPool is ReentrancyGuard, Ownable, Pool {
         IERC20(underlyingToken).safeTransfer(_beneficiary, withdrawAmountLessFee);
 
         emit Withdrawn(_beneficiary, withdrawAmountLessFee, msg.sender);
+
+        return withdrawAmountLessFee;
     }
 
     /**

@@ -358,15 +358,27 @@ describe('EarningPool', function () {
           await earningPool.setEarningDispenseThreshold('100000000', { from: admin })
         })
 
-        it('should dispense all earnings', async () => {
-          const receipt = await earningPool.dispenseEarning()
-          const earningPoolAfter = await earningPool.calcUndispensedEarningInUnderlying.call()
-          const earningRecipientBalanceAfter = await underlyingToken.balanceOf.call(earningRecipient)
-          expect(earningPoolAfter).to.be.bignumber.equal('0')
-          expect(earningRecipientBalanceAfter).to.be.bignumber.equal('100000000')
-          expectEvent(receipt, 'Dispensed', {
-            token: underlyingToken.address,
-            amount: '100000000'
+        describe('dispenseEarning', function () {
+          let receipt
+          beforeEach(async () => {
+            receipt = await earningPool.dispenseEarning()
+          })
+
+          it('should dispense all earnings', async () => {
+            const earningPoolAfter = await earningPool.calcUndispensedEarningInUnderlying.call()
+            const earningRecipientBalanceAfter = await underlyingToken.balanceOf.call(earningRecipient)
+            expect(earningPoolAfter).to.be.bignumber.equal('0')
+            expect(earningRecipientBalanceAfter).to.be.bignumber.equal('100000000')
+            expectEvent(receipt, 'Dispensed', {
+              token: underlyingToken.address,
+              amount: '100000000'
+            })
+          })
+
+          it('should allow withdraw after dispense', async () => {
+            expect(await underlyingToken.balanceOf.call(payer)).to.be.bignumber.equal('0')
+            await earningPool.withdraw(payer, '100000000', { from: payer })
+            expect(await underlyingToken.balanceOf.call(payer)).to.be.bignumber.equal('100000000')
           })
         })
       })
