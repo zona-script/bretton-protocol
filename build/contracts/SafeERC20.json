@@ -1,15 +1,15 @@
 {
   "contractName": "SafeERC20",
   "abi": [],
-  "metadata": "{\"compiler\":{\"version\":\"0.5.16+commit.9c3226ce\"},\"language\":\"Solidity\",\"output\":{\"abi\":[],\"devdoc\":{\"methods\":{}},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"/Users/mhe70/my-workspace/DeltaProtocol/contracts/externals/SafeERC20.sol\":\"SafeERC20\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":50000},\"remappings\":[]},\"sources\":{\"/Users/mhe70/my-workspace/DeltaProtocol/contracts/externals/Address.sol\":{\"keccak256\":\"0x76c8aee342dc08187b690967cc526396f3d03427b23d905e6b15bae19e593ea7\",\"urls\":[\"bzz-raw://68d0df65cd9eb24960664db8633da9bf1fe4c46bb80cea57beac979476a6c5bb\",\"dweb:/ipfs/QmcABikBkTvvdvXfjueJLCKjConZBTv5gEuxd22AoQAV8N\"]},\"/Users/mhe70/my-workspace/DeltaProtocol/contracts/externals/IERC20.sol\":{\"keccak256\":\"0x57cb879fd4da72ff01a48a97273ba47330571bd16fb85c1e37aef1413c1b722f\",\"urls\":[\"bzz-raw://1a3236f6e530ab5a86e1b4b4813d2bea5a47f4996c2741eb189af900f2d4f579\",\"dweb:/ipfs/QmX1MqLLtf2DpdJE59ALrPuiWBt2bUJdG3kLhdF8w92vEb\"]},\"/Users/mhe70/my-workspace/DeltaProtocol/contracts/externals/SafeERC20.sol\":{\"keccak256\":\"0x9f432069afd65187e878b57ece5f3ebd598bc22afce92211bd2c893e0d6991ea\",\"urls\":[\"bzz-raw://1f32b2b18e7d1b5a278679815ce5c995b1a5910f51c0185193f519919925272c\",\"dweb:/ipfs/QmTWrthX4SU5EJUNsEUQxrtx2rZ5i8F2672KNwCKC6rQpR\"]},\"/Users/mhe70/my-workspace/DeltaProtocol/contracts/externals/SafeMath.sol\":{\"keccak256\":\"0x743fc7fdd798a2d6452f45343b9b0a192846873d34034a4bb36fefa548ec46be\",\"urls\":[\"bzz-raw://eafc248744d568a95e7275e48736bba2ef602618266df43af7fd23463b9473f6\",\"dweb:/ipfs/QmcMXo9x4hJ7J5TrVbZww2xxzLqKizUANzT9i63YVtCHrJ\"]}},\"version\":1}",
-  "bytecode": "0x60556023600b82828239805160001a607314601657fe5b30600052607381538281f3fe73000000000000000000000000000000000000000030146080604052600080fdfea265627a7a723158206d82ae26299c1477d592c2ae2bf24c0ce385e5e01ce8a53500515e964b08679664736f6c63430005100032",
-  "deployedBytecode": "0x73000000000000000000000000000000000000000030146080604052600080fdfea265627a7a723158206d82ae26299c1477d592c2ae2bf24c0ce385e5e01ce8a53500515e964b08679664736f6c63430005100032",
+  "metadata": "{\"compiler\":{\"version\":\"0.5.16+commit.9c3226ce\"},\"language\":\"Solidity\",\"output\":{\"abi\":[],\"devdoc\":{\"methods\":{}},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"/Users/mhe70/my-workspace/bretton-protocol/contracts/externals/SafeERC20.sol\":\"SafeERC20\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":50000},\"remappings\":[]},\"sources\":{\"/Users/mhe70/my-workspace/bretton-protocol/contracts/externals/Address.sol\":{\"keccak256\":\"0x76c8aee342dc08187b690967cc526396f3d03427b23d905e6b15bae19e593ea7\",\"urls\":[\"bzz-raw://68d0df65cd9eb24960664db8633da9bf1fe4c46bb80cea57beac979476a6c5bb\",\"dweb:/ipfs/QmcABikBkTvvdvXfjueJLCKjConZBTv5gEuxd22AoQAV8N\"]},\"/Users/mhe70/my-workspace/bretton-protocol/contracts/externals/IERC20.sol\":{\"keccak256\":\"0x57cb879fd4da72ff01a48a97273ba47330571bd16fb85c1e37aef1413c1b722f\",\"urls\":[\"bzz-raw://1a3236f6e530ab5a86e1b4b4813d2bea5a47f4996c2741eb189af900f2d4f579\",\"dweb:/ipfs/QmX1MqLLtf2DpdJE59ALrPuiWBt2bUJdG3kLhdF8w92vEb\"]},\"/Users/mhe70/my-workspace/bretton-protocol/contracts/externals/SafeERC20.sol\":{\"keccak256\":\"0x9f432069afd65187e878b57ece5f3ebd598bc22afce92211bd2c893e0d6991ea\",\"urls\":[\"bzz-raw://1f32b2b18e7d1b5a278679815ce5c995b1a5910f51c0185193f519919925272c\",\"dweb:/ipfs/QmTWrthX4SU5EJUNsEUQxrtx2rZ5i8F2672KNwCKC6rQpR\"]},\"/Users/mhe70/my-workspace/bretton-protocol/contracts/externals/SafeMath.sol\":{\"keccak256\":\"0x743fc7fdd798a2d6452f45343b9b0a192846873d34034a4bb36fefa548ec46be\",\"urls\":[\"bzz-raw://eafc248744d568a95e7275e48736bba2ef602618266df43af7fd23463b9473f6\",\"dweb:/ipfs/QmcMXo9x4hJ7J5TrVbZww2xxzLqKizUANzT9i63YVtCHrJ\"]}},\"version\":1}",
+  "bytecode": "0x60556023600b82828239805160001a607314601657fe5b30600052607381538281f3fe73000000000000000000000000000000000000000030146080604052600080fdfea265627a7a72315820c061ada213646dd4170580fbe7eb1921e9614577bf7ab9f2f7a2b414743562c664736f6c63430005100032",
+  "deployedBytecode": "0x73000000000000000000000000000000000000000030146080604052600080fdfea265627a7a72315820c061ada213646dd4170580fbe7eb1921e9614577bf7ab9f2f7a2b414743562c664736f6c63430005100032",
   "sourceMap": "98:2033:14:-;;132:2:-1;166:7;155:9;146:7;137:37;255:7;249:14;246:1;241:23;235:4;232:33;222:2;;269:9;222:2;293:9;290:1;283:20;323:4;314:7;306:22;347:7;338;331:24",
   "deployedSourceMap": "98:2033:14:-;;;;;;;;",
   "source": "pragma solidity 0.5.16;\n\nimport \"./SafeMath.sol\";\nimport \"./Address.sol\";\nimport \"./IERC20.sol\";\n\nlibrary SafeERC20 {\n    using SafeMath for uint256;\n    using Address for address;\n\n    function safeTransfer(IERC20 token, address to, uint256 value) internal {\n        callOptionalReturn(token, abi.encodeWithSelector(token.transfer.selector, to, value));\n    }\n\n    function safeTransferFrom(IERC20 token, address from, address to, uint256 value) internal {\n        callOptionalReturn(token, abi.encodeWithSelector(token.transferFrom.selector, from, to, value));\n    }\n\n    function safeApprove(IERC20 token, address spender, uint256 value) internal {\n        require((value == 0) || (token.allowance(address(this), spender) == 0),\n            \"SafeERC20: approve from non-zero to non-zero allowance\"\n        );\n        callOptionalReturn(token, abi.encodeWithSelector(token.approve.selector, spender, value));\n    }\n\n    function safeIncreaseAllowance(IERC20 token, address spender, uint256 value) internal {\n        uint256 newAllowance = token.allowance(address(this), spender).add(value);\n        callOptionalReturn(token, abi.encodeWithSelector(token.approve.selector, spender, newAllowance));\n    }\n\n    function safeDecreaseAllowance(IERC20 token, address spender, uint256 value) internal {\n        uint256 newAllowance = token.allowance(address(this), spender).sub(value, \"SafeERC20: decreased allowance below zero\");\n        callOptionalReturn(token, abi.encodeWithSelector(token.approve.selector, spender, newAllowance));\n    }\n    function callOptionalReturn(IERC20 token, bytes memory data) private {\n        require(address(token).isContract(), \"SafeERC20: call to non-contract\");\n\n        // solhint-disable-next-line avoid-low-level-calls\n        (bool success, bytes memory returndata) = address(token).call(data);\n        require(success, \"SafeERC20: low-level call failed\");\n\n        if (returndata.length > 0) { // Return data is optional\n            // solhint-disable-next-line max-line-length\n            require(abi.decode(returndata, (bool)), \"SafeERC20: ERC20 operation did not succeed\");\n        }\n    }\n}\n",
-  "sourcePath": "/Users/mhe70/my-workspace/DeltaProtocol/contracts/externals/SafeERC20.sol",
+  "sourcePath": "/Users/mhe70/my-workspace/bretton-protocol/contracts/externals/SafeERC20.sol",
   "ast": {
-    "absolutePath": "/Users/mhe70/my-workspace/DeltaProtocol/contracts/externals/SafeERC20.sol",
+    "absolutePath": "/Users/mhe70/my-workspace/bretton-protocol/contracts/externals/SafeERC20.sol",
     "exportedSymbols": {
       "SafeERC20": [
         1202
@@ -29,7 +29,7 @@
         "src": "0:23:14"
       },
       {
-        "absolutePath": "/Users/mhe70/my-workspace/DeltaProtocol/contracts/externals/SafeMath.sol",
+        "absolutePath": "/Users/mhe70/my-workspace/bretton-protocol/contracts/externals/SafeMath.sol",
         "file": "./SafeMath.sol",
         "id": 985,
         "nodeType": "ImportDirective",
@@ -40,7 +40,7 @@
         "unitAlias": ""
       },
       {
-        "absolutePath": "/Users/mhe70/my-workspace/DeltaProtocol/contracts/externals/Address.sol",
+        "absolutePath": "/Users/mhe70/my-workspace/bretton-protocol/contracts/externals/Address.sol",
         "file": "./Address.sol",
         "id": 986,
         "nodeType": "ImportDirective",
@@ -51,7 +51,7 @@
         "unitAlias": ""
       },
       {
-        "absolutePath": "/Users/mhe70/my-workspace/DeltaProtocol/contracts/externals/IERC20.sol",
+        "absolutePath": "/Users/mhe70/my-workspace/bretton-protocol/contracts/externals/IERC20.sol",
         "file": "./IERC20.sol",
         "id": 987,
         "nodeType": "ImportDirective",
@@ -3194,7 +3194,7 @@
     "src": "0:2132:14"
   },
   "legacyAST": {
-    "absolutePath": "/Users/mhe70/my-workspace/DeltaProtocol/contracts/externals/SafeERC20.sol",
+    "absolutePath": "/Users/mhe70/my-workspace/bretton-protocol/contracts/externals/SafeERC20.sol",
     "exportedSymbols": {
       "SafeERC20": [
         1202
@@ -3214,7 +3214,7 @@
         "src": "0:23:14"
       },
       {
-        "absolutePath": "/Users/mhe70/my-workspace/DeltaProtocol/contracts/externals/SafeMath.sol",
+        "absolutePath": "/Users/mhe70/my-workspace/bretton-protocol/contracts/externals/SafeMath.sol",
         "file": "./SafeMath.sol",
         "id": 985,
         "nodeType": "ImportDirective",
@@ -3225,7 +3225,7 @@
         "unitAlias": ""
       },
       {
-        "absolutePath": "/Users/mhe70/my-workspace/DeltaProtocol/contracts/externals/Address.sol",
+        "absolutePath": "/Users/mhe70/my-workspace/bretton-protocol/contracts/externals/Address.sol",
         "file": "./Address.sol",
         "id": 986,
         "nodeType": "ImportDirective",
@@ -3236,7 +3236,7 @@
         "unitAlias": ""
       },
       {
-        "absolutePath": "/Users/mhe70/my-workspace/DeltaProtocol/contracts/externals/IERC20.sol",
+        "absolutePath": "/Users/mhe70/my-workspace/bretton-protocol/contracts/externals/IERC20.sol",
         "file": "./IERC20.sol",
         "id": 987,
         "nodeType": "ImportDirective",
@@ -6384,7 +6384,7 @@
   },
   "networks": {},
   "schemaVersion": "3.2.3",
-  "updatedAt": "2020-08-22T21:20:16.102Z",
+  "updatedAt": "2020-08-22T23:35:22.664Z",
   "devdoc": {
     "methods": {}
   },

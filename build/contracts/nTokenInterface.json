@@ -107,15 +107,15 @@
       "type": "function"
     }
   ],
-  "metadata": "{\"compiler\":{\"version\":\"0.5.16+commit.9c3226ce\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"constant\":false,\"inputs\":[],\"name\":\"getAllSupportedUnderlyings\",\"outputs\":[{\"internalType\":\"address[]\",\"name\":\"\",\"type\":\"address[]\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[],\"name\":\"isUnderlyingSupported\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"_beneficiary\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_underlying\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_amount\",\"type\":\"uint256\"}],\"name\":\"mint\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"_beneficiary\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_underlying\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_amount\",\"type\":\"uint256\"}],\"name\":\"redeem\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"_underlyingFrom\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_amountFrom\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"_underlyingTo\",\"type\":\"address\"}],\"name\":\"swap\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"methods\":{}},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"/Users/mhe70/my-workspace/DeltaProtocol/contracts/interfaces/nTokenInterface.sol\":\"nTokenInterface\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":50000},\"remappings\":[]},\"sources\":{\"/Users/mhe70/my-workspace/DeltaProtocol/contracts/interfaces/nTokenInterface.sol\":{\"keccak256\":\"0xb4687169b5d06b995f9f8cfd9aa940f6bb01eff6eac9dfa17966d57c165055cc\",\"urls\":[\"bzz-raw://3ab35e82fc60e7612be82ff8080f6d3bfaca5bab87ad1b6411557d91fadd912d\",\"dweb:/ipfs/QmNb5VR16VkkVGg3key8knbcSvwdor2fjH1DwCGVc7K2cH\"]}},\"version\":1}",
+  "metadata": "{\"compiler\":{\"version\":\"0.5.16+commit.9c3226ce\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"constant\":false,\"inputs\":[],\"name\":\"getAllSupportedUnderlyings\",\"outputs\":[{\"internalType\":\"address[]\",\"name\":\"\",\"type\":\"address[]\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[],\"name\":\"isUnderlyingSupported\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"_beneficiary\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_underlying\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_amount\",\"type\":\"uint256\"}],\"name\":\"mint\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"_beneficiary\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_underlying\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_amount\",\"type\":\"uint256\"}],\"name\":\"redeem\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"_underlyingFrom\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_amountFrom\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"_underlyingTo\",\"type\":\"address\"}],\"name\":\"swap\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"methods\":{}},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"/Users/mhe70/my-workspace/bretton-protocol/contracts/interfaces/nTokenInterface.sol\":\"nTokenInterface\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":50000},\"remappings\":[]},\"sources\":{\"/Users/mhe70/my-workspace/bretton-protocol/contracts/interfaces/nTokenInterface.sol\":{\"keccak256\":\"0xb4687169b5d06b995f9f8cfd9aa940f6bb01eff6eac9dfa17966d57c165055cc\",\"urls\":[\"bzz-raw://3ab35e82fc60e7612be82ff8080f6d3bfaca5bab87ad1b6411557d91fadd912d\",\"dweb:/ipfs/QmNb5VR16VkkVGg3key8knbcSvwdor2fjH1DwCGVc7K2cH\"]}},\"version\":1}",
   "bytecode": "0x",
   "deployedBytecode": "0x",
   "sourceMap": "",
   "deployedSourceMap": "",
   "source": "pragma solidity 0.5.16;\n\ninterface nTokenInterface {\n    function mint(address _beneficiary, address _underlying, uint _amount) external;\n    function redeem(address _beneficiary, address _underlying, uint _amount) external;\n    function swap(address _underlyingFrom, uint _amountFrom, address _underlyingTo) external;\n    function isUnderlyingSupported() external returns (bool);\n    function getAllSupportedUnderlyings() external returns (address[] memory);\n}\n",
-  "sourcePath": "/Users/mhe70/my-workspace/DeltaProtocol/contracts/interfaces/nTokenInterface.sol",
+  "sourcePath": "/Users/mhe70/my-workspace/bretton-protocol/contracts/interfaces/nTokenInterface.sol",
   "ast": {
-    "absolutePath": "/Users/mhe70/my-workspace/DeltaProtocol/contracts/interfaces/nTokenInterface.sol",
+    "absolutePath": "/Users/mhe70/my-workspace/bretton-protocol/contracts/interfaces/nTokenInterface.sol",
     "exportedSymbols": {
       "nTokenInterface": [
         1506
@@ -598,7 +598,7 @@
     "src": "0:462:18"
   },
   "legacyAST": {
-    "absolutePath": "/Users/mhe70/my-workspace/DeltaProtocol/contracts/interfaces/nTokenInterface.sol",
+    "absolutePath": "/Users/mhe70/my-workspace/bretton-protocol/contracts/interfaces/nTokenInterface.sol",
     "exportedSymbols": {
       "nTokenInterface": [
         1506
@@ -1086,7 +1086,7 @@
   },
   "networks": {},
   "schemaVersion": "3.2.3",
-  "updatedAt": "2020-08-22T21:20:16.109Z",
+  "updatedAt": "2020-08-22T23:35:22.671Z",
   "devdoc": {
     "methods": {}
   },

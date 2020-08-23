@@ -19,12 +19,12 @@
 - `earned(address _account)` - get outstanding rewards available to claim for an account
 
 ## Testnet Addresses (Ropsten)
-- BRETToken - `0xDD3caA4006a8cb16F2b3070E7C963280334cd049`
-- nUSDMintRewardPool - `0x1a7E6671B8561e5fe29EA2eCf57aBe3EB36cc993`
-- USDCEarningPool - `0x527362Ec7c8FC1425CA8d684b4398F70dB0aD8D9`
-- USDTEarningPool - `0x1f18e01DC1A3fA08a72894F98b1770dEC67380FA`
-- DAIEarningPool - `0xd38A5236C9430506e04EB1Edea27fBC75328ab2b`
-- nUSD - `0x9fCed6a889696F4b43BDA52E9dc6601E805a31e8`
+- BRETToken - `0xA0043FcEa3381D4f1a578BfB27e4c9D5329B76B9`
+- nUSDMintRewardPool - `0x0eC4Bf5b4d73AfA21B1a3A3724dD995d9814Bdd2`
+- USDCEarningPool - `0x627510E9F311DcB2975D50Ec3aa06e891FBDfd31`
+- USDTEarningPool - `0x4cc84A87d8df2d29400B32Acdb6f440D11375920`
+- DAIEarningPool - `0xbF419C2Cbc09B29957DA93A1cDccF51FE062D516`
+- nUSD - `0x9f875730BC7046bC9Bb189c731E2eD97EDBaC3D5`
 
 ## Interacting with nToken
 - create `secrets.json` based on `secrets.example.json` and populate with detail

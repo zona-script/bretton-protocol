@@ -44,15 +44,15 @@
       "type": "function"
     }
   ],
-  "metadata": "{\"compiler\":{\"version\":\"0.5.16+commit.9c3226ce\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"_account\",\"type\":\"address\"}],\"name\":\"sharesOf\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"totalShares\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"methods\":{\"constructor\":{\"details\":\"Pool constructor\"},\"sharesOf(address)\":{\"details\":\"Get the share of a given account\",\"params\":{\"_account\":\"User for which to retrieve balance\"},\"return\":\"uint256 shares\"},\"totalShares()\":{\"details\":\"Get the total number of shares in pool\",\"return\":\"uint256 total shares\"}}},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"/Users/mhe70/my-workspace/DeltaProtocol/contracts/pools/abstract/Pool.sol\":\"Pool\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":50000},\"remappings\":[]},\"sources\":{\"/Users/mhe70/my-workspace/DeltaProtocol/contracts/externals/Address.sol\":{\"keccak256\":\"0x76c8aee342dc08187b690967cc526396f3d03427b23d905e6b15bae19e593ea7\",\"urls\":[\"bzz-raw://68d0df65cd9eb24960664db8633da9bf1fe4c46bb80cea57beac979476a6c5bb\",\"dweb:/ipfs/QmcABikBkTvvdvXfjueJLCKjConZBTv5gEuxd22AoQAV8N\"]},\"/Users/mhe70/my-workspace/DeltaProtocol/contracts/externals/IERC20.sol\":{\"keccak256\":\"0x57cb879fd4da72ff01a48a97273ba47330571bd16fb85c1e37aef1413c1b722f\",\"urls\":[\"bzz-raw://1a3236f6e530ab5a86e1b4b4813d2bea5a47f4996c2741eb189af900f2d4f579\",\"dweb:/ipfs/QmX1MqLLtf2DpdJE59ALrPuiWBt2bUJdG3kLhdF8w92vEb\"]},\"/Users/mhe70/my-workspace/DeltaProtocol/contracts/externals/SafeERC20.sol\":{\"keccak256\":\"0x9f432069afd65187e878b57ece5f3ebd598bc22afce92211bd2c893e0d6991ea\",\"urls\":[\"bzz-raw://1f32b2b18e7d1b5a278679815ce5c995b1a5910f51c0185193f519919925272c\",\"dweb:/ipfs/QmTWrthX4SU5EJUNsEUQxrtx2rZ5i8F2672KNwCKC6rQpR\"]},\"/Users/mhe70/my-workspace/DeltaProtocol/contracts/externals/SafeMath.sol\":{\"keccak256\":\"0x743fc7fdd798a2d6452f45343b9b0a192846873d34034a4bb36fefa548ec46be\",\"urls\":[\"bzz-raw://eafc248744d568a95e7275e48736bba2ef602618266df43af7fd23463b9473f6\",\"dweb:/ipfs/QmcMXo9x4hJ7J5TrVbZww2xxzLqKizUANzT9i63YVtCHrJ\"]},\"/Users/mhe70/my-workspace/DeltaProtocol/contracts/pools/abstract/Pool.sol\":{\"keccak256\":\"0x2d7ad16921f4051814ab133687384f20ac3db3d820993a403271fd9570172066\",\"urls\":[\"bzz-raw://a4ad0e34de8572fb448231c6be62bb8d230b744a3bfcd9b91bd5f26dd25876af\",\"dweb:/ipfs/QmR9eNPPuUJ1vtVxqFSq724J7HN1sjivkyJSREmGM4mz34\"]}},\"version\":1}",
+  "metadata": "{\"compiler\":{\"version\":\"0.5.16+commit.9c3226ce\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"_account\",\"type\":\"address\"}],\"name\":\"sharesOf\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"totalShares\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"methods\":{\"constructor\":{\"details\":\"Pool constructor\"},\"sharesOf(address)\":{\"details\":\"Get the share of a given account\",\"params\":{\"_account\":\"User for which to retrieve balance\"},\"return\":\"uint256 shares\"},\"totalShares()\":{\"details\":\"Get the total number of shares in pool\",\"return\":\"uint256 total shares\"}}},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"/Users/mhe70/my-workspace/bretton-protocol/contracts/pools/abstract/Pool.sol\":\"Pool\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":50000},\"remappings\":[]},\"sources\":{\"/Users/mhe70/my-workspace/bretton-protocol/contracts/externals/Address.sol\":{\"keccak256\":\"0x76c8aee342dc08187b690967cc526396f3d03427b23d905e6b15bae19e593ea7\",\"urls\":[\"bzz-raw://68d0df65cd9eb24960664db8633da9bf1fe4c46bb80cea57beac979476a6c5bb\",\"dweb:/ipfs/QmcABikBkTvvdvXfjueJLCKjConZBTv5gEuxd22AoQAV8N\"]},\"/Users/mhe70/my-workspace/bretton-protocol/contracts/externals/IERC20.sol\":{\"keccak256\":\"0x57cb879fd4da72ff01a48a97273ba47330571bd16fb85c1e37aef1413c1b722f\",\"urls\":[\"bzz-raw://1a3236f6e530ab5a86e1b4b4813d2bea5a47f4996c2741eb189af900f2d4f579\",\"dweb:/ipfs/QmX1MqLLtf2DpdJE59ALrPuiWBt2bUJdG3kLhdF8w92vEb\"]},\"/Users/mhe70/my-workspace/bretton-protocol/contracts/externals/SafeERC20.sol\":{\"keccak256\":\"0x9f432069afd65187e878b57ece5f3ebd598bc22afce92211bd2c893e0d6991ea\",\"urls\":[\"bzz-raw://1f32b2b18e7d1b5a278679815ce5c995b1a5910f51c0185193f519919925272c\",\"dweb:/ipfs/QmTWrthX4SU5EJUNsEUQxrtx2rZ5i8F2672KNwCKC6rQpR\"]},\"/Users/mhe70/my-workspace/bretton-protocol/contracts/externals/SafeMath.sol\":{\"keccak256\":\"0x743fc7fdd798a2d6452f45343b9b0a192846873d34034a4bb36fefa548ec46be\",\"urls\":[\"bzz-raw://eafc248744d568a95e7275e48736bba2ef602618266df43af7fd23463b9473f6\",\"dweb:/ipfs/QmcMXo9x4hJ7J5TrVbZww2xxzLqKizUANzT9i63YVtCHrJ\"]},\"/Users/mhe70/my-workspace/bretton-protocol/contracts/pools/abstract/Pool.sol\":{\"keccak256\":\"0x2d7ad16921f4051814ab133687384f20ac3db3d820993a403271fd9570172066\",\"urls\":[\"bzz-raw://a4ad0e34de8572fb448231c6be62bb8d230b744a3bfcd9b91bd5f26dd25876af\",\"dweb:/ipfs/QmR9eNPPuUJ1vtVxqFSq724J7HN1sjivkyJSREmGM4mz34\"]}},\"version\":1}",
   "bytecode": "0x",
   "deployedBytecode": "0x",
   "sourceMap": "",
   "deployedSourceMap": "",
   "source": "pragma solidity 0.5.16;\n\nimport \"../../externals/SafeMath.sol\";\nimport \"../../externals/SafeERC20.sol\";\nimport \"../../externals/IERC20.sol\";\n\n/*\n * @title  Pool\n * @notice Abstract pool to facilitate tracking of shares in a pool\n */\ncontract Pool {\n    using SafeMath for uint256;\n    using SafeERC20 for IERC20;\n\n    uint256 private _totalShares;\n    mapping(address => uint256) private _shares;\n\n    /**\n     * @dev Pool constructor\n     */\n    constructor() internal {\n    }\n\n    /*** VIEW ***/\n\n    /**\n     * @dev Get the total number of shares in pool\n     * @return uint256 total shares\n     */\n    function totalShares()\n        public\n        view\n        returns (uint256)\n    {\n        return _totalShares;\n    }\n\n    /**\n     * @dev Get the share of a given account\n     * @param _account User for which to retrieve balance\n     * @return uint256 shares\n     */\n    function sharesOf(address _account)\n        public\n        view\n        returns (uint256)\n    {\n        return _shares[_account];\n    }\n\n    /*** INTERNAL ***/\n\n    /**\n     * @dev Add a given amount of shares to a given account\n     * @param _account Account to increase shares for\n     * @param _amount Units of shares\n     */\n    function _increaseShares(address _account, uint256 _amount)\n        internal\n    {\n        _totalShares = _totalShares.add(_amount);\n        _shares[_account] = _shares[_account].add(_amount);\n    }\n\n    /**\n     * @dev Remove a given amount of shares from a given account\n     * @param _account Account to decrease shares for\n     * @param _amount Units of shares\n     */\n    function _decreaseShares(address _account, uint256 _amount)\n        internal\n    {\n        _totalShares = _totalShares.sub(_amount);\n        _shares[_account] = _shares[_account].sub(_amount);\n    }\n}\n",
-  "sourcePath": "/Users/mhe70/my-workspace/DeltaProtocol/contracts/pools/abstract/Pool.sol",
+  "sourcePath": "/Users/mhe70/my-workspace/bretton-protocol/contracts/pools/abstract/Pool.sol",
   "ast": {
-    "absolutePath": "/Users/mhe70/my-workspace/DeltaProtocol/contracts/pools/abstract/Pool.sol",
+    "absolutePath": "/Users/mhe70/my-workspace/bretton-protocol/contracts/pools/abstract/Pool.sol",
     "exportedSymbols": {
       "Pool": [
         2405
@@ -72,7 +72,7 @@
         "src": "0:23:22"
       },
       {
-        "absolutePath": "/Users/mhe70/my-workspace/DeltaProtocol/contracts/externals/SafeMath.sol",
+        "absolutePath": "/Users/mhe70/my-workspace/bretton-protocol/contracts/externals/SafeMath.sol",
         "file": "../../externals/SafeMath.sol",
         "id": 2314,
         "nodeType": "ImportDirective",
@@ -83,7 +83,7 @@
         "unitAlias": ""
       },
       {
-        "absolutePath": "/Users/mhe70/my-workspace/DeltaProtocol/contracts/externals/SafeERC20.sol",
+        "absolutePath": "/Users/mhe70/my-workspace/bretton-protocol/contracts/externals/SafeERC20.sol",
         "file": "../../externals/SafeERC20.sol",
         "id": 2315,
         "nodeType": "ImportDirective",
@@ -94,7 +94,7 @@
         "unitAlias": ""
       },
       {
-        "absolutePath": "/Users/mhe70/my-workspace/DeltaProtocol/contracts/externals/IERC20.sol",
+        "absolutePath": "/Users/mhe70/my-workspace/bretton-protocol/contracts/externals/IERC20.sol",
         "file": "../../externals/IERC20.sol",
         "id": 2316,
         "nodeType": "ImportDirective",
@@ -1171,7 +1171,7 @@
     "src": "0:1789:22"
   },
   "legacyAST": {
-    "absolutePath": "/Users/mhe70/my-workspace/DeltaProtocol/contracts/pools/abstract/Pool.sol",
+    "absolutePath": "/Users/mhe70/my-workspace/bretton-protocol/contracts/pools/abstract/Pool.sol",
     "exportedSymbols": {
       "Pool": [
         2405
@@ -1191,7 +1191,7 @@
         "src": "0:23:22"
       },
       {
-        "absolutePath": "/Users/mhe70/my-workspace/DeltaProtocol/contracts/externals/SafeMath.sol",
+        "absolutePath": "/Users/mhe70/my-workspace/bretton-protocol/contracts/externals/SafeMath.sol",
         "file": "../../externals/SafeMath.sol",
         "id": 2314,
         "nodeType": "ImportDirective",
@@ -1202,7 +1202,7 @@
         "unitAlias": ""
       },
       {
-        "absolutePath": "/Users/mhe70/my-workspace/DeltaProtocol/contracts/externals/SafeERC20.sol",
+        "absolutePath": "/Users/mhe70/my-workspace/bretton-protocol/contracts/externals/SafeERC20.sol",
         "file": "../../externals/SafeERC20.sol",
         "id": 2315,
         "nodeType": "ImportDirective",
@@ -1213,7 +1213,7 @@
         "unitAlias": ""
       },
       {
-        "absolutePath": "/Users/mhe70/my-workspace/DeltaProtocol/contracts/externals/IERC20.sol",
+        "absolutePath": "/Users/mhe70/my-workspace/bretton-protocol/contracts/externals/IERC20.sol",
         "file": "../../externals/IERC20.sol",
         "id": 2316,
         "nodeType": "ImportDirective",
@@ -2295,7 +2295,7 @@
   },
   "networks": {},
   "schemaVersion": "3.2.3",
-  "updatedAt": "2020-08-22T21:20:16.122Z",
+  "updatedAt": "2020-08-22T23:35:22.682Z",
   "devdoc": {
     "methods": {
       "constructor": {

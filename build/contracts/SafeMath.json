@@ -1,15 +1,15 @@
 {
   "contractName": "SafeMath",
   "abi": [],
-  "metadata": "{\"compiler\":{\"version\":\"0.5.16+commit.9c3226ce\"},\"language\":\"Solidity\",\"output\":{\"abi\":[],\"devdoc\":{\"methods\":{}},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"/Users/mhe70/my-workspace/DeltaProtocol/contracts/externals/SafeMath.sol\":\"SafeMath\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":50000},\"remappings\":[]},\"sources\":{\"/Users/mhe70/my-workspace/DeltaProtocol/contracts/externals/SafeMath.sol\":{\"keccak256\":\"0x743fc7fdd798a2d6452f45343b9b0a192846873d34034a4bb36fefa548ec46be\",\"urls\":[\"bzz-raw://eafc248744d568a95e7275e48736bba2ef602618266df43af7fd23463b9473f6\",\"dweb:/ipfs/QmcMXo9x4hJ7J5TrVbZww2xxzLqKizUANzT9i63YVtCHrJ\"]}},\"version\":1}",
-  "bytecode": "0x60556023600b82828239805160001a607314601657fe5b30600052607381538281f3fe73000000000000000000000000000000000000000030146080604052600080fdfea265627a7a72315820c041c15935ff6e7b13406f3fe0a8b6348ad84a4f720d2b00faf1038ba3d3de0964736f6c63430005100032",
-  "deployedBytecode": "0x73000000000000000000000000000000000000000030146080604052600080fdfea265627a7a72315820c041c15935ff6e7b13406f3fe0a8b6348ad84a4f720d2b00faf1038ba3d3de0964736f6c63430005100032",
+  "metadata": "{\"compiler\":{\"version\":\"0.5.16+commit.9c3226ce\"},\"language\":\"Solidity\",\"output\":{\"abi\":[],\"devdoc\":{\"methods\":{}},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"/Users/mhe70/my-workspace/bretton-protocol/contracts/externals/SafeMath.sol\":\"SafeMath\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":50000},\"remappings\":[]},\"sources\":{\"/Users/mhe70/my-workspace/bretton-protocol/contracts/externals/SafeMath.sol\":{\"keccak256\":\"0x743fc7fdd798a2d6452f45343b9b0a192846873d34034a4bb36fefa548ec46be\",\"urls\":[\"bzz-raw://eafc248744d568a95e7275e48736bba2ef602618266df43af7fd23463b9473f6\",\"dweb:/ipfs/QmcMXo9x4hJ7J5TrVbZww2xxzLqKizUANzT9i63YVtCHrJ\"]}},\"version\":1}",
+  "bytecode": "0x60556023600b82828239805160001a607314601657fe5b30600052607381538281f3fe73000000000000000000000000000000000000000030146080604052600080fdfea265627a7a7231582023fef9f81cd35a278958b2a3a7d5601f6960e98e0bd3889c502f0b9870789dc064736f6c63430005100032",
+  "deployedBytecode": "0x73000000000000000000000000000000000000000030146080604052600080fdfea265627a7a7231582023fef9f81cd35a278958b2a3a7d5601f6960e98e0bd3889c502f0b9870789dc064736f6c63430005100032",
   "sourceMap": "25:1471:15:-;;132:2:-1;166:7;155:9;146:7;137:37;255:7;249:14;246:1;241:23;235:4;232:33;222:2;;269:9;222:2;293:9;290:1;283:20;323:4;314:7;306:22;347:7;338;331:24",
   "deployedSourceMap": "25:1471:15:-;;;;;;;;",
   "source": "pragma solidity 0.5.16;\n\nlibrary SafeMath {\n    function add(uint256 a, uint256 b) internal pure returns (uint256) {\n        uint256 c = a + b;\n        require(c >= a, \"SafeMath: addition overflow\");\n\n        return c;\n    }\n    function sub(uint256 a, uint256 b) internal pure returns (uint256) {\n        return sub(a, b, \"SafeMath: subtraction overflow\");\n    }\n    function sub(uint256 a, uint256 b, string memory errorMessage) internal pure returns (uint256) {\n        require(b <= a, errorMessage);\n        uint256 c = a - b;\n\n        return c;\n    }\n    function mul(uint256 a, uint256 b) internal pure returns (uint256) {\n        if (a == 0) {\n            return 0;\n        }\n\n        uint256 c = a * b;\n        require(c / a == b, \"SafeMath: multiplication overflow\");\n\n        return c;\n    }\n    function div(uint256 a, uint256 b) internal pure returns (uint256) {\n        return div(a, b, \"SafeMath: division by zero\");\n    }\n    function div(uint256 a, uint256 b, string memory errorMessage) internal pure returns (uint256) {\n        // Solidity only automatically asserts when dividing by 0\n        require(b > 0, errorMessage);\n        uint256 c = a / b;\n\n        return c;\n    }\n    function mod(uint256 a, uint256 b) internal pure returns (uint256) {\n        return mod(a, b, \"SafeMath: modulo by zero\");\n    }\n    function mod(uint256 a, uint256 b, string memory errorMessage) internal pure returns (uint256) {\n        require(b != 0, errorMessage);\n        return a % b;\n    }\n}\n",
-  "sourcePath": "/Users/mhe70/my-workspace/DeltaProtocol/contracts/externals/SafeMath.sol",
+  "sourcePath": "/Users/mhe70/my-workspace/bretton-protocol/contracts/externals/SafeMath.sol",
   "ast": {
-    "absolutePath": "/Users/mhe70/my-workspace/DeltaProtocol/contracts/externals/SafeMath.sol",
+    "absolutePath": "/Users/mhe70/my-workspace/bretton-protocol/contracts/externals/SafeMath.sol",
     "exportedSymbols": {
       "SafeMath": [
         1389
@@ -2442,7 +2442,7 @@
     "src": "0:1497:15"
   },
   "legacyAST": {
-    "absolutePath": "/Users/mhe70/my-workspace/DeltaProtocol/contracts/externals/SafeMath.sol",
+    "absolutePath": "/Users/mhe70/my-workspace/bretton-protocol/contracts/externals/SafeMath.sol",
     "exportedSymbols": {
       "SafeMath": [
         1389
@@ -4880,7 +4880,7 @@
   },
   "networks": {},
   "schemaVersion": "3.2.3",
-  "updatedAt": "2020-08-22T21:20:16.105Z",
+  "updatedAt": "2020-08-22T23:35:22.667Z",
   "devdoc": {
     "methods": {}
   },
