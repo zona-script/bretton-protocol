@@ -31,7 +31,7 @@ module.exports = {
         0,
         1,
       ),
-      gasPrice: Number(process.env.GAS_PRICE),
+      gasPrice: 1000000000, // 1 gwei
       gas: 8000000,
       from: process.env.DEPLOYER_ACCOUNT,
       timeoutBlocks: 8000,
@@ -48,6 +48,19 @@ module.exports = {
       gas: 6900000,
       from: process.env.DEPLOYER_ACCOUNT,
       timeoutBlocks: 500,
-    }
+    },
+    kovan: {
+      network_id: '42',
+      provider: () => new HDWalletProvider(
+        [process.env.DEPLOYER_PRIVATE_KEY],
+        'https://kovan.infura.io/v3/04c5f76635f24c70b28488be34dbd838',
+        0,
+        1,
+      ),
+      gasPrice: 1000000000, // 1 gwei
+      gas: 6900000,
+      from: process.env.DEPLOYER_ACCOUNT,
+      timeoutBlocks: 500,
+    },
   },
 };

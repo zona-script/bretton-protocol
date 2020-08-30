@@ -26,6 +26,14 @@
 - DAIEarningPool - `0xbF419C2Cbc09B29957DA93A1cDccF51FE062D516`
 - nUSD - `0x9f875730BC7046bC9Bb189c731E2eD97EDBaC3D5`
 
+## Testnet Addresses (Kovan)
+- BRETToken - `0x6C6d9d832ef4DDCba52eeDECbe7C27e3F268E3Fe`
+- nUSDMintRewardPool - `0x06FEE7507024F852A9fB8f79034E0F6647B4E4e3`
+- USDCEarningPool - `0xA25f8a60eBFb0733011Fbc8826bBCE066Dca7a62`
+- USDTEarningPool - `0x938745759947d94dabc06e4565142441c27Fb577`
+- DAIEarningPool - `0x34f64e707ec1A0474A2d0a34da22DB3A63F2eb91`
+- nUSD - `0xddccD44c286910eDD9768Ec8663008b238adDf78`
+
 ## Interacting with nToken
 - create `secrets.json` based on `secrets.example.json` and populate with detail
 - run desired scripts with `node scripts/...`
