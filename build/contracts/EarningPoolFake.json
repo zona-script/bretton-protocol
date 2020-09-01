@@ -836,7 +836,7 @@
                           "name": "msg",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
-                          "referencedDeclaration": 5986,
+                          "referencedDeclaration": 6002,
                           "src": "604:3:30",
                           "typeDescriptions": {
                             "typeIdentifier": "t_magic_message",
@@ -866,7 +866,7 @@
                             "name": "this",
                             "nodeType": "Identifier",
                             "overloadedDeclarations": [],
-                            "referencedDeclaration": 6082,
+                            "referencedDeclaration": 6098,
                             "src": "624:4:30",
                             "typeDescriptions": {
                               "typeIdentifier": "t_contract$_EarningPoolFake_$5010",
@@ -1331,7 +1331,7 @@
                           "name": "msg",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
-                          "referencedDeclaration": 5986,
+                          "referencedDeclaration": 6002,
                           "src": "1059:3:30",
                           "typeDescriptions": {
                             "typeIdentifier": "t_magic_message",
@@ -1826,7 +1826,7 @@
                           "name": "msg",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
-                          "referencedDeclaration": 5986,
+                          "referencedDeclaration": 6002,
                           "src": "604:3:30",
                           "typeDescriptions": {
                             "typeIdentifier": "t_magic_message",
@@ -1856,7 +1856,7 @@
                             "name": "this",
                             "nodeType": "Identifier",
                             "overloadedDeclarations": [],
-                            "referencedDeclaration": 6082,
+                            "referencedDeclaration": 6098,
                             "src": "624:4:30",
                             "typeDescriptions": {
                               "typeIdentifier": "t_contract$_EarningPoolFake_$5010",
@@ -2321,7 +2321,7 @@
                           "name": "msg",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
-                          "referencedDeclaration": 5986,
+                          "referencedDeclaration": 6002,
                           "src": "1059:3:30",
                           "typeDescriptions": {
                             "typeIdentifier": "t_magic_message",
@@ -2556,7 +2556,7 @@
   },
   "networks": {},
   "schemaVersion": "3.2.3",
-  "updatedAt": "2020-09-01T04:33:13.943Z",
+  "updatedAt": "2020-09-01T04:40:32.214Z",
   "devdoc": {
     "methods": {
       "balanceCompound()": {
