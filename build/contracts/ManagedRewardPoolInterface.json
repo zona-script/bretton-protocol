@@ -68,21 +68,21 @@
     "absolutePath": "/Users/mhe70/my-workspace/bretton-protocol/contracts/interfaces/ManagedRewardPoolInterface.sol",
     "exportedSymbols": {
       "ManagedRewardPoolInterface": [
-        1465
+        3093
       ]
     },
-    "id": 1466,
+    "id": 3094,
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 1445,
+        "id": 3073,
         "literals": [
           "solidity",
           "0.5",
           ".16"
         ],
         "nodeType": "PragmaDirective",
-        "src": "0:23:17"
+        "src": "0:23:18"
       },
       {
         "baseContracts": [],
@@ -90,9 +90,9 @@
         "contractKind": "interface",
         "documentation": null,
         "fullyImplemented": false,
-        "id": 1465,
+        "id": 3093,
         "linearizedBaseContracts": [
-          1465
+          3093
         ],
         "name": "ManagedRewardPoolInterface",
         "nodeType": "ContractDefinition",
@@ -100,23 +100,23 @@
           {
             "body": null,
             "documentation": null,
-            "id": 1450,
+            "id": 3078,
             "implemented": false,
             "kind": "function",
             "modifiers": [],
             "name": "claim",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 1448,
+              "id": 3076,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 1447,
+                  "id": 3075,
                   "name": "_account",
                   "nodeType": "VariableDeclaration",
-                  "scope": 1450,
-                  "src": "83:16:17",
+                  "scope": 3078,
+                  "src": "83:16:18",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -124,10 +124,10 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 1446,
+                    "id": 3074,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
-                    "src": "83:7:17",
+                    "src": "83:7:18",
                     "stateMutability": "nonpayable",
                     "typeDescriptions": {
                       "typeIdentifier": "t_address",
@@ -138,16 +138,16 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "82:18:17"
+              "src": "82:18:18"
             },
             "returnParameters": {
-              "id": 1449,
+              "id": 3077,
               "nodeType": "ParameterList",
               "parameters": [],
-              "src": "109:0:17"
+              "src": "109:0:18"
             },
-            "scope": 1465,
-            "src": "68:42:17",
+            "scope": 3093,
+            "src": "68:42:18",
             "stateMutability": "nonpayable",
             "superFunction": null,
             "visibility": "external"
@@ -155,23 +155,23 @@
           {
             "body": null,
             "documentation": null,
-            "id": 1457,
+            "id": 3085,
             "implemented": false,
             "kind": "function",
             "modifiers": [],
             "name": "mintShares",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 1455,
+              "id": 3083,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 1452,
+                  "id": 3080,
                   "name": "_account",
                   "nodeType": "VariableDeclaration",
-                  "scope": 1457,
-                  "src": "135:16:17",
+                  "scope": 3085,
+                  "src": "135:16:18",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -179,10 +179,10 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 1451,
+                    "id": 3079,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
-                    "src": "135:7:17",
+                    "src": "135:7:18",
                     "stateMutability": "nonpayable",
                     "typeDescriptions": {
                       "typeIdentifier": "t_address",
@@ -194,11 +194,11 @@
                 },
                 {
                   "constant": false,
-                  "id": 1454,
+                  "id": 3082,
                   "name": "_amount",
                   "nodeType": "VariableDeclaration",
-                  "scope": 1457,
-                  "src": "153:15:17",
+                  "scope": 3085,
+                  "src": "153:15:18",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -206,10 +206,10 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 1453,
+                    "id": 3081,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
-                    "src": "153:7:17",
+                    "src": "153:7:18",
                     "typeDescriptions": {
                       "typeIdentifier": "t_uint256",
                       "typeString": "uint256"
@@ -219,16 +219,16 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "134:35:17"
+              "src": "134:35:18"
             },
             "returnParameters": {
-              "id": 1456,
+              "id": 3084,
               "nodeType": "ParameterList",
               "parameters": [],
-              "src": "178:0:17"
+              "src": "178:0:18"
             },
-            "scope": 1465,
-            "src": "115:64:17",
+            "scope": 3093,
+            "src": "115:64:18",
             "stateMutability": "nonpayable",
             "superFunction": null,
             "visibility": "external"
@@ -236,23 +236,23 @@
           {
             "body": null,
             "documentation": null,
-            "id": 1464,
+            "id": 3092,
             "implemented": false,
             "kind": "function",
             "modifiers": [],
             "name": "burnShares",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 1462,
+              "id": 3090,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 1459,
+                  "id": 3087,
                   "name": "_account",
                   "nodeType": "VariableDeclaration",
-                  "scope": 1464,
-                  "src": "204:16:17",
+                  "scope": 3092,
+                  "src": "204:16:18",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -260,10 +260,10 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 1458,
+                    "id": 3086,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
-                    "src": "204:7:17",
+                    "src": "204:7:18",
                     "stateMutability": "nonpayable",
                     "typeDescriptions": {
                       "typeIdentifier": "t_address",
@@ -275,11 +275,11 @@
                 },
                 {
                   "constant": false,
-                  "id": 1461,
+                  "id": 3089,
                   "name": "_amount",
                   "nodeType": "VariableDeclaration",
-                  "scope": 1464,
-                  "src": "222:15:17",
+                  "scope": 3092,
+                  "src": "222:15:18",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -287,10 +287,10 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 1460,
+                    "id": 3088,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
-                    "src": "222:7:17",
+                    "src": "222:7:18",
                     "typeDescriptions": {
                       "typeIdentifier": "t_uint256",
                       "typeString": "uint256"
@@ -300,46 +300,46 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "203:35:17"
+              "src": "203:35:18"
             },
             "returnParameters": {
-              "id": 1463,
+              "id": 3091,
               "nodeType": "ParameterList",
               "parameters": [],
-              "src": "247:0:17"
+              "src": "247:0:18"
             },
-            "scope": 1465,
-            "src": "184:64:17",
+            "scope": 3093,
+            "src": "184:64:18",
             "stateMutability": "nonpayable",
             "superFunction": null,
             "visibility": "external"
           }
         ],
-        "scope": 1466,
-        "src": "25:225:17"
+        "scope": 3094,
+        "src": "25:225:18"
       }
     ],
-    "src": "0:251:17"
+    "src": "0:251:18"
   },
   "legacyAST": {
     "absolutePath": "/Users/mhe70/my-workspace/bretton-protocol/contracts/interfaces/ManagedRewardPoolInterface.sol",
     "exportedSymbols": {
       "ManagedRewardPoolInterface": [
-        1465
+        3093
       ]
     },
-    "id": 1466,
+    "id": 3094,
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 1445,
+        "id": 3073,
         "literals": [
           "solidity",
           "0.5",
           ".16"
         ],
         "nodeType": "PragmaDirective",
-        "src": "0:23:17"
+        "src": "0:23:18"
       },
       {
         "baseContracts": [],
@@ -347,9 +347,9 @@
         "contractKind": "interface",
         "documentation": null,
         "fullyImplemented": false,
-        "id": 1465,
+        "id": 3093,
         "linearizedBaseContracts": [
-          1465
+          3093
         ],
         "name": "ManagedRewardPoolInterface",
         "nodeType": "ContractDefinition",
@@ -357,23 +357,23 @@
           {
             "body": null,
             "documentation": null,
-            "id": 1450,
+            "id": 3078,
             "implemented": false,
             "kind": "function",
             "modifiers": [],
             "name": "claim",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 1448,
+              "id": 3076,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 1447,
+                  "id": 3075,
                   "name": "_account",
                   "nodeType": "VariableDeclaration",
-                  "scope": 1450,
-                  "src": "83:16:17",
+                  "scope": 3078,
+                  "src": "83:16:18",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -381,10 +381,10 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 1446,
+                    "id": 3074,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
-                    "src": "83:7:17",
+                    "src": "83:7:18",
                     "stateMutability": "nonpayable",
                     "typeDescriptions": {
                       "typeIdentifier": "t_address",
@@ -395,16 +395,16 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "82:18:17"
+              "src": "82:18:18"
             },
             "returnParameters": {
-              "id": 1449,
+              "id": 3077,
               "nodeType": "ParameterList",
               "parameters": [],
-              "src": "109:0:17"
+              "src": "109:0:18"
             },
-            "scope": 1465,
-            "src": "68:42:17",
+            "scope": 3093,
+            "src": "68:42:18",
             "stateMutability": "nonpayable",
             "superFunction": null,
             "visibility": "external"
@@ -412,23 +412,23 @@
           {
             "body": null,
             "documentation": null,
-            "id": 1457,
+            "id": 3085,
             "implemented": false,
             "kind": "function",
             "modifiers": [],
             "name": "mintShares",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 1455,
+              "id": 3083,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 1452,
+                  "id": 3080,
                   "name": "_account",
                   "nodeType": "VariableDeclaration",
-                  "scope": 1457,
-                  "src": "135:16:17",
+                  "scope": 3085,
+                  "src": "135:16:18",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -436,10 +436,10 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 1451,
+                    "id": 3079,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
-                    "src": "135:7:17",
+                    "src": "135:7:18",
                     "stateMutability": "nonpayable",
                     "typeDescriptions": {
                       "typeIdentifier": "t_address",
@@ -451,11 +451,11 @@
                 },
                 {
                   "constant": false,
-                  "id": 1454,
+                  "id": 3082,
                   "name": "_amount",
                   "nodeType": "VariableDeclaration",
-                  "scope": 1457,
-                  "src": "153:15:17",
+                  "scope": 3085,
+                  "src": "153:15:18",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -463,10 +463,10 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 1453,
+                    "id": 3081,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
-                    "src": "153:7:17",
+                    "src": "153:7:18",
                     "typeDescriptions": {
                       "typeIdentifier": "t_uint256",
                       "typeString": "uint256"
@@ -476,16 +476,16 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "134:35:17"
+              "src": "134:35:18"
             },
             "returnParameters": {
-              "id": 1456,
+              "id": 3084,
               "nodeType": "ParameterList",
               "parameters": [],
-              "src": "178:0:17"
+              "src": "178:0:18"
             },
-            "scope": 1465,
-            "src": "115:64:17",
+            "scope": 3093,
+            "src": "115:64:18",
             "stateMutability": "nonpayable",
             "superFunction": null,
             "visibility": "external"
@@ -493,23 +493,23 @@
           {
             "body": null,
             "documentation": null,
-            "id": 1464,
+            "id": 3092,
             "implemented": false,
             "kind": "function",
             "modifiers": [],
             "name": "burnShares",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 1462,
+              "id": 3090,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 1459,
+                  "id": 3087,
                   "name": "_account",
                   "nodeType": "VariableDeclaration",
-                  "scope": 1464,
-                  "src": "204:16:17",
+                  "scope": 3092,
+                  "src": "204:16:18",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -517,10 +517,10 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 1458,
+                    "id": 3086,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
-                    "src": "204:7:17",
+                    "src": "204:7:18",
                     "stateMutability": "nonpayable",
                     "typeDescriptions": {
                       "typeIdentifier": "t_address",
@@ -532,11 +532,11 @@
                 },
                 {
                   "constant": false,
-                  "id": 1461,
+                  "id": 3089,
                   "name": "_amount",
                   "nodeType": "VariableDeclaration",
-                  "scope": 1464,
-                  "src": "222:15:17",
+                  "scope": 3092,
+                  "src": "222:15:18",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -544,10 +544,10 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 1460,
+                    "id": 3088,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
-                    "src": "222:7:17",
+                    "src": "222:7:18",
                     "typeDescriptions": {
                       "typeIdentifier": "t_uint256",
                       "typeString": "uint256"
@@ -557,26 +557,26 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "203:35:17"
+              "src": "203:35:18"
             },
             "returnParameters": {
-              "id": 1463,
+              "id": 3091,
               "nodeType": "ParameterList",
               "parameters": [],
-              "src": "247:0:17"
+              "src": "247:0:18"
             },
-            "scope": 1465,
-            "src": "184:64:17",
+            "scope": 3093,
+            "src": "184:64:18",
             "stateMutability": "nonpayable",
             "superFunction": null,
             "visibility": "external"
           }
         ],
-        "scope": 1466,
-        "src": "25:225:17"
+        "scope": 3094,
+        "src": "25:225:18"
       }
     ],
-    "src": "0:251:17"
+    "src": "0:251:18"
   },
   "compiler": {
     "name": "solc",
@@ -584,7 +584,7 @@
   },
   "networks": {},
   "schemaVersion": "3.2.3",
-  "updatedAt": "2020-08-22T23:35:22.671Z",
+  "updatedAt": "2020-09-01T04:33:13.909Z",
   "devdoc": {
     "methods": {}
   },
