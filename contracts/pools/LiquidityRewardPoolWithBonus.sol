@@ -643,13 +643,16 @@ interface IReferral {
     function addEarning(address referrer, uint256 earning) external;
 }
 
-contract nUSD_BRET_Pool is LPTokenWrapper, IRewardDistributionRecipient {
+contract LiquidityRewardPoolWithBonus is LPTokenWrapper, IRewardDistributionRecipient {
     IERC20 public BRET;
 
-    uint256 public constant DURATION = 625000;
-    uint256 public initreward = 7 * 10**5 * 10**18; // 700k
-    uint256 public starttime = 1597622400 + 24 hours; // 08/18/2020 @ 12:00am (UTC)
+    uint256 public constant DURATION = 1209600; // 14 days
+    uint256 public initreward;
+    uint256 public starttime;
+    address public devAddr;
+
     uint256 public constant REFERRAL_COMMISSION_PERCENT = 1;
+    uint256 public constant BONUS_MULTIPLIER = 10;
 
     uint256 public periodFinish = 0;
     uint256 public rewardRate = 0;
@@ -665,13 +668,22 @@ contract nUSD_BRET_Pool is LPTokenWrapper, IRewardDistributionRecipient {
     event Withdrawn(address indexed user, uint256 amount);
     event RewardPaid(address indexed user, uint256 reward);
 
-    constructor(address _BRET, address _rewardReferral)
+    constructor(
+        address _BRET,
+        address _rewardReferral,
+        address _lpt,
+        uint256 _initiReward,
+        uint256 _starttime,
+        address _devAddr)
         public
     {
         BRET = IERC20(_BRET);
-        lpt = IERC20(0xc19e3035A4F6F69B981C7dC2F533e862aA3Af496); // BPT for nUSD (98) - BRET (2)
+        lpt = IERC20(_lpt);
         rewardReferral = _rewardReferral;
         rewardDistribution = msg.sender;
+        initreward = _initiReward;
+        starttime = _starttime;
+        devAddr = _devAddr;
     }
 
     modifier updateReward(address account) {
@@ -714,7 +726,7 @@ contract nUSD_BRET_Pool is LPTokenWrapper, IRewardDistributionRecipient {
     }
 
     // stake visibility is public as overriding LPTokenWrapper's stake() function
-    function stake(uint256 amount, address referrer) public updateReward(msg.sender) checkhalve checkStart {
+    function stake(uint256 amount, address referrer) public updateReward(msg.sender) checkNextRound checkStart {
         require(amount > 0, "Cannot stake 0");
         require(referrer != msg.sender, "You cannot refer yourself");
         super.stake(amount);
@@ -735,7 +747,7 @@ contract nUSD_BRET_Pool is LPTokenWrapper, IRewardDistributionRecipient {
         getReward();
     }
 
-    function getReward() public updateReward(msg.sender) checkhalve checkStart {
+    function getReward() public updateReward(msg.sender) checkNextRound checkStart {
         uint256 reward = earned(msg.sender);
         if (reward > 0) {
             rewards[msg.sender] = 0;
@@ -761,11 +773,10 @@ contract nUSD_BRET_Pool is LPTokenWrapper, IRewardDistributionRecipient {
         }
     }
 
-    modifier checkhalve() {
+    modifier checkNextRound() {
         if (block.timestamp >= periodFinish) {
-            initreward = initreward.mul(50).div(100);
             BRET.mint(address(this), initreward);
-
+            BRET.mint(devAddr, initreward.div(10));
             rewardRate = initreward.div(DURATION);
             periodFinish = block.timestamp.add(DURATION);
             emit RewardAdded(initreward);
@@ -797,7 +808,8 @@ contract nUSD_BRET_Pool is LPTokenWrapper, IRewardDistributionRecipient {
           emit RewardAdded(reward);
         } else {
           require(BRET.balanceOf(address(this)) == 0, "already initialized");
-          BRET.mint(address(this), initreward);
+          BRET.mint(address(this), initreward.mul(BONUS_MULTIPLIER));
+          BRET.mint(devAddr, initreward.mul(BONUS_MULTIPLIER).div(10));
           rewardRate = initreward.div(DURATION);
           lastUpdateTime = starttime;
           periodFinish = starttime.add(DURATION);
@@ -823,5 +835,11 @@ contract nUSD_BRET_Pool is LPTokenWrapper, IRewardDistributionRecipient {
 
         // transfer to
         _token.safeTransfer(to, amount);
+    }
+
+    // Update dev address by the previous dev.
+    function dev(address _devAddr) public {
+        require(msg.sender == devAddr, "dev: wut?");
+        devAddr = _devAddr;
     }
 }
