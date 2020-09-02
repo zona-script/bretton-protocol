@@ -643,10 +643,10 @@ interface IReferral {
     function addEarning(address referrer, uint256 earning) external;
 }
 
-contract LiquidityRewardPoolWithHalving is LPTokenWrapper, IRewardDistributionRecipient {
+contract LiquidityRewardPool is LPTokenWrapper, IRewardDistributionRecipient {
     IERC20 public BRET;
 
-    uint256 public DURATION;
+    uint256 public constant DURATION = 1209600; // 14 days
     uint256 public initreward;
     uint256 public starttime;
     address public devAddr;
@@ -671,7 +671,6 @@ contract LiquidityRewardPoolWithHalving is LPTokenWrapper, IRewardDistributionRe
         address _BRET,
         address _rewardReferral,
         address _lpt,
-        uint256 _DURATION,
         uint256 _initiReward,
         uint256 _starttime,
         address _devAddr)
@@ -681,7 +680,6 @@ contract LiquidityRewardPoolWithHalving is LPTokenWrapper, IRewardDistributionRe
         lpt = IERC20(_lpt);
         rewardReferral = _rewardReferral;
         rewardDistribution = msg.sender;
-        DURATION = _DURATION;
         initreward = _initiReward;
         starttime = _starttime;
         devAddr = _devAddr;
@@ -727,7 +725,7 @@ contract LiquidityRewardPoolWithHalving is LPTokenWrapper, IRewardDistributionRe
     }
 
     // stake visibility is public as overriding LPTokenWrapper's stake() function
-    function stake(uint256 amount, address referrer) public updateReward(msg.sender) checkhalve checkStart {
+    function stake(uint256 amount, address referrer) public updateReward(msg.sender) checkStart {
         require(amount > 0, "Cannot stake 0");
         require(referrer != msg.sender, "You cannot refer yourself");
         super.stake(amount);
@@ -748,7 +746,7 @@ contract LiquidityRewardPoolWithHalving is LPTokenWrapper, IRewardDistributionRe
         getReward();
     }
 
-    function getReward() public updateReward(msg.sender) checkhalve checkStart {
+    function getReward() public updateReward(msg.sender) checkStart {
         uint256 reward = earned(msg.sender);
         if (reward > 0) {
             rewards[msg.sender] = 0;
@@ -772,18 +770,6 @@ contract LiquidityRewardPoolWithHalving is LPTokenWrapper, IRewardDistributionRe
                 emit Burned(commission);
             }
         }
-    }
-
-    modifier checkhalve() {
-        if (block.timestamp >= periodFinish) {
-            initreward = initreward.mul(50).div(100);
-            BRET.mint(address(this), initreward);
-            BRET.mint(devAddr, initreward.div(10));
-            rewardRate = initreward.div(DURATION);
-            periodFinish = block.timestamp.add(DURATION);
-            emit RewardAdded(initreward);
-        }
-        _;
     }
 
     modifier checkStart(){
