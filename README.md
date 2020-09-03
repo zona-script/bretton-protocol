@@ -18,6 +18,14 @@
 - `rewardPerShare()` - get rewards distributed per share
 - `earned(address _account)` - get outstanding rewards available to claim for an account
 
+## Mainnet Addresses
+- BRETToken - `0x096dc18E816f3a39c84c42fE092658EBe57066d5`
+- nUSDMintRewardPool - ``
+- USDCEarningPool - ``
+- USDTEarningPool - ``
+- DAIEarningPool - ``
+- nUSD - ``
+
 ## Testnet Addresses (Ropsten)
 - BRETToken - `0xA0043FcEa3381D4f1a578BfB27e4c9D5329B76B9`
 - nUSDMintRewardPool - `0x0eC4Bf5b4d73AfA21B1a3A3724dD995d9814Bdd2`
