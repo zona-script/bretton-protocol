@@ -6,8 +6,6 @@ contract nUSD_BRET_Pool is LiquidityRewardPoolWithBonus {
     constructor (
         address _BRET,
         address _rewardReferral,
-        uint256 _DURATION,
-        uint256 _BONUS_ENDTIME,
         uint256 _initiReward,
         uint256 _starttime,
         address _devAddr
@@ -15,7 +13,7 @@ contract nUSD_BRET_Pool is LiquidityRewardPoolWithBonus {
         LiquidityRewardPoolWithBonus (
             _BRET,
             _rewardReferral,
-            address(0), // nUSD-BRET BPT
+            address(0x030E5A54A997e60926f89772A092EC9b5CaF1E60), // nUSD-BRET BPT
             _initiReward,
             _starttime,
             _devAddr

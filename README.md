@@ -41,6 +41,9 @@
 - USDTEarningPool - `0x938745759947d94dabc06e4565142441c27Fb577`
 - DAIEarningPool - `0x34f64e707ec1A0474A2d0a34da22DB3A63F2eb91`
 - nUSD - `0xddccD44c286910eDD9768Ec8663008b238adDf78`
+- Referral - `0x1DA18F12111CfA7C9fB32A1062ACB3b76D9263d3`
+- nUSD_BRET_Pool - `0x09F8628F9E337F59DBaCba6CcB30BFaEb2C9BCe2`
+- Balancer Pool for nUSD/BRET pair - `https://kovan.pools.balancer.exchange/#/pool/0x030e5a54a997e60926f89772a092ec9b5caf1e60/`
 
 ## Interacting with nToken
 - create `secrets.json` based on `secrets.example.json` and populate with detail

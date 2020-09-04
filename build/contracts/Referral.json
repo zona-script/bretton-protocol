@@ -6175,9 +6175,62 @@
     "name": "solc",
     "version": "0.5.16+commit.9c3226ce.Emscripten.clang"
   },
-  "networks": {},
+  "networks": {
+    "42": {
+      "events": {
+        "0xd5f5d3947cee2c1f346ba9359a003af3d6202e5bc2e987685ab0cf0e73f5ac3b": {
+          "anonymous": false,
+          "inputs": [
+            {
+              "indexed": false,
+              "internalType": "address",
+              "name": "token",
+              "type": "address"
+            },
+            {
+              "indexed": false,
+              "internalType": "address",
+              "name": "owner",
+              "type": "address"
+            },
+            {
+              "indexed": false,
+              "internalType": "uint256",
+              "name": "amount",
+              "type": "uint256"
+            }
+          ],
+          "name": "EmergencyERC20Drain",
+          "type": "event"
+        },
+        "0x965e581fd2224ce85185c5f48cfbcc00e17fa216f970b274fc724888f6b8994a": {
+          "anonymous": false,
+          "inputs": [
+            {
+              "indexed": true,
+              "internalType": "address",
+              "name": "referrer",
+              "type": "address"
+            },
+            {
+              "indexed": true,
+              "internalType": "address",
+              "name": "farmer",
+              "type": "address"
+            }
+          ],
+          "name": "NewReferral",
+          "type": "event"
+        }
+      },
+      "links": {},
+      "address": "0x1DA18F12111CfA7C9fB32A1062ACB3b76D9263d3",
+      "transactionHash": "0x5b14b636ab478b766be43b755480abe30209d1199133f87658abd3b7050c9673"
+    }
+  },
   "schemaVersion": "3.2.3",
-  "updatedAt": "2020-09-03T06:54:38.351Z",
+  "updatedAt": "2020-09-04T04:27:08.251Z",
+  "networkType": "ethereum",
   "devdoc": {
     "methods": {}
   },
