@@ -20,11 +20,11 @@
 
 ## Mainnet Addresses
 - BRETToken - `0x096dc18E816f3a39c84c42fE092658EBe57066d5`
-- nUSDMintRewardPool - ``
-- USDCEarningPool - ``
-- USDTEarningPool - ``
-- DAIEarningPool - ``
-- nUSD - ``
+- nUSDMintRewardPool - `0x67B312C433F052BB71efAe94632e1654011C42A3`
+- USDCEarningPool - `0x1DA18F12111CfA7C9fB32A1062ACB3b76D9263d3`
+- USDTEarningPool - `0x09F8628F9E337F59DBaCba6CcB30BFaEb2C9BCe2`
+- DAIEarningPool - `0x2f329997E62BC769C947D5b60c05c3E0ADEE404B`
+- nUSD - `0x1491DcBcDbfFDDFe8909c9Dd0Ef40Ef61be3750c`
 
 ## Testnet Addresses (Ropsten)
 - BRETToken - `0xA0043FcEa3381D4f1a578BfB27e4c9D5329B76B9`

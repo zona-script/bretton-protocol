@@ -9,9 +9,9 @@ import "../pools/EarningPool.sol";
 contract USDCPool is EarningPool {
     constructor ()
         EarningPool (
-            address(0xb7a4F3E9097C08dA09517b5aB877F7a917224ede), // USDC
-            address(0x61460874a7196d6a22D1eE4922473664b3E95270), // reward token
-            address(0x4a92E71227D294F041BD82dd8f78591B75140d63) // compound cUSDC
+            address(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48), // USDC
+            address(0xc00e94Cb662C3520282E6f5717214004A7f26888), // reward token
+            address(0x39AA39c021dfbaE8faC545936693aC917d5E7563) // compound cUSDC
         )
         public
     {

@@ -27,7 +27,7 @@ module.exports = {
       network_id: '1',
       provider: () => new HDWalletProvider(
         [process.env.DEPLOYER_PRIVATE_KEY],
-        "https://mainnet.infura.io/v3/731a2b3d28e445b7ac56f23507614fea",
+        "https://mainnet.infura.io/v3/7244e42d02b744158c1c48c484262744",
         0,
         1,
       ),

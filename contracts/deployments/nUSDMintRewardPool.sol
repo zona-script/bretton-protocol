@@ -9,7 +9,7 @@ import "../pools/ManagedRewardPool.sol";
 contract nUSDMintRewardPool is ManagedRewardPool {
     constructor (address _bretToken)
         ManagedRewardPool (
-            172800, // 2 days
+            604800, // 7 days
             _bretToken
         )
         public
